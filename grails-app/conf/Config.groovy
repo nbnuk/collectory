@@ -52,31 +52,31 @@ if (!skin.footerUrl) {
  *  EXTERNAL SERVERS
 \******************************************************************************/
 if (!bie.baseURL) {
-     bie.baseURL = "http://bie.ala.org.au/"
+     bie.baseURL = "https://bie.ala.org.au/"
 }
 if (!bie.searchPath) {
     bie.searchPath = "/search"
 }
 if (!biocacheUiURL) {
-    biocacheUiURL = "http://biocache.ala.org.au"
+    biocacheUiURL = "https://biocache.ala.org.au"
 }
 if(!biocacheServicesUrl){
-    biocacheServicesUrl = "http://biocache.ala.org.au/ws"
+    biocacheServicesUrl = "https://biocache-ws.ala.org.au/ws"
 }
 if (!spatial.baseURL) {
-    spatial.baseURL = "http://spatial.ala.org.au/"
+    spatial.baseURL = "https://spatial.ala.org.au/"
 }
 if (!ala.baseURL) {
-    ala.baseURL = "http://www.ala.org.au"
+    ala.baseURL = "https://www.ala.org.au"
 }
 if (!headerAndFooter.baseURL) {
-    headerAndFooter.baseURL = "http://www2.ala.org.au/commonui"
+    headerAndFooter.baseURL = "https://www2.ala.org.au/commonui"
 }
 if(!alertUrl){
-    alertUrl = "http://alerts.ala.org.au/"
+    alertUrl = "https://alerts.ala.org.au/"
 }
 if(!speciesListToolUrl){
-    speciesListToolUrl = "http://lists.ala.org.au/speciesListItem/list/"
+    speciesListToolUrl = "https://lists.ala.org.au/speciesListItem/list/"
 }
 
 if(!alertResourceName){
