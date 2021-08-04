@@ -1,7 +1,7 @@
 language: groovy
 jdk:
   - openjdk8
-  branches:
+branches:
   only:
     - master
     - develop
