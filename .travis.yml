@@ -1,20 +1,33 @@
+os: linux
+dist: bionic
 language: groovy
 jdk:
   - openjdk8
-sudo: false
-branches:
+  branches:
   only:
     - master
     - grails4
+    -
 before_install:
-  - wget -q https://raw.githubusercontent.com/AtlasOfLivingAustralia/travis-build-configuration/master/ala_common.sh
-  - chmod +x ala_common.sh
-  - source ./ala_common.sh
-  - ala_travis_grails_setup_env
+  - export TZ=Australia/Canberra
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+
+# This disables the default gradlew assemble
+install:
+  - true
+
+cache:
+  directories:
+    - $HOME/.m2
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
 
 script:
-  - ala_travis_grails_build
+  - ./gradlew assemble
 
+after_success:
+  - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && ./gradlew clean && travis_retry ./gradlew publish'
 env:
   global:
     - secure: G31IscTcNtjjFA0R2pDRaZ2Std1d5F3pIfr3NUe0PsKcj8F2ubFd6xZ3LCccKu/HdDdlJ/6K6Khn1EfwHie5NRP+Uu7oAUOVkTXSeI4KfQFywpf3TvKLILh8/2NUe0451ESivKQ28UW4jPOehmLtCyd7MbxnO9GIrYyaWjNEJJw=
