@@ -4,3 +4,5 @@ target/*
 build/*
 .gradle/*
 .grailspid
+/.gradle/
+/build/

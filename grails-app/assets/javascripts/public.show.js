@@ -8,14 +8,6 @@ $(document).ready(function() {
         return false;
     }
 
-    // FancyBox popups
-    $("a#lsid").fancybox({
-        'hideOnContentClick' : false,
-        'titleShow' : false,
-        'autoDimensions' : false,
-        'width' : 600,
-        'height' : 180
-    });
     $("a.current").fancybox({
         'hideOnContentClick' : false,
         'titleShow' : false,
