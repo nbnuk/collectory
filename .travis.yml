@@ -1,0 +1,21 @@
+language: groovy
+jdk:
+  - openjdk8
+sudo: false
+branches:
+  only:
+    - master
+    - grails4
+before_install:
+  - wget -q https://raw.githubusercontent.com/AtlasOfLivingAustralia/travis-build-configuration/master/ala_common.sh
+  - chmod +x ala_common.sh
+  - source ./ala_common.sh
+  - ala_travis_grails_setup_env
+
+script:
+  - ala_travis_grails_build
+
+env:
+  global:
+    - secure: G31IscTcNtjjFA0R2pDRaZ2Std1d5F3pIfr3NUe0PsKcj8F2ubFd6xZ3LCccKu/HdDdlJ/6K6Khn1EfwHie5NRP+Uu7oAUOVkTXSeI4KfQFywpf3TvKLILh8/2NUe0451ESivKQ28UW4jPOehmLtCyd7MbxnO9GIrYyaWjNEJJw=
+    - secure: g7txXzs6g/DzF9bwI5UZ4wG2QxB4aqQeAK1TxL3P0DfMHB8hXs/BydKrFaA9TnJiB/g0fwabNCuJWr+IgOL3EPA1txwVu9VVttHqKiJXthoen1eN0QJtsCWhlE2/ldC1mENaJVXBQs7++sNutytUIOr9m2Yk78mXnu2RIfk7U/k=
