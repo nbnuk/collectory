@@ -1,30 +1,14 @@
-<%@ page import="au.org.ala.collectory.ContactFor; grails.converters.deep.JSON; java.text.DecimalFormat; au.org.ala.collectory.Collection; au.org.ala.collectory.Institution" %>
+<%@ page import="au.org.ala.collectory.ContactFor; grails.converters.JSON; java.text.DecimalFormat; au.org.ala.collectory.Collection; au.org.ala.collectory.Institution" %>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <meta name="layout" content="${grailsApplication.config.skin.layout}" />
         <title><cl:pageTitle>${fieldValue(bean: instance, field: "name")}</cl:pageTitle></title>
         <link rel="stylesheet" href="${resource(dir:'css/smoothness',file:'jquery-ui-1.12.1.min.css')}" type="text/css" media="screen"/>
-        <r:require modules="fancybox, jquery_ui_custom, rotate, change, json2, smoothness"/>
         <script type="text/javascript" src="${resource(dir:'js/tinymce/jscripts/tiny_mce', file:'jquery.tinymce.js')}" ></script >
         <script type="text/javascript" >
           $(document).ready(function() {
             greyInitialValues();
-            $("a#lsidbox").fancybox({
-                    'hideOnContentClick' : false,
-                    'titleShow' : false,
-                    'autoDimensions' : false,
-                    'width' : 600,
-                    'height' : 180
-            });
-            $("a.current").fancybox({
-                    'hideOnContentClick' : false,
-                    'titleShow' : false,
-                        'titlePosition' : 'inside',
-                    'autoDimensions' : true,
-                    'width' : 300
-            });
-          });
         </script>
         <script type="text/javascript" language="javascript" src="https://www.google.com/jsapi"></script>
     </head>
