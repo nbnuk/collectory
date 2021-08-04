@@ -4,7 +4,7 @@ jdk:
   branches:
   only:
     - master
-    - grails4
+    - develop
 
 before_install:
   - export TZ=Australia/Canberra
