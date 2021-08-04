@@ -12,7 +12,8 @@ buildscript {
 }
 
 version "3.0-SNAPSHOT"
-group "au.org.ala.collectory"
+
+group "au.org.ala"
 
 apply plugin:"eclipse"
 apply plugin:"idea"
@@ -21,6 +22,8 @@ apply plugin:"org.grails.grails-web"
 apply plugin:"com.github.erdi.webdriver-binaries"
 apply plugin:"com.bertramlabs.asset-pipeline"
 apply plugin:"org.grails.grails-gsp"
+
+apply from: 'https://raw.githubusercontent.com/AtlasOfLivingAustralia/travis-build-configuration/master/travis_grails_publish.gradle'
 
 repositories {
     mavenLocal()
