@@ -14,6 +14,7 @@ class IptController {
 
     def collectoryAuthService
     def iptService
+    def providerGroupService
 
     /**
      * Scan an IPT instance described by a data provider and provide a list of datasets that need to be updated.
@@ -40,7 +41,7 @@ class IptController {
         def check = params.check == null || !params.check.equalsIgnoreCase("false")
         def keyName = params.key ?: 'catalogNumber'
         def isShareableWithGBIF = params.isShareableWithGBIF ? params.isShareableWithGBIF.toBoolean(): true
-        def provider = ProviderGroup._get(params.uid)
+        def provider = providerGroupService._get(params.uid)
         def apiKey = request.cookies.find { cookie -> cookie.name == API_KEY_COOKIE }
         if (!apiKey){
             // look in the standard place - http apiKey param
@@ -48,7 +49,7 @@ class IptController {
         }
         def keyCheck = apiKey ? collectoryAuthService.checkApiKey(apiKey.value) : null
         def username = keyCheck?.userEmail ?: collectoryAuthService.username()
-        def admin = keyCheck?.valid || collectoryAuthService.userInRole(ProviderGroup.ROLE_ADMIN)
+        def admin = keyCheck?.valid || collectoryAuthService.userInRole(grailsApplication.config.ROLE_ADMIN)
 
         log.debug "Access via apikey: ${keyCheck}, user ${username}, admin ${admin}"
         if (create && !admin) {
@@ -86,7 +87,7 @@ class IptController {
         response.setHeader("Content-disposition", "attachment;filename=ipt-sync.csv")
 
         def csvWriter = new CSVWriter(new OutputStreamWriter(response.outputStream))
-        def provider = ProviderGroup._get(params.uid)
+        def provider = providerGroupService._get(params.uid)
         if(provider.websiteUrl) {
             def newMap = [:]
             DataResource.findAll().each { dr ->

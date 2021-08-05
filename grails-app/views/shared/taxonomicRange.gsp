@@ -4,7 +4,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <meta name="layout" content="${grailsApplication.config.skin.layout}" />
         <title><g:message code="collection.base.label" default="Edit taxonomy hints" /></title>
-        <r:require modules="jstree, jquery_tools, debug"/>
+        <asset:javascript src="application.css"/>
     </head>
     <body>
         <div class="title-bar">
@@ -21,6 +21,7 @@
             </g:hasErrors>
             <g:form method="post" name="baseForm" action="base">
                 <g:hiddenField name="id" value="${command?.id}" />
+                <g:hiddenField name="uid" value="${command?.uid}" />
                 <g:hiddenField name="version" value="${command.version}" />
                 <g:hiddenField name="range" value="${command.listTaxonomicRange() ? command.listTaxonomicRange().join(',') : ''}" />
 

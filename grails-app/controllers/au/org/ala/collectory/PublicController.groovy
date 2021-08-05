@@ -15,7 +15,7 @@ import java.text.ParseException
  */
 class PublicController {
 
-    def collectoryAuthService
+    def collectoryAuthService, activityLogService, providerGroupService
 
     def delay = 3000    // testing delay for responses
 
@@ -242,7 +242,7 @@ class PublicController {
         response.setDateHeader("Expires",1L)
         response.setHeader("Cache-Control","no-cache")
         response.addHeader("Cache-Control","no-store")
-        def instance = ProviderGroup._get(params.id)
+        def instance = providerGroupService._get(params.id)
         //println ">>debug map key " + grailsApplication.config.google.maps.v2.key
         if (!instance) {
             log.error "Unable to find entity for id = ${params.id}"
@@ -398,7 +398,7 @@ class PublicController {
             def childInstitutions = []
             def ciCollectionsCount = 0
             institution.childInstitutions?.tokenize(' ')?.each {
-                def inst = ProviderGroup._get(it as String)
+                def inst = providerGroupService._get(it as String)
                 if (inst) {
                     childInstitutions << inst
                     ciCollectionsCount += inst.listCollections().size()
@@ -433,7 +433,7 @@ class PublicController {
                 }
             }
 
-            ActivityLog.log collectoryAuthService?.username(), collectoryAuthService?.isAdmin(), institution.uid, Action.VIEW
+            activityLogService.log collectoryAuthService?.username(), collectoryAuthService?.isAdmin(), institution.uid, Action.VIEW
             [instance: institution, exceptions: recordExceptions]
         }
     }
@@ -442,12 +442,12 @@ class PublicController {
      * Shows the public page for a data provider.
      */
     def showDataProvider = {
-        def instance = ProviderGroup._get(params.id)
+        def instance = DataProvider.findByUid(params.id)
         if (!instance) {
             flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'dataProvider.label', default: 'Data provider'), params.code ? params.code : params.id])}"
             redirect(controller: "public", action: "map")
         } else {
-            ActivityLog.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(ProviderGroup.ROLE_ADMIN), instance.uid, Action.VIEW
+            activityLogService.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), instance.uid, Action.VIEW
             [instance: instance]
         }
     }
@@ -456,7 +456,7 @@ class PublicController {
      * Shows the public page for a data resource.
      */
     def showDataResource = {
-        def instance = ProviderGroup._get(params.id)
+        def instance = DataResource.findByUid(params.id)
         if (!instance) {
             flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'dataResource.label', default: 'Data resource'), params.code ? params.code : params.id])}"
             redirect(controller: "public", action: "map")
@@ -465,7 +465,7 @@ class PublicController {
             render "This resource has decided to not contribute to the Atlas."
         }
         else {
-            ActivityLog.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(ProviderGroup.ROLE_ADMIN), instance.uid, Action.VIEW
+            activityLogService.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), instance.uid, Action.VIEW
             [instance: instance]
         }
     }
@@ -480,7 +480,7 @@ class PublicController {
             redirect(controller: "public", action: "map")
         }
         else {
-            ActivityLog.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(ProviderGroup.ROLE_ADMIN), instance.uid, Action.VIEW
+            activityLogService.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), instance.uid, Action.VIEW
             def name = (instance.firstName ? instance.firstName + ' ' : '') + (instance.lastName ?: '')
             if (!name) { name = instance.email }
             if (!name) {
@@ -495,12 +495,12 @@ class PublicController {
      * Shows the public page for a data hub.
      */
     def showCollection = {
-        def instance = ProviderGroup._get(params.id)
+        def instance = Collection.findByUid(params.id)
         if (!instance) {
             flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'collection.label', default: 'Collection'), params.code ? params.code : params.id])}"
             redirect(controller: "public", action: "map")
         } else {
-            ActivityLog.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(ProviderGroup.ROLE_ADMIN), instance.uid, Action.VIEW
+            activityLogService.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), instance.uid, Action.VIEW
             [instance: instance]
         }
     }
@@ -509,12 +509,12 @@ class PublicController {
      * Shows the public page for a data hub.
      */
     def showDataHub = {
-        def instance = ProviderGroup._get(params.id)
+        def instance = DataHub.findByUid(params.id)
         if (!instance) {
             flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'dataHub.label', default: 'Data hub'), params.code ? params.code : params.id])}"
             redirect(controller: "public", action: "map")
         } else {
-            ActivityLog.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(ProviderGroup.ROLE_ADMIN), instance.uid, Action.VIEW
+            activityLogService.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), instance.uid, Action.VIEW
             [instance: instance]
         }
     }
@@ -728,10 +728,6 @@ class PublicController {
 
     private findInstitution(id) {
         if (!id) { return null }
-        // try lsid
-        if (id instanceof String && id.startsWith(ProviderGroup.LSID_PREFIX)) {
-            return Institution.findByGuid(id)
-        }
         // try uid
         if (id instanceof String && id.startsWith(Institution.ENTITY_PREFIX)) {
             return Institution.findByUid(id)
@@ -982,7 +978,7 @@ class PublicController {
     }
 
     static labelTransforms = [
-        institution_uid: {uid ->  ProviderGroup._get(uid) }
+        institution_uid: {uid ->  providerGroupService._get(uid) }
     ]
 
     static chartLabels = [

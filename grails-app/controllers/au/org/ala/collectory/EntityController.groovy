@@ -7,9 +7,10 @@ package au.org.ala.collectory
 class EntityController extends ProviderGroupController {
 
     def index = { }
+    def providerGroupService
 
     protected ProviderGroup get(id) {
-        return ProviderGroup._get(id)
+        return providerGroupService._get(id)
     }
 
 }

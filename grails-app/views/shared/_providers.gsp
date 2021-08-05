@@ -1,10 +1,13 @@
-<%@ page import="au.org.ala.collectory.ProviderGroup" %>
+<%@ page import="au.org.ala.collectory.ProviderGroupService" %>
+<%
+  def providerGroupService = grailsApplication.classLoader.loadClass('au.org.ala.collectory.ProviderGroupService').newInstance()
+%>
 <div class="show-section  well">
   <h2><g:message code="shared.providers.title01" /></h2>
-  <p><g:message code="shared.providers.des01" args="[ProviderGroup.textFormOfEntityType(instance.uid)]" />.</p>
+  <p><g:message code="shared.providers.des01" args="[providerGroupService.textFormOfEntityType(instance.uid)]" />.</p>
   <ul class="fancy">
     <g:each in="${instance.listProviders()}" var="prov">
-      <g:set var="pg" value="${ProviderGroup._get(prov)}"/>
+      <g:set var="pg" value="${providerGroupService._get(prov)}"/>
       <g:if test="${pg}">
         <g:set var="isProvider" value="${prov[0..1] == 'dp'}"/>
         <li><g:link controller="${cl.controllerFromUid(uid:prov)}" action="show" id="${prov}">${pg.name}</g:link> (${isProvider ? 'provider' : 'resource'})</li>
@@ -22,7 +25,7 @@
     <!-- for collections try their institution -->
     <g:if test="${instance instanceof au.org.ala.collectory.Collection && instance.institution}">
       <g:each in="${instance.institution.listProviders()}" var="prov">
-        <g:set var="pg" value="${ProviderGroup._get(prov)}"/>
+        <g:set var="pg" value="${providerGroupService._get(prov)}"/>
         <g:if test="${pg}">
           <li><g:link controller="${cl.controllerFromUid(uid:prov)}" action="show" id="${prov}">${pg.name}</g:link> (${isProvider ? 'provider' : 'resource'}) - (via the institution)</li>
         </g:if>

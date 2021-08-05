@@ -33,16 +33,11 @@ import grails.util.Holders
  * .@history 2010-08-02 MEW Refactored using inheritance
  * --further history in SVN comments and release notes--
  */
-abstract class ProviderGroup implements Serializable {
+trait ProviderGroup implements Serializable {
 
-    static final int NO_INFO_AVAILABLE = -1
     static final String LSID_PREFIX = 'urn:lsid:'
     static final int ABSTRACT_LENGTH = 250
-    // for want of somewhere appropriate to put these:
-    //static final String ROLE_ADMIN = 'ROLE_COLLECTION_ADMIN'
-    //static final String ROLE_EDITOR = 'ROLE_COLLECTION_EDITOR'
-    static final String ROLE_ADMIN = 'ROLE_ADMIN'
-    static final String ROLE_EDITOR = 'ROLE_EDITOR'
+
     // general attributes
     String guid                 // this is not the DB id but a known identifier
                                 // such as an LSID or institution code
@@ -56,8 +51,8 @@ abstract class ProviderGroup implements Serializable {
     String focus                //
     Address address
     // Address postalAddress
-    BigDecimal latitude = NO_INFO_AVAILABLE     // decimal latitude
-    BigDecimal longitude = NO_INFO_AVAILABLE    // decimal longitude
+    Double latitude     // decimal latitude
+    Double longitude    // decimal longitude
     String altitude             // may include units eg 700m
     String state
     String websiteUrl
@@ -65,10 +60,10 @@ abstract class ProviderGroup implements Serializable {
     Image imageRef             // the main image to represent the entity
     String email
     String phone
-    boolean isALAPartner = false
+    boolean isALAPartner
     String notes
     String networkMembership    // a list of names of networks (CHAH, etc) that the group belongs to as JSON list
-    String attributions = ''    // list of space-separated uids for attributions
+    String attributions    // list of space-separated uids for attributions
     String taxonomyHints        // JSON object holding hints for taxonomic coverage
     Date dateCreated
     Date lastUpdated
@@ -77,26 +72,6 @@ abstract class ProviderGroup implements Serializable {
     String gbifRegistryKey      // the entity identifier in the GBIF central registry (used for all GBIF.org API calls)
 
     static embedded = ['address', 'logoRef', 'imageRef']
-
-    static transients = ['primaryInstitution', 'primaryContact', 'memberOf', 'networkTypes', 'mappable','ALAPartner',
-        'primaryPublicContact','publicContactsPrimaryFirst','contactsPrimaryFirst', 'authorised']
-
-    //to be externalised or managed in a DB table or file
-    static networkTypes = ["CHAH", "CHAFC", "CHAEC", "CHACM", "CAMD"]
-
-    static statesList = ['Australian Capital Territory', 'New South Wales', 'Queensland', 'Northern Territory', 'Western Australia', 'South Australia', 'Tasmania', 'Victoria']
-
-    static mapping = {
-        tablePerHierarchy false
-        uid index:'uid_idx'
-        pubShortDescription type: "text"
-        pubDescription type: "text"
-        techDescription type: "text"
-        focus type: "text"
-        taxonomyHints type: "text"
-        notes type: "text"
-        networkMembership type: "text"
-    }
 
     static constraints = {
         guid(nullable:true, maxSize:256)
@@ -362,7 +337,7 @@ abstract class ProviderGroup implements Serializable {
     /**
      * Trims the passed string to the specified length breaking at word boundaries and adding an ellipsis if trimmed.
      */
-    def trimLength = {trimString, stringLength ->
+    def trimLength(trimString, stringLength){
 
         String concatenateString = "..."
         List separators = [".", " "]
@@ -375,7 +350,7 @@ abstract class ProviderGroup implements Serializable {
             }
             trimString += concatenateString
         }
-        return trimString
+        trimString
     }
 
     /**
@@ -385,6 +360,44 @@ abstract class ProviderGroup implements Serializable {
      */
     String makeAbstract() {
         makeAbstract(ABSTRACT_LENGTH)
+    }
+
+    /**
+     * Returns the form that can be used in plain text, one of:
+     * collection, institution, data provider, data resource, data hub
+     *
+     * @param uid
+     * @return
+     */
+    String textFormOfEntityType(String uid) {
+        String entityType = entityTypeFromUid(uid)
+        String result = ""
+        entityType.each {
+            if (Character.isUpperCase(it[0] as Character)) {
+                result += " " + it.toLowerCase()
+            } else {
+                result += it
+            }
+        }
+        return result
+    }
+
+    /**
+     * Returns the entity type, one of:
+     * Collection, Institution, DataProvider, DataResource, DataHub
+     *
+     * @param uid
+     * @return
+     */
+    String entityTypeFromUid(String uid) {
+        if (!uid) {return ""}
+        switch (uid[0..1]) {
+            case Institution.ENTITY_PREFIX: return Institution.ENTITY_TYPE
+            case Collection.ENTITY_PREFIX: return Collection.ENTITY_TYPE
+            case DataProvider.ENTITY_PREFIX: return DataProvider.ENTITY_TYPE
+            case DataResource.ENTITY_PREFIX: return DataResource.ENTITY_TYPE
+            case DataHub.ENTITY_PREFIX: return DataHub.ENTITY_TYPE
+        }
     }
 
     /**
@@ -478,7 +491,7 @@ abstract class ProviderGroup implements Serializable {
     /*
      * Injects common group attributes into the summary object.
      */
-    protected ProviderGroupSummary init(ProviderGroupSummary pgs) {
+    ProviderGroupSummary init(ProviderGroupSummary pgs) {
         pgs.id = dbId()
         pgs.uid = uid
         pgs.uri = buildUri()
@@ -492,103 +505,7 @@ abstract class ProviderGroup implements Serializable {
         return pgs
     }
 
-    /**
-     * Returns the entity type, one of:
-     * Collection, Institution, DataProvider, DataResource, DataHub
-     *
-     * @param uid
-     * @return
-     */
-    static String entityTypeFromUid(String uid) {
-        if (!uid) {return ""}
-        switch (uid[0..1]) {
-            case Institution.ENTITY_PREFIX: return Institution.ENTITY_TYPE
-            case Collection.ENTITY_PREFIX: return Collection.ENTITY_TYPE
-            case DataProvider.ENTITY_PREFIX: return DataProvider.ENTITY_TYPE
-            case DataResource.ENTITY_PREFIX: return DataResource.ENTITY_TYPE
-            case DataHub.ENTITY_PREFIX: return DataHub.ENTITY_TYPE
-        }
-    }
 
-    /**
-     * Returns the form that can be used in url path, ie as a controller name, one of:
-     * collection, institution, dataProvider, dataResource, dataHub
-     *
-     * @param entityType short class name of entity
-     * @return
-     */
-    static String urlFormOfEntityType(String entityType) {
-        return entityType[0..0].toLowerCase() + entityType[1..-1]
-    }
-
-    /**
-     * Returns the form that can be used in url path, eg as a controller name, one of:
-     * collection, institution, dataProvider, dataResource, dataHub - based on the uid.
-     *
-     * @param uid
-     */
-    static String urlFormFromUid(String uid) {
-        return urlFormOfEntityType(entityTypeFromUid(uid))
-    }
-
-    /**
-     * Returns the form that can be used in plain text, one of:
-     * collection, institution, data provider, data resource, data hub
-     *
-     * @param uid
-     * @return
-     */
-    static String textFormOfEntityType(String uid) {
-        String entityType = entityTypeFromUid(uid)
-        String result = ""
-        entityType.each {
-            if (Character.isUpperCase(it[0] as Character)) {
-                result += " " + it.toLowerCase()
-            } else {
-                result += it
-            }
-        }
-        return result
-    }
-
-    /**
-     * Returns the instance identified by the uid.
-     *
-     * @param uid
-     * @return
-     */
-    static ProviderGroup _get(String uid) {
-        if (!uid || uid.size() < 3) {return null}
-        switch (uid[0..1]) {
-            case Institution.ENTITY_PREFIX: return Institution.findByUid(uid)
-            case Collection.ENTITY_PREFIX: return Collection.findByUid(uid)
-            case DataProvider.ENTITY_PREFIX: return DataProvider.findByUid(uid)
-            case DataResource.ENTITY_PREFIX: return DataResource.findByUid(uid)
-            case DataHub.ENTITY_PREFIX: return DataHub.findByUid(uid)
-            default: return null
-        }
-    }
-
-    /**
-     * Returns the instance identified by the uid.
-     *
-     * @param uid
-     * @return
-     */
-    static ProviderGroup _get(String id, String entityType) {
-        try {
-            switch (entityType.toLowerCase()) {
-                case Institution.ENTITY_TYPE.toLowerCase(): return Institution.findById(id)
-                case Collection.ENTITY_TYPE.toLowerCase(): return Collection.findById(id)
-                case DataProvider.ENTITY_TYPE.toLowerCase(): return DataProvider.findById(id)
-                case DataResource.ENTITY_TYPE.toLowerCase(): return DataResource.findById(id)
-                case DataHub.ENTITY_TYPE.toLowerCase(): return DataHub.findById(id)
-                default: return null
-            }
-        } catch (Exception e){
-            return null
-        }
-    }
 
     /**
      * Returns a summary object that extends ProviderGroupSummary and is specific to the type of entity.
@@ -600,7 +517,7 @@ abstract class ProviderGroup implements Serializable {
      * Returns a list of UIDs of data providers and data resources that contribute records to the entity.
      * @return
      */
-    def List<String> listProviders() {
+    List<String> listProviders() {
         DataLink.findAllByConsumer(this.uid).collect {it.provider}
     }
 
@@ -677,7 +594,18 @@ abstract class ProviderGroup implements Serializable {
      * @return
      */
     String urlForm() {
-        return ProviderGroup.urlFormOfEntityType(entityType())
+        urlFormOfEntityType(entityType())
+    }
+
+    /**
+     * Returns the form that can be used in url path, ie as a controller name, one of:
+     * collection, institution, dataProvider, dataResource, dataHub
+     *
+     * @param entityType short class name of entity
+     * @return
+     */
+    String urlFormOfEntityType(String entityType) {
+        return entityType[0..0].toLowerCase() + entityType[1..-1]
     }
 
     /**
@@ -685,7 +613,7 @@ abstract class ProviderGroup implements Serializable {
      * @return
      */
     String buildUri() {
-        return Holders.config.grails.serverURL + "/ws/" + urlForm() + "/" + uid
+        Holders.config.grails.serverURL + "/ws/" + urlForm() + "/" + uid
     }
 
     /**

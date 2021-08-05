@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2011 Atlas of Living Australia
  * All Rights Reserved.
  *
@@ -12,7 +12,6 @@
  * implied. See the License for the specific language governing
  * rights and limitations under the License.
  */
-
 package au.org.ala.collectory
 
 import groovy.xml.StreamingMarkupBuilder
@@ -23,17 +22,28 @@ import java.text.DateFormat
 class EmlRenderService {
 
     static transactional = true
-    def messageSource
+    def providerGroupService
     def grailsApplication
     def ns = [eml:"eml://ecoinformatics.org/eml-2.1.1",
             xsi:"http://www.w3.org/2001/XMLSchema-instance",
             dc:"http://purl.org/dc/terms/"]
 
-    def emlNs = ['xsi:schemaLocation':"eml://ecoinformatics.org/eml-2.1.1 http://rs.gbif.org/schema/eml-gbif-profile/1.1/eml-gbif-profile.xsd",
-            'xmlns:d':"eml://ecoinformatics.org/dataset-2.1.0",
+    def emlNs = ['xmlns:d':"eml://ecoinformatics.org/dataset-2.1.0",
+            'xsi:schemaLocation':"eml://ecoinformatics.org/eml-2.1.1 http://rs.gbif.org/schema/eml-gbif-profile/1.1/eml-gbif-profile.xsd",
             'system':"ALA-Registry",
             'scope':"system",
             'xml:lang':"en"]
+
+    def namespaces = [
+            'xmlns:d':"eml://ecoinformatics.org/dataset-2.1.0",
+            'xmlns:eml':"eml://ecoinformatics.org/eml-2.1.1",
+            'xmlns:xsi':"http://www.w3.org/2001/XMLSchema-instance",
+            'xmlns:dc':"http://purl.org/dc/terms/",
+            'xsi:schemaLocation':"eml://ecoinformatics.org/eml-2.1.1 http://rs.gbif.org/schema/eml-gbif-profile/1.1/eml-gbif-profile.xsd",
+            'system':"ALA-Registry",
+            'scope':"system",
+            'xml:lang':"en"
+    ]
 
     final static String DATE_PATTERN = "yyyy-MM-dd";
     final static String DATE_TIME_PATTERN = "yyyy-MM-dd'T'hh:mm:ss";
@@ -98,10 +108,10 @@ class EmlRenderService {
         /* associated parties */
         builder.associatedParty(ala(true))
         pg.listConsumers().each { con ->
-            organisation(builder, 'associatedParty', ProviderGroup._get(con), 'originator')
+            organisation(builder, 'associatedParty', providerGroupService._get(con), 'originator')
         }
         pg.listProviders().each { pro ->
-            organisation(builder, 'associatedParty', ProviderGroup._get(pro), 'publisher')
+            organisation(builder, 'associatedParty', providerGroupService._get(pro), 'publisher')
         }
 
         /* pub date */
@@ -151,11 +161,18 @@ class EmlRenderService {
             builder.organizationName(pg.name)
             def address = pg.resolveAddress()
             if (address && !address.isEmpty()) {
-                out << addAddress(address)
+                builder.address {
+                    addIf(address.street, 'deliveryPoint' )
+                    addIf(address.city, 'city' )
+                    addIf(address.state, 'administrativeArea' )
+                    addIf(address.postcode, 'postalCode' )
+                    addIf(address.country, 'country' )
+                }
+
             }
-            out << addIf(pg.phone, 'phone' )
-            out << addIf(pg.email, 'electronicMailAddress')
-            out << addIf(pg.websiteUrl, 'onlineUrl')
+            addIf(pg.phone, 'phone' )
+            addIf(pg.email, 'electronicMailAddress')
+            addIf(pg.websiteUrl, 'onlineUrl')
             if (role) {
                 builder.role role
             }
@@ -205,14 +222,15 @@ class EmlRenderService {
         if (pg.guid?.startsWith('urn:lsid')) {
             id = pg.guid
             altId = grailsApplication.config.grails.serverURL + "/public/show/" + pg.uid
-        }
-        else {
+        } else {
             id = grailsApplication.config.grails.serverURL + "/public/show/" + pg.uid
         }
         def uuid = UUID.nameUUIDFromBytes(id as byte[]).toString()
         def packageId = uuid + "/v" + pg.version
-        def ns = emlNs << [packageId: packageId]
-        return [id:id, packageId: packageId, altId:altId, uuid: uuid, ns: ns]
+        def nsToUse = [:]
+        nsToUse << namespaces
+        nsToUse << [packageId: packageId]
+        return [id:id, packageId: packageId, altId:altId, uuid: uuid, ns: namespaces]
     }
 
     /**
@@ -436,154 +454,150 @@ class EmlRenderService {
      */
     String emlForResource(DataResource pg) {
 
-        def markupBuilder = new StreamingMarkupBuilder()
-        markupBuilder.encoding = 'UTF-8'
-        markupBuilder.useDoubleQuotes = true
+        def writer = new StringWriter()
+        writer.write("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
+        def xml = new groovy.xml.MarkupBuilder(writer)
+        xml.setDoubleQuotes(true)
         def dp = pg.dataProvider
-        def licence = Licence.where({ acronym == pg.licenseType && (pg.licenseVersion == null || licenceVersion == pg.licenseVersion) }).list()
-        def eml = markupBuilder.bind { builder ->
-            mkp.xmlDeclaration()
-            namespaces << ns
+        def licence = Licence.where({ acronym == pg.licenseType && (pg.licenseVersion == null ) }).list()
+        def ids = identifiers(pg)
+//        def namespaces = [:]
+//        namespaces.putAll(ns)
+//        namespaces.putAll(emlNs)
 
-            def ids = identifiers(pg)
+        xml."eml:eml"(ids.ns) {
+            dataset {
+                /* alt identifier */
+                alternateIdentifier ids.uuid
+                if (pg.gbifDoi){
+                    alternateIdentifier pg.gbifDoi
+                }
+                if (pg.gbifRegistryKey){
+                    alternateIdentifier pg.gbifRegistryKey
+                }
 
-            'eml:eml'(ids.ns) {
-                dataset() {
+                alternateIdentifier ids.id
+                if (ids.altId) {
+                    alternateIdentifier(ids.altId)
+                }
 
-                    /* alt identifier */
-                    alternateIdentifier ids.uuid
-                    if(pg.gbifDoi){
-                        alternateIdentifier pg.gbifDoi
-                    }
-                    if(pg.gbifRegistryKey){
-                        alternateIdentifier pg.gbifRegistryKey
-                    }
+                /* title, creator, metadataProvider, associatedParty, pubDate, language, abstract */
+                commonElements1 xml, pg
 
-                    alternateIdentifier ids.id
-                    if (ids.altId) {
-                        alternateIdentifier(ids.altId)
-                    }
+                /* additional info */
+                if (pg.dataGeneralizations || pg.informationWithheld) {
+                    additionalInfo() {
+                        if (pg.dataGeneralizations) {
+                            para pg.dataGeneralizations
+                        }
 
-                    /* title, creator, metadataProvider, associatedParty, pubDate, language, abstract */
-                    commonElements1 builder, pg
-
-                    /* additional info */
-                    if (pg.dataGeneralizations || pg.informationWithheld) {
-                        additionalInfo() {
-                            if (pg.dataGeneralizations) {
-                                para pg.dataGeneralizations
-                            }
-
-                            if (pg.informationWithheld) {
-                                para pg.informationWithheld
-                            }
+                        if (pg.informationWithheld) {
+                            para pg.informationWithheld
                         }
                     }
+                }
 
-                    /* intellectual rights */
-                    intellectualRights {
-                        if (pg.rights || pg.citation || licence) {
-                            para (){
-                                mkp.yield pg.rights
-                                if(pg.rights && pg.citation){
-                                    mkp.yield " "
-                                }
-                                mkp.yield pg.citation
-                                licence.each { Licence lic ->
-                                    mkp.yield " "
-                                    ulink(url: lic.url) {
-                                        citetitle() {
-                                            mkp.yield lic.name
-                                            if (lic.acronym) {
-                                                mkp.yield " ("
-                                                mkp.yield lic.acronym
-                                                if (lic.licenceVersion) {
-                                                    mkp.yield " "
-                                                    mkp.yield lic.licenceVersion
-                                                }
-                                                mkp.yield ")"
+                /* intellectual rights */
+                intellectualRights {
+                    if (pg.rights || pg.citation || licence) {
+                        para (){
+                            mkp.yield pg.rights?:''
+                            if (pg.rights && pg.citation){
+                                mkp.yield " "
+                            }
+                            mkp.yield pg.citation?:''
+                            licence.each { Licence lic ->
+                                mkp.yield " "
+                                ulink(url: lic.url) {
+                                    citetitle() {
+                                        mkp.yield lic.name
+                                        if (lic.acronym) {
+                                            mkp.yield " ("
+                                            mkp.yield lic.acronym
+                                            if (lic.licenceVersion) {
+                                                mkp.yield " "
+                                                mkp.yield lic.licenceVersion
                                             }
+                                            mkp.yield ")"
                                         }
                                     }
                                 }
                             }
                         }
-                     }
-
-                    /* distribution */
-                    distribution {
-                        online {
-                            url('function':'information',"${grailsApplication.config.grails.serverURL}/public/show/" + pg.uid)
-                        }
                     }
+                 }
 
-                    coverage {
-                        if (pg.geographicDescription && pg.westBoundingCoordinate) {
-                            geographicCoverage {
-                                geographicDescription pg.geographicDescription
-                                if(pg.westBoundingCoordinate) {
-                                    boundingCoordinates {
-                                        westBoundingCoordinate pg.westBoundingCoordinate
-                                        eastBoundingCoordinate pg.eastBoundingCoordinate
-                                        northBoundingCoordinate pg.northBoundingCoordinate
-                                        southBoundingCoordinate pg.southBoundingCoordinate
-                                    }
-                                }
-                            }
-                        }
-                        if (pg.beginDate && pg.endDate) {
-                            temporalCoverage {
-                                rangeOfDates {
-                                    beginDate {
-                                        calendarDate pg.beginDate
-                                    }
-                                    endDate {
-                                        calendarDate pg.endDate
-                                    }
+                /* distribution */
+                distribution {
+                    online {
+                        url('function':'information',"${grailsApplication.config.grails.serverURL}/public/show/" + pg.uid)
+                    }
+                }
+
+                coverage {
+                    if (pg.geographicDescription && pg.westBoundingCoordinate) {
+                        geographicCoverage {
+                            geographicDescription pg.geographicDescription
+                            if(pg.westBoundingCoordinate) {
+                                boundingCoordinates {
+                                    westBoundingCoordinate pg.westBoundingCoordinate
+                                    eastBoundingCoordinate pg.eastBoundingCoordinate
+                                    northBoundingCoordinate pg.northBoundingCoordinate
+                                    southBoundingCoordinate pg.southBoundingCoordinate
                                 }
                             }
                         }
                     }
-
-                    purpose {
-                        para pg.purpose?:''
-                    }
-
-                    contacts builder, pg
-
-                    methods {
-                        if (pg.methodStepDescription) {
-                            methodStep {
-                                description {
-                                    para pg.methodStepDescription?:''
+                    if (pg.beginDate && pg.endDate) {
+                        temporalCoverage {
+                            rangeOfDates {
+                                beginDate {
+                                    calendarDate pg.beginDate
                                 }
-                            }
-                        }
-                        if (pg.qualityControlDescription) {
-                            qualityControl {
-                                description {
-                                    para pg.qualityControlDescription?:''
+                                endDate {
+                                    calendarDate pg.endDate
                                 }
                             }
                         }
                     }
                 }
 
-                additionalMetadata() {
-                    metadata() {
-                        gbif() {
+                purpose {
+                    para pg.purpose?:''
+                }
 
-                            /* dateStamp, metadataLanguage, hierarchyLevel, resourceLogoUrl */
-                            commonElements2 builder, pg
+                contacts xml, pg
 
+                methods {
+                    if (pg.methodStepDescription) {
+                        methodStep {
+                            description {
+                                para pg.methodStepDescription?:''
+                            }
+                        }
+                    }
+                    if (pg.qualityControlDescription) {
+                        qualityControl {
+                            description {
+                                para pg.qualityControlDescription?:''
+                            }
                         }
                     }
                 }
             }
-         }
-        
+
+            additionalMetadata() {
+                metadata() {
+                    gbif() {
+                        /* dateStamp, metadataLanguage, hierarchyLevel, resourceLogoUrl */
+                        commonElements2 xml, pg
+                    }
+                }
+            }
+        }
+
         //return eml.toString()  // for production usage
-        return XmlUtil.serialize(eml) // pretty-printed for development
+        writer.toString()// pretty-printed for development
     }
 
     def addIf = { value, tag ->
@@ -594,35 +608,17 @@ class EmlRenderService {
     }
 
     def addAddress = { ad ->
-        { it ->
-            address {
-                out << addIf(ad.street, 'deliveryPoint' )
-                out << addIf(ad.city, 'city' )
-                out << addIf(ad.state, 'administrativeArea' )
-                out << addIf(ad.postcode, 'postalCode' )
-                out << addIf(ad.country, 'country' )
-            }
-        }
-    }
-
-    def addContact = { cnt ->
-        { it ->
-            contact {
-                if (cnt.contact.firstName || cnt.contact.lastName) {
-                    individualName {
-                        //out << addIf(cnt.contact.title, 'salutation')
-                        out << addIf(cnt.contact.firstName, 'givenName')
-                        out << surName(cnt.contact.lastName)
-                    }
-                }
-                out << addIf(cnt.contact.phone, 'phone')
-                out << addIf(cnt.contact.email, 'electronicMailAddress')
-            }
+        address {
+            addIf(ad.street, 'deliveryPoint' )
+            addIf(ad.city, 'city' )
+            addIf(ad.state, 'administrativeArea' )
+            addIf(ad.postcode, 'postalCode' )
+            addIf(ad.country, 'country' )
         }
     }
 
     /**
-     * inject ALA as an agentType or agentTypeWithRole
+     * Inject ALA as an agentType or agentTypeWithRole
      * @param boolean if true will include role
      */
     def ala = { withRole ->
@@ -728,5 +724,4 @@ class EmlRenderService {
             return "specimens"  // default
         }
     }
-
 }

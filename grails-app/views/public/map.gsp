@@ -3,7 +3,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <meta name="layout" content="${grailsApplication.config.skin.layout}" />
-        <title><g:message code="public.map3.title" /> | ${grailsApplication.config.projectName}</title>
+        <title><g:message code="public.map3.title" /></title>
         <script type="text/javascript">
             var COLLECTORY_CONF = {
                 contextPath: "${request.contextPath}",

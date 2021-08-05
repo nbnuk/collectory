@@ -20,6 +20,7 @@
             </g:hasErrors>
             <g:form class="form-horizontal" method="post" name="baseForm" action="base">
                 <g:hiddenField name="id" value="${command?.id}" />
+                <g:hiddenField name="uid" value="${command?.uid}" />
                 <g:hiddenField name="version" value="${command.version}" />
                 <div class="form-group">
                     <label class="col-sm-2"><g:message code="taxonomyHints.label" default="Taxonomy hints" /></label>

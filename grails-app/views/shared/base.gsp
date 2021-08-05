@@ -27,6 +27,7 @@
             </g:hasErrors>
             <g:form method="post" name="baseForm" action="base">
                 <g:hiddenField name="id" value="${command?.id}" />
+                <g:hiddenField name="uid" value="${command?.uid}" />
                 <g:hiddenField name="version" value="${command.version}" />
                 <div class="form-group">
                     <label for="guid"><g:message code="collection.guid.label" default="Guid"/><cl:helpText code="${entityNameLower}.guid"/></label>
@@ -49,7 +50,7 @@
                     <div class="form-group">
                         <label for="resourceType"><g:message code="collection.resourceType.label" default="Resource type"/> <cl:helpText code="providerGroup.resourceType"/></label>
                         <g:select name="resourceType" class="form-control"
-                                  from="${DataResource.resourceTypeList}"
+                                  from="${grailsApplication.config.dataResource.resourceTypeList}"
                                   value="${command.resourceType}" />
                     </div>
                 </g:if>
@@ -92,7 +93,7 @@
                     </div>
                 </g:if>
                 <!-- ALA partner -->
-                <cl:ifGranted role="${ProviderGroup.ROLE_ADMIN}">
+                <cl:ifGranted role="${grailsApplication.config.ROLE_ADMIN}">
                     <div class="checkbox">
                         <label for="isALAPartner">
                             <g:checkBox name="isALAPartner" value="${command?.isALAPartner}" />
@@ -103,7 +104,7 @@
                 <!-- network membership -->
                 <div class="form-group">
                     <label for="networkMembership"><g:message code="providerGroup.networkMembership.label" default="Belongs to" /><cl:helpText code="providerGroup.networkMembership"/></label>
-                    <cl:checkboxSelect name="networkMembership" from="${ProviderGroup.networkTypes}" value="${command?.networkMembership}" multiple="yes" valueMessagePrefix="providerGroup.networkMembership" noSelection="['': '']" />
+                    <cl:checkboxSelect name="networkMembership" from="${grailsApplication.config.networkTypes}" value="${command?.networkMembership}" multiple="yes" valueMessagePrefix="providerGroup.networkMembership" noSelection="['': '']" />
                 </div>
                 <!-- web site url -->
                 <div class="form-group">

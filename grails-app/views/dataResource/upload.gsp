@@ -2,11 +2,15 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="breadcrumbParent"
+              content="${createLink(action: 'list', controller: 'manage')},${message(code: 'manage.list.title01')},${createLink(action: 'show', controller: 'dataResource', id: instance.id)},${instance.name}"
+        />
         <meta name="layout" content="${grailsApplication.config.skin.layout}" />
         <g:set var="entityName" value="${instance.ENTITY_TYPE}" />
         <g:set var="entityNameLower" value="${cl.controller(type: instance.ENTITY_TYPE)}"/>
         <title><g:message code="default.show.label" args="[entityName]" /></title>
         <script type="text/javascript" src="https://maps.google.com/maps/api/js?v=3.3&sensor=false"></script>
+        <asset:stylesheet src="application.css"/>
         <r:require modules="fileupload"/>
     </head>
     <body>
@@ -17,89 +21,71 @@
             </g:link>
         </h1>
 
-        <div class="well pull-right col-md-4">
-            <g:message code="dataresource.upload.des" />.
-        </div>
+        <div class="row">
+            <div class="col-md-8">
+                <g:uploadForm action="uploadDataFile" controller="dataResource">
 
-    <g:uploadForm action="uploadDataFile" controller="dataResource">
+                    <g:hiddenField name="id" value="${instance.uid}"/>
 
-        <g:hiddenField name="id" value="${instance.uid}"/>
+                    <!-- drag and drop file uploads -->
+                    <div class="form-group">
+                        <label for="protocol"><g:message code="dataresource.upload.label.protocol" />:</label>
+                        <g:select id="protocol" name="protocol" class="form-control" from="${connectionProfiles}" value="protocol" optionValue="display" optionKey="name"/>
+                    </div>
 
-        <!-- drag and drop file uploads -->
-        <div class="form-group">
-            <label for="protocol"><g:message code="dataresource.upload.label.protocol" />:</label>
-            <g:select id="protocol" name="protocol" class="form-control" from="${connectionProfiles}" value="protocol" optionValue="display" optionKey="name"/>
-        </div>
+                    <div class="form-group">
+                        <label for="fileToUpload"><g:message code="dataresource.upload.label.file" /></label>
+                        <div class="fileupload fileupload-new" data-provides="fileupload">
+                            <span class="btn btn-primary btn-file">
+                                <span class="fileupload-new"><g:message code="dataresource.upload.label.selectfile" /></span>
+                                <span class="fileupload-exists"><g:message code="dataresource.upload.label.change" /></span>
+                                <g:field type="file" name="myFile" /></span>
+                            <span class="fileupload-preview"></span>
+                            <a href="#" class="close fileupload-exists" data-dismiss="fileupload" style="float: none">×</a>
+                        </div>
+                    </div>
 
-        <div class="form-group">
-            <label for="fileToUpload"><g:message code="dataresource.upload.label.file" /></label>
+                    <div id="connectionParams">
+                    </div>
 
-            %{--<div class="input-group fileupload fileupload-new" data-provides="fileupload">--}%
-                %{--<div class="uneditable-input input-group-addon">--}%
-                    %{--<i class="glyphicon glyphicon-file fileupload-exists"></i>--}%
-                    %{--<span class="fileupload-preview"></span>--}%
-                %{--</div>--}%
-                %{--<div class="input-group-addon">--}%
-                    %{--<span class="fileupload-new"><g:message code="dataresource.upload.label.selectfile" /></span>--}%
-                    %{--<span class="fileupload-exists"><g:message code="dataresource.upload.label.change" /></span>--}%
-                %{--</div>--}%
-                %{--<g:field type="file" name="myFile" />--}%
-                %{--<div class="input-group-addon">--}%
-                    %{--<a href="#" class="btn fileupload-exists" data-dismiss="fileupload">Remove</a>--}%
-                %{--</div>--}%
-            %{--</div>--}%
+                    <div style="clear:both">
+                        <input type="submit" id="fileToUpload" class="btn fileupload-exists btn-primary" value="Upload"/>
+                        <g:link action="show" controller="dataResource" id="${instance.id}" class="btn btn-default">
+                            <g:message code="dataresource.upload.label.cancel" />
+                        </g:link>
+                    </div>
+                </g:uploadForm>
 
-            %{--<label for="input-b1">Select File</label>--}%
-            %{--<input id="input-b1" name="input-b1" type="file" class="file">--}%
-
-            <div class="fileupload fileupload-new" data-provides="fileupload">
-                <span class="btn btn-primary btn-file">
-                    <span class="fileupload-new"><g:message code="dataresource.upload.label.selectfile" /></span>
-                    <span class="fileupload-exists"><g:message code="dataresource.upload.label.change" /></span>
-                    <g:field type="file" name="myFile" /></span>
-                <span class="fileupload-preview"></span>
-                <a href="#" class="close fileupload-exists" data-dismiss="fileupload" style="float: none">×</a>
-            </div>
-
-
-        </div>
-
-        <div id="connectionParams">
-
-        </div>
-
-        <div style="clear:both">
-            <input type="submit" id="fileToUpload" class="btn fileupload-exists btn-primary" value="Upload"/>
-            <g:link action="show" controller="dataResource" id="${instance.id}" class="btn btn-default">
-                <g:message code="dataresource.upload.label.cancel" />
-            </g:link>
-        </div>
-        </g:uploadForm>
-
-        <div id="connectionTemplates" class="hide">
-            <g:each in="${connectionProfiles}" var="profile">
-                <div id="profile-${profile.name}">
-                    <g:each in="${profile.params.minus('LOCATION_URL')}" var="param">
-                        <!-- get param -->
-                        <g:set var="connectionParam" value="${connectionParams[param]}"/>
-                        <div class="form-group">
-                        <g:if test="${connectionParam.type == 'boolean'}">
-                            <label class="checkbox ${profile.name}">
-                                <g:checkBox id="${connectionParam.paramName}" name="${connectionParam.paramName}"/>
-                                ${connectionParam.display}
-                            </label>
-                        </g:if>
-                        <g:else>
-                            <label for="${connectionParam.paramName}">${connectionParam.display}:</label>
-                            <input type="text" class="form-control" id="${connectionParam.paramName}" name="${connectionParam.paramName}" value="${connectionParam.defaultValue}" />
-                        </g:else>
+                <div id="connectionTemplates" class="hide">
+                    <g:each in="${connectionProfiles}" var="profile">
+                        <div id="profile-${profile.name}">
+                            <g:each in="${profile.params.minus('LOCATION_URL')}" var="param">
+                                <!-- get param -->
+                                <g:set var="connectionParam" value="${connectionParams[param]}"/>
+                                <div class="form-group">
+                                    <g:if test="${connectionParam.type == 'boolean'}">
+                                        <label class="checkbox ${profile.name}">
+                                            <g:checkBox id="${connectionParam.paramName}" name="${connectionParam.paramName}"/>
+                                            ${connectionParam.display}
+                                        </label>
+                                    </g:if>
+                                    <g:else>
+                                        <label for="${connectionParam.paramName}">${connectionParam.display}:</label>
+                                        <input type="text" class="form-control" id="${connectionParam.paramName}" name="${connectionParam.paramName}" value="${connectionParam.defaultValue}" />
+                                    </g:else>
+                                </div>
+                            </g:each>
                         </div>
                     </g:each>
                 </div>
-            </g:each>
+            </div>
+
+            <div class="well pull-right col-md-4">
+                <g:message code="dataresource.upload.des" />.
+            </div>
         </div>
 
-        <r:script>
+        <asset:script>
 
             function loadConnParams(){
                $('#connectionParams').html('');
@@ -113,7 +99,7 @@
                });
                loadConnParams();
             })
-        </r:script>
+        </asset:script>
 
     </body>
 </html>

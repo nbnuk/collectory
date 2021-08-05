@@ -4,8 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="layout" content="${grailsApplication.config.skin.layout}" />
     <title><g:message code="dataResource.base.label" default="Edit data resource metadata" /></title>
-    <link rel="stylesheet" href="${resource(dir:'css/smoothness',file:'jquery-ui-1.12.1.min.css')}" type="text/css" media="screen"/>
-    <r:require modules="jquery_ui_custom"/>
+    <asset:stylesheet src="application.css"/>
 </head>
 <body>
 <div class="nav">
@@ -24,20 +23,19 @@
         <g:hiddenField name="id" value="${command?.id}" />
         <g:hiddenField name="uid" value="${command?.uid}" />
         <g:hiddenField name="version" value="${command.version}" />
-    %{--<div class="col-md-12">--}%
-        <table  style="margin-left:0; padding-left:0;">
+        <table >
             <tbody>
 
             <!-- status -->
             <div class="form-group">
                     <label for="status"><g:message code="dataResource.status.label" default="Status" /><cl:helpText code="dataResource.status"/></label>
-                    <g:select name="status" class="form-control" from="${DataResource.statusList}" value="${command.status}"/>
+                    <g:select name="status" class="form-control" from="${grailsApplication.config.dataResource.statusList}" value="${command.status}"/>
             </div>
 
             <!-- provenance -->
             <div class="form-group">
                     <label for="provenance"><g:message code="dataResource.provenance.label" default="Provenance" /><cl:helpText code="dataResource.provenance"/></label>
-                     <g:select name="provenance" class="form-control" from="${DataResource.provenanceTypesList}" value="${command.provenance}" noSelection="${['':'none']}"/>
+                     <g:select name="provenance" class="form-control" from="${grailsApplication.config.dataResource.provenanceTypesList}" value="${command.provenance}" noSelection="${['':'none']}"/>
             </div>
 
             <!-- last checked -->
@@ -131,7 +129,7 @@
         </div>
     </g:form>
 </div>
-<r:script>
+<asset:script>
     function instrument() {
         var availableTags = [
             "institutionCode",
@@ -251,6 +249,6 @@
             $('#add-another').parent().append(newField);
         }
     });
-</r:script>
+</asset:script>
 </body>
 </html>

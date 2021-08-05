@@ -2,15 +2,16 @@
 <html>
     <head>
         <title><g:message code="manage.show.title" /></title>
+        <meta name="breadcrumbParent"
+              content="${createLink(action: 'list', controller: 'manage')},${message(code: 'manage.list.title01')}"
+        />
 	    <meta name="layout" content="${grailsApplication.config.skin.layout}" />
-        <r:require modules="smoothness, collectory, jquery_ui_custom" />
         <style type="text/css">
             .homeCell { margin-bottom: 20px; margin-top: 20px; margin-right:25px; font-size:20px;}
         </style>
+        <asset:stylesheet src="application.css"/>
     </head>
     <body>
-      <div class="content">
-
         <div class="pull-right">
             <g:link class="mainLink btn btn-default" controller="public" action="map"><g:message code="manage.list.link01" /></g:link>
         </div>
@@ -23,12 +24,11 @@
 
         <div class="row">
             <div class="col-md-2">
-                <ul id="adminNavMenu" class="nav nav-list nav-stacked nav-tabs">
+                <ul class="nav nav-pills nav-stacked">
                     <li><a href="javascript:showSection('adminTools');"><i class="glyphicon glyphicon-chevron-right">&nbsp;</i> <g:message code="manage.list.li01" /></a></li>
                     <li><a href="javascript:showSection('yourMetadata');"><i class="glyphicon glyphicon-chevron-right">&nbsp;</i> <g:message code="manage.list.li02" /></a></li>
                     <li><a href="javascript:showSection('addCollection');"><i class="glyphicon glyphicon-chevron-right">&nbsp;</i> <g:message code="manage.list.li03" /></a></li>
                 </ul>
-                <br/>
             </div>
 
             <div class="col-md-10">
@@ -170,10 +170,8 @@
                 </div>
 
                 <div id="adminTools" class="infoSection">
-                <cl:ifGranted role="ROLE_COLLECTION_ADMIN">
-
+                <cl:ifGranted role="${grailsApplication.config.ROLE_ADMIN}">
                   <h4>Admin tools</h4>
-
                   <div>
                     <div class="homeCell btn btn-default">
                         <g:link class="mainLink" controller="collection" action="list"><g:message code="manage.list.addtools.vac" /></g:link>
@@ -259,6 +257,11 @@
                       </div>
                   </div>
                 </cl:ifGranted>
+                <cl:ifNotGranted role="${grailsApplication.config.ROLE_ADMIN}">
+                    <div class="well">
+                    You do not have access to admin tools. ${grailsApplication.config.ROLE_ADMIN} is required.
+                    </div>
+                </cl:ifNotGranted>
                 </div>
 
             </div>
@@ -345,53 +348,6 @@
                 return isUnique;
             }
 
-            %{--$('#dialog-form').dialog({--}%
-                %{--autoOpen: false,--}%
-                %{--width: 350,--}%
-                %{--modal: true,--}%
-                %{--buttons: {--}%
-                    %{--"Create collection": function() {--}%
-                        %{--var bValid = true;--}%
-                        %{--$allFields.removeClass( "ui-state-error" );--}%
-
-                        %{--bValid = bValid && checkLength( $name, "name", 3, 1024 );--}%
-
-                        %{--if ($('#addAsContact').is(':checked')) {--}%
-                            %{--bValid = bValid && checkLength( $role, "role", 3, 45 );--}%
-                        %{--}--}%
-                        %{----}%
-                        %{--bValid = bValid && checkRegexp( $name, /^[a-z]([0-9a-z_ ])+$/i, "Name may consist of a-z, 0-9, underscores, begin with a letter." );--}%
-
-                        %{--bValid = bValid && checkUnique($name);--}%
-
-                        %{--if ( bValid ) {--}%
-                            %{--var fieldValues = "";--}%
-                            %{--if ($('#addAsContact').is(':checked')) {--}%
-                                %{--fieldValues = "&addUserAsContact=true";--}%
-                                %{--fieldValues += "&role=" + ($role.val() ? $role.val() : 'editor');--}%
-                                %{--if (!hasContact) {--}%
-                                    %{--if ($title.val()) fieldValues += "&title=" + $title.val();--}%
-                                    %{--if ($firstName.val()) fieldValues += "&firstName=" + $firstName.val();--}%
-                                    %{--if ($lastName.val()) fieldValues += "&lastName=" + $lastName.val();--}%
-                                    %{--if ($phone.val()) fieldValues += "&phone=" + $phone.val();--}%
-                                    %{--if ($('#publish').is(':checked')) fieldValues += "&publish=true";--}%
-                                %{--}--}%
-                            %{--}--}%
-                            %{--//alert(fieldValues);--}%
-                             %{--// redirect to create collection--}%
-                            %{--document.location.href =--}%
-                               %{--"${grailsApplication.config.grails.serverURL}/collection/create?name=" +--}%
-                                       %{--$name.val() + fieldValues;--}%
-                        %{--}--}%
-                    %{--},--}%
-                    %{--Cancel: function() {--}%
-                        %{--$( this ).dialog( "close" );--}%
-                    %{--}--}%
-                %{--},--}%
-                %{--close: function() {--}%
-                    %{--$allFields.val( "" ).removeClass( "ui-state-error" );--}%
-                %{--}--}%
-            %{--});--}%
             $('#create').click(function() {
                 $( "#dialog-form" ).dialog( "open" );
             });

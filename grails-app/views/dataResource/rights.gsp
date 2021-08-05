@@ -58,7 +58,7 @@
                 <!-- permissions document type -->
                 <div class="form-group">
                     <label for="permissionsDocumentType"><g:message code="dataResource.permissionsDocumentType.label" default="Permissions document type" /><cl:helpText code="dataResource.permissionsDocumentType"/></label>
-                    <g:select name="permissionsDocumentType" class="form-control" from="${DataResource.permissionsDocumentTypes}" value="${command.permissionsDocumentType}"/>
+                    <g:select name="permissionsDocumentType" class="form-control" from="${grailsApplication.config.dataResource.permissionsDocumentTypes}" value="${command.permissionsDocumentType}"/>
                 </div>
 
                 <!-- permissions document type flags -->

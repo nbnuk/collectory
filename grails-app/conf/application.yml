@@ -1,7 +1,9 @@
 ---
 grails:
+    cors:
+        enabled: true
     appName: collectory
-    serverURL: http://localhost:8080
+    serverURL: http://dev.ala.org.au:8080
     profile: web
     codegen:
         defaultPackage: au.org.ala.collectory
@@ -10,6 +12,7 @@ grails:
             - file:/data/collectory/config/collectory-config.properties
             - file:/data/collectory/config/collectory-config.yml
             - file:/data/collectory/config/collectory-config.groovy
+            - file:/data/collectory/config
     gorm:
         reactor:
             # Whether to translate GORM events into Reactor events
@@ -80,6 +83,9 @@ grails:
             maxsize: 1000
     controllers:
         defaultScope: singleton
+        upload:
+            maxFileSize: 26214400
+            maxRequestSize: 26214400
     converters:
         encoding: UTF-8
     views:
@@ -100,11 +106,32 @@ hibernate:
         use_second_level_cache: false
         use_query_cache: false
 
+projectName: Atlas of Living Australia
 regionName: Australia
 uploadFilePath: /data/collectory/upload
 uploadExternalUrlPath: http://localhost/upload
 gbifApiUrl: 'http://api.gbif.org/v1/'
 gbifUniqueKeyTerm: "http://rs.gbif.org/terms/1.0/gbifID"
+
+gbif:
+    citations:
+        lookup: "https://www.gbif.org/api/resource/search?contentType=literature&gbifDatasetKey="
+        search: "https://www.gbif.org/resource/search?contentType=literature&gbifDatasetKey="
+        enabled: true
+# GBIF Registration enables the Collectory to create and update organisations and datasets
+# This mode of operation is only expected to be used by National Nodes running the ALA as a publishing gateway to GBIF.
+# (i.e. where the ALA installation is not sourcing information from GBIF.org itself)
+gbifRegistrationEnabled: false
+gbifEndorsingNodeKey: XXXXXXXXXXXXXXXX
+gbifInstallationKey: XXXXXXXXXXXXXXXX
+gbifApiUser: XXXXXXXXXXXXXXXX
+gbifApiPassword: XXXXXXXXXXXXXXXX
+gbifExportUrlBase:
+useGbifDoi: true
+gbifRegistrationDryRun: true
+gbifLicenceMappingUrl: file:///data/collectory/config/default-gbif-licence-mapping.json
+gbifOrphansPublisherID: XXXXXXXXXXXXXXXX
+gbifRegistrationRole: ROLE_ADMIN
 
 skin:
     layout: ala-main
@@ -120,16 +147,118 @@ headerAndFooter:
 
 security:
     cas:
-        bypass: true
+        casServerName: https://auth-test.ala.org.au
+        uriFilterPattern:
+            - /admin.*
+            - /collection.*
+            - /institution.*
+            - /contact.*
+            - /reports.*
+            - /providerCode.*
+            - /providerMap.*
+            - /dataProvider.*
+            - /dataResource.*
+            - /dataHub.*
+            - /manage/.*
+            - /alaAdmin.*
+        authenticateOnlyIfCookieFilterPattern:
+            - /public/show.*
+        uriExclusionFilterPattern:
+            - /images.*
+            - /css.*
+            - /js.*
+            - /static.*
+        appServerName: http://dev.ala.org.au:8080
+        casServerUrlPrefix: https://auth-test.ala.org.au/cas
+        loginUrl: https://auth-test.ala.org.au/cas/login
+        logoutUrl: https://auth-test.ala.org.au/cas/logout
+        bypass: false
 
 repository:
     location:
         images: /data/collectory/data
 
-disableAlertLinks: true
-disableLoggerLinks: true
+loggerURL: https://logger-test.ala.org.au/service
+alertsUrl: https://alerts-test.ala.org.au
+alertResourceName: 'Alerts'
+speciesListToolUrl: https://lists-test.ala.org.au/speciesListItem/list/
+disableAlertLinks: false
+disableLoggerLinks: false
 biocacheServicesUrl: https://biocache.ala.org.au/ws
 biocacheUiURL: https://biocache.ala.org.au
+
+ROLE_ADMIN: 'ROLE_ADMIN'
+
+rifcs:
+    excludeBounds: true
+
+# URL paths for archives
+resource.publicArchive.url.template: "https://biocache.ala.org.au/archives/gbif/@UID@/@UID@.zip"
+resource.gbifExport.url.template: "https://biocache.ala.org.au/archives/gbif/@UID@/@UID@.zip"
+citation.template: "Records provided by @entityName@, accessed through ALA website."
+citation.link.template = For more information: "@link@"
+
+networkTypes:
+    - CHAH
+    - CHAEC
+    - CHAFC
+    - CHACM
+
+dataResource:
+    statusList:
+        - "identified"
+        - "inProgress"
+        - "dataAvailable"
+        - "linksAvailable"
+        - "declined"
+    resourceTypeList:
+        - "records"
+        - "website"
+        - "document"
+        - "uploads"
+        - "species-list"
+    permissionsDocumentTypes:
+        - ""
+        - "Email"
+        - "Data Provider Agreement"
+        - "Web Page"
+        - "Other"
+    contentTypesList:
+        - "authoritative"
+        - "behaviour"
+        - "commercial uses"
+        - "common names"
+        - "conservation management"
+        - "conservation status"
+        - "description"
+        - "distribution maps"
+        - "distribution text"
+        - "feeding and diet"
+        - "habitat"
+        - "human interaction"
+        - "identification keys"
+        - "images"
+        - "lifecycle"
+        - "molecular"
+        - "movies"
+        - "pest management"
+        - "pest status"
+        - "point occurrence data"
+        - "population"
+        - "references"
+        - "reproduction"
+        - "scientific names"
+        - "sensitive species lists"
+        - "similar species"
+        - "sound"
+        - "species interactions"
+        - "species list"
+        - "taxonomy"
+        - "threats"
+    provenanceTypesList:
+        - "Individual sightings"
+        - "Published dataset"
+        - "Draft"
 
 cartodb:
     pattern: "https://cartodb-basemaps-${s}.global.ssl.fastly.net/light_nolabels/${z}/${x}/${y}.png"

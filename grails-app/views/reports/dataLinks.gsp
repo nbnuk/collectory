@@ -1,4 +1,7 @@
-<%@ page import="au.org.ala.collectory.ProviderGroup" %>
+<%@ page import="au.org.ala.collectory.ProviderGroupService" %>
+<%
+    def providerGroupService = grailsApplication.classLoader.loadClass('au.org.ala.collectory.ProviderGroupService').newInstance()
+%>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -24,8 +27,8 @@
                 <colgroup><col width="45%"/><col width="10%"/><col width="45%"/></colgroup>
                 <tr class="reportHeaderRow"><td><g:message code="reports.dl.provider" /></td><td></td><td><g:message code="reports.dl.consumer" /></td></tr>
                 <g:each var='link' in="${links}">
-                  <g:set var="provider" value="${ProviderGroup._get(link.provider)}"/>
-                  <g:set var="consumer" value="${ProviderGroup._get(link.consumer)}"/>
+                  <g:set var="provider" value="${providerGroupService._get(link.provider)}"/>
+                  <g:set var="consumer" value="${providerGroupService._get(link.consumer)}"/>
                   <tr>
                     <td><g:link controller="${cl.controllerFromUid(uid: link.provider)}" action="show" id="${link.provider}">
                         <g:if test="${provider}">${provider.name} <cl:entityIndicator entity="${provider}"/></g:if><g:else><g:message code="reports.dl.invalid" args="${[link.provider]}"/></g:else>

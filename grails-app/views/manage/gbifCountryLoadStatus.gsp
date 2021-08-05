@@ -3,8 +3,10 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="breadcrumbParent"
+          content="${createLink(action: 'list', controller: 'manage')},${message(code: 'manage.list.title01')}"
+    />
     <meta name="layout" content="${grailsApplication.config.skin.layout}" />
-    %{--TODO At the moment this is performing a complete reload every 15 seconds while the load has not finished. Make this AJAXy--}%
     <title><g:message code="manage.gbifcls.title" /> ${country}</title>
 
     <g:if test="${gbifSummary}">

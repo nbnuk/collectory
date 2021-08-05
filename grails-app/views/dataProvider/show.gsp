@@ -68,7 +68,6 @@
                 <cl:editButton uid="${instance.uid}" page="/shared/base"/>
               </div>
 
-
               <div class="show-section well">
                   <h2>IPT integration</h2>
                   <p>
@@ -77,11 +76,10 @@
                       <br/>
                   </p>
                   <p class="iptStatus alert alert-info hide" style="word-break: break-all;">
-
                   </p>
                   <p>
-                    <button class="iptCheck iptBtn btn btn-default"><r:img class="spinner hide" uri="/images/spinner.gif"></r:img> Check endpoint</button>
-                    <button class="iptUpdate iptBtn btn btn-warning"><r:img class="spinner hide" uri="/images/spinner.gif"></r:img> Update data resources</button>
+                    <button class="iptCheck iptBtn btn btn-default"><asset:image class="spinner hide" uri="/images/spinner.gif"></asset:image> Check endpoint</button>
+                    <button class="iptUpdate iptBtn btn btn-warning"><asset:image class="spinner hide" uri="/images/spinner.gif"></asset:image> Update data resources</button>
                     <g:link controller="ipt" action="syncReport" params="${['uid':instance.uid]}" class="downloadSync iptBtn btn btn-info">
                         <i class="glyphicon glyphicon-download"> </i>
                         Download sync report</g:link>
@@ -161,7 +159,7 @@
             <div class="buttons">
               <g:form>
                 <g:hiddenField name="id" value="${instance?.id}"/>
-                <cl:ifGranted role="${ProviderGroup.ROLE_ADMIN}">
+                <cl:ifGranted role="${grailsApplication.config.ROLE_ADMIN}">
                   <span class="button"><g:actionSubmit class="delete btn btn-danger" action="delete" value="${message(code: 'default.button.delete.label', default: 'Delete')}" onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');"/></span>
                 </cl:ifGranted>
                 <div class="pull-right">
@@ -173,7 +171,7 @@
             </div>
         </div>
 
-    <r:script>
+    <asset:script>
         function checkIptInstance(){
             $('.iptCheck .spinner').removeClass('hide');
             $('.iptBtn').attr('disabled','disabled');
@@ -222,7 +220,7 @@
         $('.iptCheck').click(checkIptInstance);
         $('.iptUpdate').click(updateResourcesFromIpt);
 
-    </r:script>
+    </asset:script>
 
     </body>
 </html>

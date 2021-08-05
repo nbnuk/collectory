@@ -2,6 +2,8 @@ package au.org.ala.collectory
 
 class DataHubController extends ProviderGroupController {
 
+    def activityLogService, providerGroupService
+
     DataHubController() {
         entityName = "DataHub"
         entityNameLower = "dataHub"
@@ -17,7 +19,7 @@ class DataHubController extends ProviderGroupController {
             flash.message = params.message
         params.max = Math.min(params.max ? params.int('max') : 10, 100)
         params.sort = params.sort ?: "name"
-        ActivityLog.log username(), isAdmin(), Action.LIST
+        activityLogService.log username(), isAdmin(), Action.LIST
         [instanceList: DataHub.list(params), entityType: 'DataHub', instanceTotal: DataHub.count()]
     }
 
@@ -39,13 +41,6 @@ class DataHubController extends ProviderGroupController {
         def instance = get(params.id)
         if (instance) {
             if (isAdmin()) {
-//                /* need to remove it as a parent from all children otherwise they will be deleted */
-//                def resources = instance.resources as List
-//                resources.each {
-//                    instance.removeFromResources it
-//                    it.userLastModified = username()
-//                    it.save()  // necessary?
-//                }
                 // remove contact links (does not remove the contact)
                 ContactFor.findAllByEntityUid(instance.uid).each {
                     it.delete()
@@ -80,7 +75,7 @@ class DataHubController extends ProviderGroupController {
     protected ProviderGroup get(id) {
         if (id.size() > 2) {
             if (id[0..1] == DataHub.ENTITY_PREFIX) {
-                return ProviderGroup._get(id)
+                return providerGroupService._get(id)
             }
         }
         // else must be long id
@@ -92,5 +87,4 @@ class DataHubController extends ProviderGroupController {
         }
         return DataHub.get(dbId)
     }
-
 }

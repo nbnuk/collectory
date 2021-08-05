@@ -23,6 +23,7 @@
             </g:hasErrors>
             <g:form method="post" name="baseForm" action="base">
                 <g:hiddenField name="id" value="${command?.id}" />
+                <g:hiddenField name="uid" value="${command?.uid}" />
                 <g:hiddenField name="version" value="${command.version}" />
 
                 <!-- GBIF registration key-->

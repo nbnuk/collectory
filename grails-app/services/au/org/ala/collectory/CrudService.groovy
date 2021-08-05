@@ -15,6 +15,7 @@ class CrudService {
 
     def grailsApplication
     def idGeneratorService
+    def providerGroupService
 
     static baseStringProperties = ['guid','name','acronym','phone','email','state','pubShortDescription',
                                    'pubDescription','techDescription','notes', 'isALAPartner','focus','attributions',
@@ -351,8 +352,12 @@ class CrudService {
                 if (p.listConsumers()) {
                     linkedRecordConsumers = p.listConsumers().formatEntitiesFromUids()
                 }
-                if (p.connectionParameters && apiKey) {
-                    connectionParameters = p.connectionParameters.formatJSON()
+                if (p.connectionParameters) {
+                    def connParams =  p.connectionParameters.formatJSON()
+                    if (!apiKey){
+                        connParams.remove("url")
+                    }
+                    connectionParameters = connParams
                 }
                 if (p.imageMetadata) {
                     imageMetadata = p.imageMetadata.formatJSON()
@@ -952,7 +957,7 @@ class OutputFormat {
         if (!listOfUid) return null
         def result = []
         listOfUid.each {
-            def pg = ProviderGroup._get(it)
+            def pg = providerGroupService._get(it)
             if (pg) {
                 result << [name: pg.name, uri: pg.buildUri(), uid: pg.uid]
             }

@@ -2,11 +2,12 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="breadcrumbParent"
+          content="${createLink(action: 'list', controller: 'manage')},${message(code: 'manage.list.title01')}"
+    />
     <meta name="layout" content="${grailsApplication.config.skin.layout}" />
-
     <title><g:message code="upload.gbif.archive" /></title>
-    <script type="text/javascript" src="https://maps.google.com/maps/api/js?v=3.3&sensor=false"></script>
-    <r:require modules="fileupload"/>
+    <asset:stylesheet src="application.css" />
 </head>
 <body>
 
@@ -14,33 +15,14 @@
 
 <div class="row">
 
-    <div class="well pull-right col-md-6">
-        <p>
-            <g:message code="dataresource.gbifupload.des01" />
-            <a href="https://www.gbif.org/"><g:message code="dataresource.gbifupload.link.gbifportal" /></a>.
-            <br/>
-            <g:message code="dataresource.gbifupload.des02" />.
-        </p>
-        <p>
-            <b><g:message code="dataresource.gbifupload.des03" /></b>: <g:message code="dataresource.gbifupload.des04" />.<br/>
-            <g:message code="dataresource.gbifupload.des05" />.
-        </p>
-        <p>
-            <g:message code="dataresource.gbifupload.info0"/> <br/>
-            <strong>https://api.gbif.org/v1/occurrence/download/request/0001008-150512124619364.zip</strong>
-            <br/>
-            <g:message code="dataresource.gbifupload.info1"/> <br/>
-        </p>
-    </div>
-
-    <div class="col-md-6" style="padding-left:0;margin-left:0;">
+    <div class="col-md-6">
         <div class="form-group">
             <label for="url"><g:message code="dataresource.gbifupload.label" /></label>
             <g:field type="url" class="form-control" name="url" value=""/>
         </div>
         <div>
             <button class="btn btn-default" id="downloadArchiveBtn">
-                <r:img class="spinner-progress hide" uri="/images/spinner.gif"></r:img>
+                <asset:image class="spinner-progress hide" uri="/images/spinner.gif"></asset:image>
                 <g:message code="dataresource.gbifupload.btn"/>
             </button>
         </div>
@@ -50,9 +32,29 @@
             <a href="#" id="new-resource-link"><g:message code="dataresource.gbifupload.success1"/></a>
         </div>
     </div>
+    <div class="col-md-6">
+        <div class="well">
+            <p>
+                <g:message code="dataresource.gbifupload.des01" />
+                <a href="https://www.gbif.org/"><g:message code="dataresource.gbifupload.link.gbifportal" /></a>.
+                <br/>
+                <g:message code="dataresource.gbifupload.des02" />.
+            </p>
+            <p>
+                <b><g:message code="dataresource.gbifupload.des03" /></b>: <g:message code="dataresource.gbifupload.des04" />.<br/>
+                <g:message code="dataresource.gbifupload.des05" />.
+            </p>
+            <p>
+                <g:message code="dataresource.gbifupload.info0"/> <br/>
+                <strong>https://api.gbif.org/v1/occurrence/download/request/0001008-150512124619364.zip</strong>
+                <br/>
+                <g:message code="dataresource.gbifupload.info1"/> <br/>
+            </p>
+        </div>
+    </div>
 </div>
 
-<r:script>
+<asset:script>
 
     var dataResourceUrlBase = '${g.createLink([controller:"dataResource",action:"show"])}/';
 
@@ -80,7 +82,7 @@
 
     $('#downloadArchiveBtn').click(downloadFile);
 
-</r:script>
+</asset:script>
 
 
 </body>

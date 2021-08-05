@@ -11,6 +11,7 @@ import grails.web.http.HttpHeaders
 class LookupController {
 
     def idGeneratorService
+    def providerGroupService
 
     static allowedMethods = [citation:['POST','GET']]
 
@@ -59,7 +60,7 @@ class LookupController {
         def pg = null
         if (uid) {
             // summary for single entity
-            pg = ProviderGroup._get(uid)
+            pg = providerGroupService._get(uid)
             if (pg) {
                 render pg.buildSummary() as JSON
             } else {
@@ -92,7 +93,7 @@ class LookupController {
             instance = TempDataResource.findByUid(params.id)
         }
         else {
-            instance = ProviderGroup._get(params.id)
+            instance = providerGroupService._get(params.id)
         }
         if (!instance) {
             instance = findCollection(params.id)
@@ -141,7 +142,7 @@ class LookupController {
      * @return a JSON list of rank:name pairs - may be empty
      */
     def taxonomyCoverageHints = {
-        ProviderGroup instance = ProviderGroup._get(params.id)
+        ProviderGroup instance = providerGroupService._get(params.id)
         if (instance) {
             render JSONHelper.taxonomyHints(instance.taxonomyHints) as JSON
         } else {
@@ -196,7 +197,7 @@ class LookupController {
                     String result = "Resource name\tCitation\tRights\tMore information\tData generalizations\tInformation withheld\tDownload limit\tUID"
                     uids.each {
                         // get each pg
-                        def pg = it.startsWith('drt') ? TempDataResource.findByUid(it) : ProviderGroup._get(it)
+                        def pg = it.startsWith('drt') ? TempDataResource.findByUid(it) : providerGroupService._get(it)
                         if (pg) {
                             result += "\n" + buildCitation(pg,"tab separated")
                         }
@@ -206,7 +207,7 @@ class LookupController {
                 json {
                     def result = uids.collect {
                         // get each pg
-                        def pg = it.startsWith('drt') ? TempDataResource.findByUid(it) : ProviderGroup._get(it)
+                        def pg = it.startsWith('drt') ? TempDataResource.findByUid(it) : providerGroupService._get(it)
                         if (pg) {
                             return buildCitation(pg,"map")
                         }
@@ -227,7 +228,7 @@ class LookupController {
         CSVWriter writer = new CSVWriter(sw)
         writer.writeNext(["Resource name","Citation","Rights","More information", "Data generalizations", "Information withheld","Download limit","UID", "DOI"] as String[])
         uids.each {
-            def pg = it.startsWith('drt') ? TempDataResource.findByUid(it) : ProviderGroup._get(it)
+            def pg = it.startsWith('drt') ? TempDataResource.findByUid(it) : providerGroupService._get(it)
             if (pg) {
                 writer.writeNext(buildCitation(pg,"array") as String[])
             }

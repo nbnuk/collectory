@@ -9,6 +9,8 @@ import java.text.ParseException
 
 class CollectionController extends ProviderGroupController {
 
+    def activityLogService, providerGroupService
+
     CollectionController() {
         entityName = "Collection"
         entityNameLower = "collection"
@@ -72,7 +74,7 @@ class CollectionController extends ProviderGroupController {
             def institutionList = []
             if (userContact) {
                 ContactFor.findAllByContact(userContact).each {
-                    ProviderGroup pg = ProviderGroup._get(it.entityUid)
+                    ProviderGroup pg = providerGroupService._get(it.entityUid)
                     if (pg?.entityType() == Collection.ENTITY_TYPE) {
                         collectionList << pg
                     } else if (pg?.entityType() == Institution.ENTITY_TYPE) {
@@ -96,7 +98,7 @@ class CollectionController extends ProviderGroupController {
         } else {
             // show it
             log.debug ">>${username()} showing ${collectionInstance.name}"
-            ActivityLog.log username(), isAdmin(), collectionInstance.uid, Action.VIEW
+            activityLogService.log username(), isAdmin(), collectionInstance.uid, Action.VIEW
             [instance: collectionInstance, contacts: collectionInstance.getContacts(),
                     changes: getChanges(collectionInstance.uid)]
         }
@@ -198,7 +200,7 @@ class CollectionController extends ProviderGroupController {
      *
      * Called by the base class method for updating descriptions.
      */
-    def entitySpecificDescriptionProcessing(collection, params) {
+    static def entitySpecificDescriptionProcessing(collection, params) {
         // special handling for collection type
         collection.collectionType = toJson(params.collectionType)
         params.remove('collectionType')
@@ -224,7 +226,6 @@ class CollectionController extends ProviderGroupController {
         }
         collection.subCollections = subCollections as JSON
         params.remove('subCollections')
-
     }
 
     /**
@@ -301,7 +302,7 @@ class CollectionController extends ProviderGroupController {
     protected ProviderGroup get(id) {
         if (id.size() > 2) {
             if (id[0..1] == Collection.ENTITY_PREFIX) {
-                return ProviderGroup._get(id)
+                return providerGroupService._get(id)
             }
         }
         // else must be long id
@@ -316,10 +317,7 @@ class CollectionController extends ProviderGroupController {
 
     private findCollection(id) {
         if (!id) {return null}
-        // try lsid
-        if (id instanceof String && id.startsWith(ProviderGroup.LSID_PREFIX)) {
-            return Collection.findByGuid(id)
-        }
+
         // try uid
         if (id instanceof String && id.startsWith(Collection.ENTITY_PREFIX)) {
             return Collection.findByUid(id)

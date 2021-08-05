@@ -8,6 +8,7 @@ class CollectoryAuthService{
 
     def grailsApplication
     def authService
+    def providerGroupService
 
     def username() {
         def username = 'not available'
@@ -27,7 +28,7 @@ class CollectoryAuthService{
             adminFlag = true
         else {
             if(authService) {
-                adminFlag = authService.userInRole(ProviderGroup.ROLE_ADMIN)
+                adminFlag = authService.userInRole(grailsApplication.config.ROLE_ADMIN)
             }
         }
         return adminFlag
@@ -52,12 +53,12 @@ class CollectoryAuthService{
         } else {
             def email = RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()?.attributes?.email
             if(email) {
-                return ProviderGroup._get(uid)?.isAuthorised(email)
+                return providerGroupService._get(uid)?.isAuthorised(email)
             } else {
                 if(authService) {
                     email = authService.email
                     if(email)
-                        return ProviderGroup._get(uid)?.isAuthorised(email)
+                        return providerGroupService._get(uid)?.isAuthorised(email)
                 }
             }
         }
@@ -103,7 +104,7 @@ class CollectoryAuthService{
         def entities = [:]  // map by uid to remove duplicates
         ContactFor.findAllByContact(contact).each {
             if (it.administrator) {
-                def pg = ProviderGroup._get(it.entityUid)
+                def pg = providerGroupService._get(it.entityUid)
                 if (pg) {
                     entities.put it.entityUid, [uid: pg.uid, name: pg.name]
                     if (it.dateLastModified > latestMod) { latestMod = it.dateLastModified }
@@ -113,7 +114,7 @@ class CollectoryAuthService{
                     // children() now seems to return some internal class resources
                     // so make sure they are PGs
                     if (child instanceof ProviderGroup) {
-                        def ch = ProviderGroup._get(child.uid)
+                        def ch = providerGroupService._get(child.uid)
                         if (ch) {
                             entities.put ch.uid, [uid: ch.uid, name: ch.name]
                         }

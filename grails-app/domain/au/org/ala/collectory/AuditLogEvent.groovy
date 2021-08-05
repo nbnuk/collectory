@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package au.org.ala.audit
+package au.org.ala.collectory
 
 /**
  * AuditLogEvents are reported to the AuditLog table.
@@ -24,15 +24,7 @@ package au.org.ala.audit
  * Grails to create a table for you. (e.g. DDL or db-migration plugin)
  */
 class AuditLogEvent implements Serializable {
-    private static final long serialVersionUID = 1L
-
-    // Enable when you configured UUID(2) kind of ids in "auditLog.idMapping" in < 1.1.0 plugin version
-    // String id
-
-    static auditable = false
-
-    Date dateCreated
-    Date lastUpdated
+    static final long serialVersionUID = 1L
 
     String actor
     String uri
@@ -45,6 +37,9 @@ class AuditLogEvent implements Serializable {
     String oldValue
     String newValue
 
+    Date dateCreated
+    Date lastUpdated
+
     static constraints = {
         actor(nullable: true)
         uri(nullable: true)
@@ -53,13 +48,8 @@ class AuditLogEvent implements Serializable {
         persistedObjectVersion(nullable: true)
         eventName(nullable: true)
         propertyName(nullable: true)
-
         oldValue(nullable: true)
         newValue(nullable: true)
-
-        // for large column support (as in < 1.0.6 plugin versions), use
-        // oldValue(nullable: true, maxSize: 65534)
-        // newValue(nullable: true, maxSize: 65534)
     }
 
     static mapping = {
@@ -76,10 +66,15 @@ class AuditLogEvent implements Serializable {
         // Set similiar when you used "auditLog.idMapping" in < 1.1.0 plugin version. Example:
         // id generator:"uuid2", type:"string", "length:36"
 
-        // no HQL queries package name import (was default in < 1.0.x versions as well)
-        autoImport false
+        // no HQL queries package name import (was default in 1.x version)
+        // autoImport false
 
         version false
+        autoTimestamp false
+
+        // for large column support (as in < 1.0.6 plugin versions), use this
+        // oldValue type: 'text'
+        // newValue type: 'text'
     }
 
     /**

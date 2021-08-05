@@ -5,6 +5,7 @@
     <g:set var="entityName" value="${entityType}" />
     <g:set var="entityNameLower" value="${cl.controller(type: entityType)}"/>
     <title><g:message code="default.list.label" args="[entityName]" /></title>
+    <asset:stylesheet src="application.css" />
 </head>
 <body>
 <div class="btn-toolbar">

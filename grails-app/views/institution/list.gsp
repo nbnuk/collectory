@@ -2,8 +2,12 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <meta name="layout" content="${grailsApplication.config.skin.layout}" />
+        <meta name="breadcrumbParent"
+              content="${createLink(action: 'list', controller: 'manage')},${message(code: 'manage.list.title01')}"
+        />
         <g:set var="entityName" value="${message(code: 'institution.label', default: 'Institution')}" />
         <title><g:message code="default.list.label" args="[entityName]" /></title>
+        <asset:stylesheet src="application.css" />
     </head>
     <body>
     <div class="btn-toolbar">

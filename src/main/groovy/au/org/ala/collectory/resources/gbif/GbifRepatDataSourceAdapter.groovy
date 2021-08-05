@@ -1,13 +1,11 @@
 package au.org.ala.collectory.resources.gbif
 
-import au.org.ala.collectory.DataResource
 import au.org.ala.collectory.DataSourceConfiguration
 import au.org.ala.collectory.ExternalResourceBean
 import au.org.ala.collectory.GbifService
 import au.org.ala.collectory.exception.ExternalResourceException
 import org.grails.web.json.JSONObject
 import org.slf4j.LoggerFactory
-
 import java.text.MessageFormat
 
 /**
@@ -55,8 +53,8 @@ class GbifRepatDataSourceAdapter extends GbifDataSourceAdapter {
 
     @Override
     ExternalResourceBean createExternalResource(Map external) {
-        Map ext = super.createExternalResource(external)
-        ext.put("recordCount", external.recordCount)
+        def ext = super.createExternalResource(external)
+        ext.setRecordCount(external.recordCount)
         ext
      }
 

@@ -1,13 +1,15 @@
 package au.org.ala.collectory
 
 import grails.converters.JSON
+import grails.gorm.transactions.Transactional
+
 import java.text.SimpleDateFormat
 import au.org.ala.collectory.resources.PP
 import au.org.ala.collectory.resources.DarwinCoreFields
 
 class DataResourceController extends ProviderGroupController {
 
-    def metadataService, dataImportService, gbifRegistryService, authService
+    def metadataService, dataImportService, gbifRegistryService, authService, activityLogService, providerGroupService
 
     DataResourceController() {
         entityName = "DataResource"
@@ -19,7 +21,7 @@ class DataResourceController extends ProviderGroupController {
     }
 
     def markAsVerified = {
-        def instance = get(params.id)
+        def instance = providerGroupService._get(params.id)
         if(instance){
             instance.markAsVerified()
         }
@@ -41,7 +43,7 @@ class DataResourceController extends ProviderGroupController {
         params.max = Math.min(params.max ? params.int('max') : 100, 10000)
         params.sort = params.sort ?: "name"
         params.order = params.order ?: "asc"
-//        ActivityLog.log username(), isAdmin(), Action.LIST
+        activityLogService.log username(), isAdmin(), Action.LIST
 
         if(params.resourceType){
             [instanceList: DataResource.findAllWhere(['resourceType' : params.resourceType], params), entityType: 'DataResource', instanceTotal: DataResource.count()]
@@ -59,7 +61,7 @@ class DataResourceController extends ProviderGroupController {
         }
         else {
             log.debug "Ala partner = " + instance.isALAPartner
-            ActivityLog.log username(), isAdmin(), instance.uid, Action.VIEW
+            activityLogService.log username(), isAdmin(), instance.uid, Action.VIEW
 
             [instance: instance, contacts: instance.getContacts(), changes: getChanges(instance.uid)]
         }
@@ -72,7 +74,7 @@ class DataResourceController extends ProviderGroupController {
             redirect(action: "list")
         } else {
             // are they allowed to edit
-            if (collectoryAuthService?.userInRole(ProviderGroup.ROLE_ADMIN) || grailsApplication.config.security.cas.bypass.toBoolean()) {
+            if (collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN) || grailsApplication.config.security.cas.bypass.toBoolean()) {
                 render(view: 'consumers', model:[command: pg, source: params.source])
             } else {
                 render("You are not authorised to edit these properties.")
@@ -91,14 +93,15 @@ class DataResourceController extends ProviderGroupController {
         //get the UID
         def dataResource = get(params.id)
         def metadata = [:]
-
-        params.entrySet().each {
-            if(!(it.key in ignores)){
-                metadata[it.key] = it.value
+        DataResource.withTransaction {
+            params.entrySet().each {
+                if(!(it.key in ignores)){
+                    metadata[it.key] = it.value
+                }
             }
+            dataResource.imageMetadata = (metadata as JSON).toString()
+            dataResource.save(flush:true)
         }
-        dataResource.imageMetadata = (metadata as JSON).toString()
-        dataResource.save(flush:true)
         redirect(action: 'show', params: [id:params.id])
     }
 
@@ -194,7 +197,7 @@ class DataResourceController extends ProviderGroupController {
 
     def registerGBIF = {
         def pg = get(params.id)
-        if(authService.userInRole(grailsApplication.config.gbifRegistrationRole)) {
+        if (authService.userInRole(grailsApplication.config.gbifRegistrationRole)) {
             log.info("[User ${authService.getUserId()}] has selected to register ${pg.uid} in GBIF...")
             Map result = gbifRegistryService.registerDataResource(pg)
             flash.message = result.message
@@ -207,7 +210,7 @@ class DataResourceController extends ProviderGroupController {
 
     def updateGBIF = {
         def pg = get(params.id)
-        if(authService.userInRole(grailsApplication.config.gbifRegistrationRole)) {
+        if (authService.userInRole(grailsApplication.config.gbifRegistrationRole)) {
             log.info("[User ${authService.getUserId()}] has selected to update ${pg.uid} in GBIF...")
             Map result = gbifRegistryService.registerDataResource(pg)
             flash.message = result.message
@@ -220,7 +223,7 @@ class DataResourceController extends ProviderGroupController {
 
     def deleteGBIF = {
         def pg = get(params.id)
-        if(authService.userInRole(grailsApplication.config.gbifRegistrationRole)) {
+        if (authService.userInRole(grailsApplication.config.gbifRegistrationRole)) {
             log.info("[User ${authService.getUserId()}] has selected to delete ${pg.uid} from GBIF...")
             gbifRegistryService.deleteDataResource(pg)
             flash.message = "Resource removed from GBIF"
@@ -273,14 +276,6 @@ class DataResourceController extends ProviderGroupController {
     }
 
     /**
-     * Update descriptive attributes that are specific to resources.
-     *
-     * Called by the base class method for updating descriptions.
-     */
-    @Override def entitySpecificDescriptionProcessing(Object pg, Object params) {
-    }
-
-    /**
      * Get the instance for this entity based on either uid or DB id.
      *
      * @param id UID or DB id
@@ -289,7 +284,7 @@ class DataResourceController extends ProviderGroupController {
     protected ProviderGroup get(id) {
         if (id.size() > 2) {
             if (id[0..1] == DataResource.ENTITY_PREFIX) {
-                return ProviderGroup._get(id)
+                return providerGroupService._get(id)
             }
         }
         // else must be long id

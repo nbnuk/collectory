@@ -6,6 +6,8 @@ package au.org.ala.collectory
  */
 class Contact implements Serializable {
 
+    def providerGroupService
+
     String title            // the person's honorific eg Dr
     String firstName
     String lastName
@@ -124,7 +126,7 @@ class Contact implements Serializable {
     List<ProviderGroup> getContactsFor() {
         List<ProviderGroup> result = []
         ContactFor.findAllByContact(this).each {
-            result << ProviderGroup._get(it.entityUid)
+            result << providerGroupService._get(it.entityUid)
         }
         return result
     }

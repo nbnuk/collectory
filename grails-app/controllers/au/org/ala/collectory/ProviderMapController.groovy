@@ -14,7 +14,7 @@ class ProviderMapController {
     def beforeInterceptor = [action:this.&auth]
 
     def auth() {
-        if (!collectoryAuthService?.userInRole(ProviderGroup.ROLE_EDITOR) && !grailsApplication.config.security.cas.bypass.toBoolean()) {
+        if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_EDITOR) && !grailsApplication.config.security.cas.bypass.toBoolean()) {
             render "You are not authorised to access this page."
             return false
         }
@@ -27,18 +27,10 @@ class ProviderMapController {
     def list = {
         if (!params.max) params.max = 10
         if (!params.offset) params.offset = 0
-//        if (!params.sort) params.sort = "collectionName"
         if (!params.order) params.order = "asc"
         def maps = ProviderMap.withCriteria {
-            maxResults(params.max?.toInteger())
-            firstResult(params.offset?.toInteger())
-//            if (params.sort == 'collectionName') {
-//                collection {
-//                    order('name', params.order)
-//                }
-//            } else {
-//                order(params.sort, params.order)
-//            }
+            maxResults(params.max)
+            firstResult(params.offset)
         }
         [providerMapInstanceList: maps, providerMapInstanceTotal: ProviderMap.count(), returnTo: params.returnTo]
     }

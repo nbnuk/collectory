@@ -5,7 +5,9 @@ import groovy.json.JsonSlurper
 
 import java.sql.Timestamp
 
-class DataResource extends ProviderGroup implements Serializable {
+class DataResource implements ProviderGroup, Serializable {
+
+    def providerGroupService
 
     static final String ENTITY_TYPE = 'DataResource'
     static final String ENTITY_PREFIX = 'dr'
@@ -13,6 +15,14 @@ class DataResource extends ProviderGroup implements Serializable {
     static auditable = [ignore: ['version','dateCreated','lastUpdated','userLastModified']]
 
     static mapping = {
+        uid index:'uid_idx'
+        pubShortDescription type: "text"
+        pubDescription type: "text"
+        techDescription type: "text"
+        focus type: "text"
+        taxonomyHints type: "text"
+        notes type: "text"
+        networkMembership type: "text"
         sort: 'name'
         rights type:'text'
         citation type:'text'
@@ -86,20 +96,43 @@ class DataResource extends ProviderGroup implements Serializable {
     String gbifDoi
 
     static constraints = {
+        guid(nullable:true, maxSize:256)
+        uid(blank:false, maxSize:20)
+        name(blank:false, maxSize:1024)
+        acronym(nullable:true, maxSize:45)
+        pubShortDescription(nullable:true, maxSize:100)
+        pubDescription(nullable:true)
+        techDescription(nullable:true)
+        focus(nullable:true)
+        address(nullable:true)
+        latitude(nullable:true)
+        longitude(nullable:true)
+        altitude(nullable:true)
+        state(nullable:true, maxSize:45)
+        websiteUrl(nullable:true, maxSize:256)
+        logoRef(nullable:true)
+        imageRef(nullable:true)
+        email(nullable:true, maxSize:256)
+        phone(nullable:true, maxSize:200)
+        isALAPartner()
+        notes(nullable:true)
+        networkMembership(nullable:true, maxSize:256)
+        attributions(nullable:true, maxSize:256)
+        taxonomyHints(nullable:true)
+        keywords(nullable:true)
+        gbifRegistryKey(nullable:true, maxSize:36)
         rights(nullable:true)
         citation(nullable:true)
         licenseType(nullable:true, maxSize:45)
         licenseVersion(nullable:true, maxSize:45)
-        resourceType(maxSize:255, validator: {
-            return it in resourceTypeList
-        })
-        provenance(nullable:true,maxSize:45,inList: provenanceTypesList)
+        resourceType(maxSize:255)
+        provenance(nullable:true,maxSize:45)
         dataProvider(nullable:true)
         institution(nullable:true)
         dataGeneralizations(nullable:true)
         informationWithheld(nullable:true)
         permissionsDocument(nullable:true)
-        permissionsDocumentType(nullable:true, inList: permissionsDocumentTypes)
+        permissionsDocumentType(nullable:true,)
         status(maxSize:45)
         harvestingNotes(nullable:true)
         mobilisationNotes(nullable:true)
@@ -129,24 +162,6 @@ class DataResource extends ProviderGroup implements Serializable {
 
     static transients =  ['creativeCommons']
 
-    static resourceTypeList = ["records", "website", "document", "uploads", "species-list"]
-    static permissionsDocumentTypes = ['','Email','Data Provider Agreement','Web Page','Other']
-    static contentTypesList = ['authoritative','behaviour','commercial uses','common names','conservation management',
-            'conservation status','description','distribution maps','distribution text','feeding and diet','habitat',
-            'human interaction','identification keys','images','lifecycle','molecular','movies','pest management','pest status',
-            'point occurrence data','population','references','reproduction','scientific names','sensitive species lists',
-            'similar species','sound','species interactions','species list','taxonomy','threats']
-    static provenanceTypesList = ['Individual sightings','Published dataset','Draft']
-    /**
-     * Integration status.
-     * identified - Resource has been found but no further contact
-     * inProgress - Resource has been contacted and discussions are underway about sharing
-     * dataAvailable - Data for the resource has been loaded
-     * linksAvailable - Links to the resource are used on atlas pages
-     * declined - This resource is not to be harvested / will not be contributing at this time
-     */
-    static statusList = ['identified','inProgress','dataAvailable','linksAvailable','declined']
-
     boolean canBeMapped() {
         return false;
     }
@@ -172,7 +187,7 @@ class DataResource extends ProviderGroup implements Serializable {
         drs.hubMembership = listHubMembership().collect { [uid: it.uid, name: it.name] }
         def consumers = listConsumers()
         consumers.each {
-            def pg = ProviderGroup._get(it)
+            def pg = findByUid(it)
             if (pg) {
                 if (it[0..1] == 'co') {
                     drs.relatedCollections << [uid: pg.uid, name: pg.name]
@@ -270,10 +285,10 @@ class DataResource extends ProviderGroup implements Serializable {
      * @return
      */
     @Override def resolveAddress() {
-        def addr = super.resolveAddress() ?: dataProvider?.resolveAddress()
+        def addr = ProviderGroup.super.resolveAddress() ?: dataProvider?.resolveAddress()
         if (!addr) {
             def pg = listConsumers().find {
-                def related = _get(it)
+                def related = providerGroupService._get(it)
                 return related && related.resolveAddress()
             }
             if (pg) {
@@ -288,7 +303,7 @@ class DataResource extends ProviderGroup implements Serializable {
      * @return
      */
     @Override def createdBy() {
-        return dataProvider ? dataProvider.createdBy() : super.createdBy()
+        return dataProvider ? dataProvider.createdBy() : ProviderGroup.super.createdBy()
     }
 
     /**
@@ -297,7 +312,7 @@ class DataResource extends ProviderGroup implements Serializable {
      */
     @Override def buildLogoUrl() {
         if (logoRef) {
-            return super.buildLogoUrl()
+            return ProviderGroup.super.buildLogoUrl()
         }
         else {
             return dataProvider?.buildLogoUrl()

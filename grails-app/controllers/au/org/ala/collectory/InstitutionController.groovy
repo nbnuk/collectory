@@ -3,7 +3,7 @@ package au.org.ala.collectory
 
 class InstitutionController extends ProviderGroupController {
 
-    def authService
+    def authService, activityLogService, providerGroupService
 
     InstitutionController() {
         entityName = "Institution"
@@ -29,7 +29,7 @@ class InstitutionController extends ProviderGroupController {
         }
         else {
             log.debug "Ala partner = " + institutionInstance.isALAPartner
-            ActivityLog.log username(), isAdmin(), institutionInstance.uid, Action.VIEW
+            activityLogService.log username(), isAdmin(), institutionInstance.uid, Action.VIEW
 
             [instance: institutionInstance, contacts: institutionInstance.getContacts(), changes: getChanges(institutionInstance.uid)]
         }
@@ -58,7 +58,7 @@ class InstitutionController extends ProviderGroupController {
                 }
                 // now delete
                 try {
-                    ActivityLog.log username(), isAdmin(), params.id as long, Action.DELETE
+                    activityLogService.log username(), isAdmin(), params.id as long, Action.DELETE
                     providerGroupInstance.delete(flush: true)
                     flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'providerGroup.label', default: 'ProviderGroup'), params.id])}"
                     redirect(action: "list")
@@ -155,7 +155,7 @@ class InstitutionController extends ProviderGroupController {
     protected ProviderGroup get(id) {
         if (id.size() > 2) {
             if (id[0..1] == Institution.ENTITY_PREFIX) {
-                return ProviderGroup._get(id)
+                return providerGroupService._get(id)
             }
         }
         // else must be long id

@@ -31,6 +31,7 @@
   </g:hasErrors>
   <g:form method="post" enctype="multipart/form-data" action="editCollection">
     <g:hiddenField name="id" value="${command?.id}"/>
+    <g:hiddenField name="uid" value="${command?.uid}" />
     <g:hiddenField name="version" value="${command.version}"/>
     <div class="row">
       <div class="col-md-8">

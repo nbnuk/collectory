@@ -2,6 +2,9 @@
 <html>
     <head>
         <title><g:message code="manage.index.title" /></title>
+        <meta name="breadcrumbParent"
+              content="${createLink(action: 'list', controller: 'manage')},${message(code: 'manage.list.title01')}"
+        />
 	    <meta name="layout" content="${grailsApplication.config.skin.layout}" />
     </head>
     

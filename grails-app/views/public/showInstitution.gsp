@@ -3,8 +3,11 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="breadcrumbParent"
+          content="${createLink(action: 'map', controller: 'public')},${message(code: 'breadcrumb.collections')}"
+    />
     <meta name="layout" content="${grailsApplication.config.skin.layout}"/>
-    <title><cl:pageTitle><g:fieldValue bean="${instance}" field="name"/></cl:pageTitle></title>
+    <title><g:fieldValue bean="${instance}" field="name"/></title>
     <asset:stylesheet src="application.css"/>
     <script type="text/javascript">
         var COLLECTORY_CONF = {
@@ -29,6 +32,7 @@
         biocacheWebappUrl = "${grailsApplication.config.biocacheUiURL}";
         loadLoggerStats = ${!grailsApplication.config.disableLoggerLinks.toBoolean()};
     </asset:script>
+    <asset:javascript src="application-pages.js"/>
 </head>
 
 <body>
@@ -41,46 +45,63 @@
                 <g:each var="p" in="${parents}">
                     <h2><g:link action="show" id="${p.uid}">${p.name}</g:link></h2>
                 </g:each>
-                <cl:valueOrOtherwise value="${instance.acronym}"><span
-                        class="acronym"><g:message code="public.show.header.acronym"/>: ${fieldValue(bean: instance, field: "acronym")}</span></cl:valueOrOtherwise>
 
-                <g:if test="${instance.pubDescription}">
-                    <h2><g:message code="public.des" /></h2>
-                    <cl:formattedText>${fieldValue(bean: instance, field: "pubDescription")}</cl:formattedText>
-                    <cl:formattedText>${fieldValue(bean: instance, field: "techDescription")}</cl:formattedText>
-                </g:if>
-                <g:if test="${instance.focus}">
-                    <h2><g:message code="public.si.content.label02" /></h2>
-                    <cl:formattedText>${fieldValue(bean: instance, field: "focus")}</cl:formattedText>
-                </g:if>
-                <h2><g:message code="public.si.content.label03" /></h2>
-                <ol>
-                    <g:each var="c" in="${instance.listCollections().sort { it.name }}">
-                        <li><g:link controller="public" action="show"
-                                    id="${c.uid}">${c?.name}</g:link> ${c?.makeAbstract(400)}</li>
-                    </g:each>
-                </ol>
+                <div class="tabbable">
+                    <ul class="nav nav-tabs" id="home-tabs">
+                        <li class="active"><a href="#basic-metadata" data-toggle="tab">Metadata</a></li>
+                        <li><a href="#collections" data-toggle="tab">Collections</a></li>
+                        <li><a href="#usage-stats" data-toggle="tab">Usage stats</a></li>
+                        <li><a href="#metrics" data-toggle="tab">Metrics</a></li>
+                    </ul>
+                </div>
 
-                <div id='usage-stats'>
-                    <h2><g:message code="public.usagestats.label" /></h2>
+                <div class="tab-content">
 
-                    <div id='usage'>
-                        <p><g:message code="public.usage.des" />...</p>
+                    <div id="basic-metadata" class="active tab-pane">
+                        <g:if test="${instance.pubDescription}">
+                            <h2><g:message code="public.des" /></h2>
+                            <cl:formattedText>${fieldValue(bean: instance, field: "pubDescription")}</cl:formattedText>
+                            <cl:formattedText>${fieldValue(bean: instance, field: "techDescription")}</cl:formattedText>
+                        </g:if>
+                        <g:if test="${instance.focus}">
+                            <h2><g:message code="public.si.content.label02" /></h2>
+                            <cl:formattedText>${fieldValue(bean: instance, field: "focus")}</cl:formattedText>
+                        </g:if>
+
+                        <div>
+                            <p style="padding-bottom:8px;"><span id="numBiocacheRecords"><g:message code="public.numbrs.des01" /></span> <g:message code="public.numbrs.des02" args="[orgNameLong]"/>.</p>
+                            <p><cl:recordsLink entity="${instance}"><g:message code="public.numbrs.link" /> ${instance.name}.</cl:recordsLink></p>
+                        </div>
+
+                        <cl:lastUpdated date="${instance.lastUpdated}"/>
+                    </div>
+                    <div id="collections" class="tab-pane">
+                        <h2><g:message code="public.si.content.label03" /></h2>
+                        <ol>
+                            <g:each var="c" in="${instance.listCollections().sort { it.name }}">
+                                <li><g:link controller="public" action="show"
+                                            id="${c.uid}">${c?.name}</g:link> ${c?.makeAbstract(400)}</li>
+                            </g:each>
+                        </ol>
+                    </div>
+
+                    <div id="usage-stats" class="tab-pane">
+                        <h2><g:message code="public.usagestats.label" /></h2>
+
+                        <div id='usage'>
+                            <p><g:message code="public.usage.des" />...</p>
+                        </div>
+                    </div>
+
+                    <div id="metrics" class="tab-pane">
+                        <h2><g:message code="public.si.content.label04" /></h2>
+
+
+                        <div id="recordsBreakdown" class="section vertical-charts">
+                            <div id="charts"></div>
+                        </div>
                     </div>
                 </div>
-
-                <h2><g:message code="public.si.content.label04" /></h2>
-
-                <div>
-                    <p style="padding-bottom:8px;"><span id="numBiocacheRecords"><g:message code="public.numbrs.des01" /></span> <g:message code="public.numbrs.des02" args="[orgNameLong]"/>.</p>
-                    <p><cl:recordsLink entity="${instance}"><g:message code="public.numbrs.link" /> ${instance.name}.</cl:recordsLink></p>
-                </div>
-
-                <div id="recordsBreakdown" class="section vertical-charts">
-                    <div id="charts"></div>
-                </div>
-
-                <cl:lastUpdated date="${instance.lastUpdated}"/>
 
             </div><!--close section-->
             <section class="col-md-4">
@@ -175,6 +196,12 @@
     </div>
         </div><!--close content-->
 </div>
+<asset:script>
+    // stats
+    if (loadLoggerStats){
+      loadDownloadStats("${grailsApplication.config.loggerURL}", "${instance.uid}","${instance.name}", "1002");
+    }
+</asset:script>
 <g:render template="charts" model="[facet:'institution_uid', instance: instance]" />
 </body>
 </html>

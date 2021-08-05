@@ -136,7 +136,7 @@
             <div class="btn-toolbar">
                 <g:form class="btn-group">
                     <g:hiddenField name="id" value="${instance?.id}"/>
-                    <cl:ifGranted role="${ProviderGroup.ROLE_ADMIN}">
+                    <cl:ifGranted role="${grailsApplication.config.ROLE_ADMIN}">
                         <g:actionSubmit class="delete btn btn-danger" action="delete" value="${message(code: 'default.button.delete.label', default: 'Delete')}" onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');"/>
                     </cl:ifGranted>
                 </g:form>

@@ -19,7 +19,7 @@
         <div class="body">
           <g:set var="filter" value="${consumer ? consumer : provider}"/>
           <g:if test="${filter}">
-            <h1>DataLinks for ${ProviderGroup._get(filter).name}</h1>
+            <h1>DataLinks for ${providerGroupService._get(filter).name}</h1>
           </g:if>
           <g:else>
             <h1><g:message code="default.list.label" args="[entityName]" /></h1>
@@ -42,8 +42,8 @@
                     </thead>
                     <tbody>
                     <g:each in="${dataLinkInstanceList}" status="i" var="dataLinkInstance">
-                        <g:set var="provider" value="${ProviderGroup._get(dataLinkInstance.provider)}"/>
-                        <g:set var="consumer" value="${ProviderGroup._get(dataLinkInstance.consumer)}"/>
+                        <g:set var="provider" value="${providerGroupService._get(dataLinkInstance.provider)}"/>
+                        <g:set var="consumer" value="${providerGroupService._get(dataLinkInstance.consumer)}"/>
                         <tr class="${(i % 2) == 0 ? 'odd' : 'even'}">
                         
                             <td><g:link action="show" id="${dataLinkInstance.id}" params="[returnTo: returnTo]">${fieldValue(bean: dataLinkInstance, field: "id")}</g:link></td>

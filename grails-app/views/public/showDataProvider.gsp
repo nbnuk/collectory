@@ -4,9 +4,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <meta name="layout" content="${grailsApplication.config.skin.layout}"/>
     <meta name="breadcrumbParent"
-          content="${createLink(action: 'map', controller: 'public')},${message(code: 'breadcrumb.dataproviders')}"
+          content="${createLink(action: 'datasets', controller: 'public')},${message(code: 'breadcrumb.dataproviders')}"
     />
-    <title><cl:pageTitle>${fieldValue(bean: instance, field: "name")}</cl:pageTitle></title>
+    <title>${fieldValue(bean: instance, field: "name")}</title>
     <asset:stylesheet src="application.css"/>
     <script type="text/javascript">
         var COLLECTORY_CONF = {
@@ -29,6 +29,7 @@
     <cl:pageOptionsPopup instance="${instance}"/>
     <div class="row">
         <div class="col-md-8">
+
             <cl:h1 value="${instance.name}"/>
             <g:render template="editButton"/>
             <cl:valueOrOtherwise value="${instance.acronym}"><span
@@ -36,60 +37,66 @@
             <g:if test="${instance.guid?.startsWith('urn:lsid:')}">
                 <span class="lsid"><a href="#lsidText" id="lsid" class="local"
                                       title="Life Science Identifier (pop-up)"><g:message code="public.lsid" /></a></span>
-
-                <div style="display:none; text-align: left;">
-                    <div id="lsidText" style="text-align: left;">
-                        <b><a class="external_icon" href="https://wayback.archive.org/web/20100515104710/http://lsids.sourceforge.net:80/"
-                              target="_blank"><g:message code="public.lsidtext.link" />:</a></b>
-
-                        <p style="margin: 10px 0;"><cl:guid target="_blank"
-                                                            guid='${fieldValue(bean: instance, field: "guid")}'/></p>
-
-                        <p style="font-size: 12px;"><g:message code="public.lsidtext.des" />.</p>
-                    </div>
-                </div>
             </g:if>
-            <div class="section">
-            <g:if test="${instance.pubDescription}">
-                <h2><g:message code="public.des" /></h2>
-                <cl:formattedText>${fieldValue(bean: instance, field: "pubDescription")}</cl:formattedText>
-                <cl:formattedText>${fieldValue(bean: instance, field: "techDescription")}</cl:formattedText>
-            </g:if>
-            <g:if test="${instance.focus}">
-                <h2><g:message code="public.sdp.content.label02" /></h2>
-                <cl:formattedText>${fieldValue(bean: instance, field: "focus")}</cl:formattedText>
-            </g:if>
-            <h2><g:message code="public.sdp.content.label03" /></h2>
-            <g:set var="hasRecords" value="false"/>
-            <g:if test="${instance.getResources()}">
-            <ol>
-                <g:each var="c" in="${instance.getResources().sort { it.name }}">
-                    <li><g:link controller="public" action="show" id="${c.uid}">${c?.name}</g:link>
-                        <br/>
-                        <span style="color:#555;">${c?.makeAbstract(400)}</span></li>
-                    <g:if test="${c.resourceType == 'records'}">
-                        <g:set var="hasRecords" value="true"/>
+
+            <div class="tabbable">
+                <ul class="nav nav-tabs" id="home-tabs">
+                    <li class="active"><a href="#basic-metadata" data-toggle="tab">Metadata</a></li>
+                    <li><a href="#data-resources" data-toggle="tab">Data Resources</a></li>
+                    <li><a href="#usage-stats" data-toggle="tab">Usage stats</a></li>
+                    <li><a href="#metrics" data-toggle="tab">Metrics</a></li>
+                </ul>
+            </div>
+
+            <div class="tab-content">
+
+                <div id="basic-metadata" class="active tab-pane">
+                    <g:if test="${instance.pubDescription}">
+                        <h2><g:message code="public.des" /></h2>
+                        <cl:formattedText>${fieldValue(bean: instance, field: "pubDescription")}</cl:formattedText>
+                        <cl:formattedText>${fieldValue(bean: instance, field: "techDescription")}</cl:formattedText>
                     </g:if>
-                </g:each>
-            </ol>
-            </g:if>
-            <g:else>
-                <p><g:message code="public.sdp.content.noresources"/></p>
-            </g:else>
-
-            <g:if test="${hasRecords == 'true'}">
-                <div id='usage-stats'>
-                    <h2><g:message code="public.sdp.usagestats.label" /></h2>
-                    <div id='usage'>
-                        <p><g:message code="public.usage.des" />...</p>
-                    </div>
+                    <g:if test="${instance.focus}">
+                        <h2><g:message code="public.sdp.content.label02" /></h2>
+                        <cl:formattedText>${fieldValue(bean: instance, field: "focus")}</cl:formattedText>
+                    </g:if>
+                    <cl:lastUpdated date="${instance.lastUpdated}"/>
                 </div>
-            </g:if>
 
-            <div id="charts"> </div>
-            <cl:lastUpdated date="${instance.lastUpdated}"/>
+                <div id="data-resources" class="tab-pane">
+                    <h2><g:message code="public.sdp.content.label03" /></h2>
+                    <g:set var="hasRecords" value="false"/>
+                    <g:if test="${instance.getResources()}">
+                    <ol>
+                        <g:each var="c" in="${instance.getResources().sort { it.name }}">
+                            <li><g:link controller="public" action="show" id="${c.uid}">${c?.name}</g:link>
+                                <br/>
+                                <span style="color:#555;">${c?.makeAbstract(400)}</span></li>
+                            <g:if test="${c.resourceType == 'records'}">
+                                <g:set var="hasRecords" value="true"/>
+                            </g:if>
+                        </g:each>
+                    </ol>
+                    </g:if>
+                    <g:else>
+                        <p><g:message code="public.sdp.content.noresources"/></p>
+                    </g:else>
+                </div>
 
-        </div><!--close section-->
+                <g:if test="${hasRecords == 'true'}">
+                    <div id="usage-stats" class="tab-pane">
+                        <h2><g:message code="public.sdp.usagestats.label" /></h2>
+                        <div id='usage'>
+                            <p><g:message code="public.usage.des" />...</p>
+                        </div>
+                    </div>
+                </g:if>
+
+                <div id="metrics" class="tab-pane">
+                    <div id="charts"> </div>
+                </div>
+            </div>
+
         </div><!--close column-one-->
         <div class="col-md-4">
 

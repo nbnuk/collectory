@@ -22,6 +22,7 @@
             </g:hasErrors>
             <g:uploadForm method="post" name="imageForm" action="image">
                 <g:hiddenField name="id" value="${command?.id}" />
+                <g:hiddenField name="uid" value="${command?.uid}" />
                 <g:hiddenField name="version" value="${command.version}" />
                 <g:hiddenField name="target" value="${target}" />
                          <!-- image -->

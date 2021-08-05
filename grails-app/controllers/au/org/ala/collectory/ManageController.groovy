@@ -1,6 +1,6 @@
 package au.org.ala.collectory
 
-import au.org.ala.audit.AuditLogEvent
+import au.org.ala.collectory.AuditLogEvent
 import au.org.ala.collectory.resources.DataSourceLoad
 import au.org.ala.collectory.resources.gbif.GbifDataSourceAdapter
 import au.org.ala.collectory.resources.gbif.GbifRepatDataSourceAdapter
@@ -10,6 +10,7 @@ class ManageController {
     def collectoryAuthService
     def externalDataService
     def gbifService
+    def providerGroupService
 
     /**
      * Landing page for self-service management of entities.
@@ -224,7 +225,7 @@ class ManageController {
 
     def show = {
         // assume it's a collection for now
-        def instance = ProviderGroup._get(params.id)
+        def instance = providerGroupService._get(params.id)
         if (!instance) {
             flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'collection.label', default: 'Collection'), params?.id])}"
             redirect(controller: "manage", action: "list")

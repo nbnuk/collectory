@@ -60,7 +60,7 @@
                                 </td>
                             </tr>
                         
-<!-- ALA partner -->        <g:ifAllGranted role="${ProviderGroup.ROLE_ADMIN}">
+<!-- ALA partner -->        <g:ifAllGranted role="${grailsApplication.config.ROLE_ADMIN}">
                               <tr class="prop">
                                   <td valign="top" class="name">
                                     <label for="isALAPartner"><g:message code="providerGroup.isALAPartner.label" default="Is ALA Partner" /></label>
@@ -110,7 +110,7 @@
                                 <label for="networkMembership"><g:message code="providerGroup.networkMembership.label" default="Belongs to" /></label>
                               </td>
                               <td valign="top" class="checkbox ${hasErrors(bean: providerGroupInstance, field: 'networkMembership', 'errors')}">
-                                <cl:checkboxSelect name="networkMembership" from="${ProviderGroup.networkTypes}" value="${providerGroupInstance?.networkMembership}" multiple="yes" valueMessagePrefix="providerGroup.networkMembership" noSelection="['': '']" />
+                                <cl:checkboxSelect name="networkMembership" from="${grailsApplication.config.networkTypes}" value="${providerGroupInstance?.networkMembership}" multiple="yes" valueMessagePrefix="providerGroup.networkMembership" noSelection="['': '']" />
                                 <cl:helpText code="providerGroup.networkMembership"/>
                               </td>
                               <td><img class="helpButton" alt="help" src="${resource(dir:'images/skin', file:'help.gif')}" onclick="toggleHelp(this);"/></td>

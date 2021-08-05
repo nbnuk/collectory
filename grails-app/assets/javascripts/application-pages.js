@@ -6,7 +6,9 @@
 // to create separate JavaScript files as needed.
 //
 //= require jquery-3.3.1.min
+//= require jquery-ui
 //= require jquery.i18n.properties-1.0.9.min
 //= require jquery.ba-bbq.min
+//= require ala/ala-charts.js
 //= require collectory.js
 //= require_self

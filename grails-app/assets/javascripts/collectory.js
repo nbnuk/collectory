@@ -214,6 +214,7 @@ function loadDownloadStats(loggerServicesUrl, uid, name, eventType) {
     $.ajax({
         url: url,
         dataType: 'json',
+        crossDomain: true,
         cache: false,
         error: function (jqXHR, textStatus, errorThrown) {
             $('div#usage').html(jQuery.i18n.prop('collectory.js.nousagestatistics'));

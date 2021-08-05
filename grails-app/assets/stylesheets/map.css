@@ -1,8 +1,3 @@
-#main {
-    padding-left: 50px;
-    padding-right: 50px;
-}
-
 #page-collections-map #map_canvas {
     border:1px solid #e8eace;
     width:100%;
@@ -117,24 +112,24 @@ div > div#map-container {
     box-shadow: 4px 4px 0px darkgrey;
 }
 
-ul.nav-tabs {
-    margin-bottom: 0;
-}
+/*ul.nav-tabs {*/
+/*    margin-bottom: 0;*/
+/*}*/
 
-.nav-tabs li a {
-    background-color: #f0f0e8;
-    border: 1px solid #ddd;
-    margin-right: 3px;
-    padding-left: 15px;
-    padding-right: 15px;
-    line-height: 16px;
-    font-weight: bold;
-}
+/*.nav-tabs li a {*/
+/*    background-color: #f0f0e8;*/
+/*    border: 1px solid #ddd;*/
+/*    margin-right: 3px;*/
+/*    padding-left: 15px;*/
+/*    padding-right: 15px;*/
+/*    line-height: 16px;*/
+/*    font-weight: bold;*/
+/*}*/
 
 .tab-content {
-    border-bottom: 1px solid #DDD;
-    border-right: 1px solid #DDD;
-    border-left: 1px solid #DDD;
+    border-bottom: 1px solid #999;
+    border-right: 1px solid #999;
+    border-left: 1px solid #999;
     padding: 15px;
 }
 
@@ -143,55 +138,10 @@ ul.nav-tabs {
     margin-left: 4px;
 }
 
-.breadcrumb > li > .icon {
-    color: #555555;
-    opacity: 0.6;
-    filter: alpha(opacity=60);
-    margin: 1px 4px 0;
-}
-
-#breadcrumb a.current {
-    text-decoration: none;
-    color: #333;
-    cursor: default;
-    background-image: none !important;
-}
-
 #resultsReturned {
     font-size: 13px !important;
 }
 
-.rowA {
-    border-top: 1px solid silver;
-    padding-top:8px;
-}
-
-.rowA img {
-    cursor: pointer;
-}
-
-.rowA, .rowB {
-    padding-bottom: 0 !important;
-}
-
-.rowB {
-    border-bottom: none !important;
-    padding-left:20px;
-}
-
-.rowB .viewRecords {
-    padding-left:10px;
-}
-
-.rowC p {
-    overflow: hidden;
-    padding-bottom: 1px !important;
-    padding-left:20px;
-}
-
-.rowA img {
-    vertical-align: middle;
-}
 
 .resultsLabel { margin-left:10px; }
 

@@ -1,13 +1,16 @@
-<%@ page import="au.org.ala.collectory.ProviderGroup" %>
+<%@ page import="au.org.ala.collectory.ProviderGroupService" %>
+<%
+  def providerGroupService = grailsApplication.classLoader.loadClass('au.org.ala.collectory.ProviderGroupService').newInstance()
+%>
 <div class="show-section  well">
   <h2><g:message code="shared.consumers.title01" /></h2>
-  <p><g:message code="shared.consumers.des01" args="[ProviderGroup.textFormOfEntityType(instance.uid)]" />.
+  <p><g:message code="shared.consumers.des01" args="[providerGroupService.textFormOfEntityType(instance.uid)]" />.
   <br/>
     <g:message code="shared.consumers.des02" />.
   </p>
   <ul class="fancy">
     <g:each in="${instance.listConsumers()}" var="con">
-      <g:set var="pg" value="${ProviderGroup._get(con)}"/>
+      <g:set var="pg" value="${providerGroupService._get(con)}"/>
       <g:if test="${pg}">
         <li><g:link controller="${cl.controllerFromUid(uid:con)}" action="show" id="${con}">${pg.name}</g:link> (${con[0..1] == 'in' ? 'institution' : 'collection'})</li>
       </g:if>

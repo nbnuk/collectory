@@ -2,15 +2,14 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="breadcrumbParent"
+          content="${createLink(action: 'list', controller: 'manage')},${message(code: 'manage.list.title01')}"
+    />
     <meta name="layout" content="${grailsApplication.config.skin.layout}" />
     <title>
-        <g:if test="${repatriate}">
-            <g:message code="manage.repatriate.title" default="Repatriate datasets" />
-        </g:if>
-        <g:else>
         <g:message code="manage.extload.title" />
-        </g:else>
     </title>
+    <asset:stylesheet src="application.css" />
 </head>
 <body>
 <h1>
@@ -22,11 +21,6 @@
 </g:else>
 </h1>
 
-<div class="btn-toolbar">
-    <ul class="btn-group">
-        <li class="btn btn-default"><cl:homeLink/></li>
-    </ul>
-</div>
 <div class="row">
     <div id="baseForm" class="col-md-8">
         <g:form action="searchForResources" controller="manage">

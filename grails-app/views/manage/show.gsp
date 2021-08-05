@@ -8,7 +8,8 @@
         <script type="text/javascript" src="${resource(dir:'js/tinymce/jscripts/tiny_mce', file:'jquery.tinymce.js')}" ></script >
         <script type="text/javascript" >
           $(document).ready(function() {
-            greyInitialValues();
+              greyInitialValues();
+          });
         </script>
         <script type="text/javascript" language="javascript" src="https://www.google.com/jsapi"></script>
     </head>

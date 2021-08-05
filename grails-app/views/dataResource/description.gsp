@@ -24,6 +24,7 @@
             </g:hasErrors>
             <g:form method="post" name="baseForm" action="base">
                 <g:hiddenField name="id" value="${command?.id}" />
+                <g:hiddenField name="uid" value="${command?.uid}" />
                 <g:hiddenField name="version" value="${command.version}" />
                 <div class="dialog">
                     <table>
@@ -139,7 +140,7 @@
                                     <div class="source-box col-md-6">
                                         <h4><g:message code="dataresource.description.title01" /></h4>
                                         <ul>
-                                            <g:each var="ct" in="${DataResource.contentTypesList}">
+                                            <g:each var="ct" in="${grailsApplication.config.dataResource.contentTypesList}">
                                                 <li class='free'>${ct}</li>
                                             </g:each>
                                         </ul>

@@ -7,9 +7,16 @@ import au.org.ala.collectory.exception.ExternalResourceException
 import au.org.ala.collectory.resources.DataSourceAdapter
 import au.org.ala.collectory.resources.TaskPhase
 import au.org.ala.collectory.GbifService
+import grails.converters.JSON
 import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+import io.micronaut.core.convert.ConversionService
+import io.micronaut.http.HttpRequest
+import io.micronaut.http.HttpResponse
 import io.micronaut.http.client.HttpClient
+import io.reactivex.Flowable
 import org.grails.web.json.JSONObject
+import org.reactivestreams.Publisher
 import org.slf4j.LoggerFactory
 
 import java.text.DateFormat
@@ -347,19 +354,22 @@ class GbifDataSourceAdapter extends DataSourceAdapter {
      * @return A JSON response
      */
     def getJSONWS(String path) throws ExternalResourceException {
+
         def url = new URL(configuration.endpoint, path)
-        HttpClient http = HttpClient.create(url)
+        def httpRequest = HttpRequest.GET(url.toURI())
         if (configuration.username) {
-            http.auth.basic(configuration.username, configuration.password)
+            httpRequest.basicAuth(configuration.username, configuration.password)
         }
-        http.request(Method.GET, ContentType.JSON) { req ->
-            requestContentType = ContentType.JSON
-            response.failure = { resp ->
-                throw new ExternalResourceException("Unable to get ${http.uri} response ${resp.statusLine}", "manage.note.note10", http.uri, resp.statusLine)
-            }
-            response.success = { resp, responseBody ->
-                return responseBody
-            }
+
+        HttpClient http = HttpClient.create(url)
+        Flowable<HttpResponse<String>> call = http.exchange(httpRequest, String.class)
+        HttpResponse<String> response =  call.blockingFirst();
+        Optional<String> message = response.getBody(String.class);
+
+        if (message.isPresent()){
+            new JsonSlurper().parseText(message.get())
+        } else {
+            throw new ExternalResourceException("Unable to get ${http.uri} response ${resp.statusLine}", "manage.note.note10", http.uri, resp.statusLine)
         }
     }
 }

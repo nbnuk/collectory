@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="layout" content="${grailsApplication.config.skin.layout}" />
-    <title><cl:pageTitle>${fieldValue(bean: instance, field: "name")}</cl:pageTitle></title>
+    <title>${fieldValue(bean: instance, field: "name")}</title>
     <script type="text/javascript" language="javascript" src="https://www.google.com/jsapi"></script>
     <asset:stylesheet src="application.css"/>
     <script type="text/javascript">

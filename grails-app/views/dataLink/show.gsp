@@ -1,5 +1,7 @@
-
-<%@ page import="au.org.ala.collectory.ProviderGroup; au.org.ala.collectory.DataLink" %>
+<%@ page import="au.org.ala.collectory.ProviderGroupService; au.org.ala.collectory.DataLink" %>
+<%
+    def providerGroupService = grailsApplication.classLoader.loadClass('au.org.ala.collectory.ProviderGroupService').newInstance()
+%>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -21,8 +23,8 @@
             <g:if test="${flash.message}">
             <div class="message">${flash.message}</div>
             </g:if>
-            <g:set var="provider" value="${ProviderGroup._get(dataLinkInstance.provider)}"/>
-            <g:set var="consumer" value="${ProviderGroup._get(dataLinkInstance.consumer)}"/>
+            <g:set var="provider" value="${providerGroupService._get(dataLinkInstance.provider)}"/>
+            <g:set var="consumer" value="${providerGroupService._get(dataLinkInstance.consumer)}"/>
             <div class="dialog">
                 <table>
                     <colgroup><col width="15%"><col width="60%"><col width="25%"></colgroup>

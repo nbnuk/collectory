@@ -1,9 +1,7 @@
 package au.org.ala.collectory
 
-import au.org.ala.audit.AuditLogEvent
 import grails.converters.JSON
 
-//import au.org.ala.audit.AuditLogEvent
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.multipart.MultipartFile
 
@@ -18,34 +16,35 @@ abstract class ProviderGroupController {
     static String entityNameLower = "providerGroup"
     static int TRUNCATE_LENGTH = 255
 
-    def idGeneratorService, collectoryAuthService, metadataService, gbifService, dataImportService
+    def idGeneratorService, collectoryAuthService, metadataService, gbifService, dataImportService, providerGroupService
 
-/*
- * Access control
- *
- * All methods require EDITOR role.
- * Edit methods require ADMIN or the user to be an administrator for the entity.
- */
+    /*
+     * Access control
+     *
+     * All methods require EDITOR role.
+     * Edit methods require ADMIN or the user to be an administrator for the entity.
+     */
     def beforeInterceptor = [action:this.&auth]
 
     def auth() {
-        if (!collectoryAuthService?.userInRole(ProviderGroup.ROLE_EDITOR) && !grailsApplication.config.security.cas.bypass.toBoolean()) {
+        if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_EDITOR) && !grailsApplication.config.security.cas.bypass.toBoolean()) {
             response.setHeader("Content-type", "text/plain; charset=UTF-8")
             render message(code: "provider.group.controller.01", default: "You are not authorised to access this page. You do not have 'Collection editor' rights.")
             return false
         }
     }
+
     // helpers for subclasses
     protected username = {
         collectoryAuthService?.username() ?: 'unavailable'
     }
 
     protected isAdmin = {
-        collectoryAuthService?.userInRole(ProviderGroup.ROLE_ADMIN) ?: false
+        collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN) ?: false
     }
-/*
- End access control
- */
+    /*
+     End access control
+     */
 
     /**
      * List providers for institutions/collections
@@ -216,7 +215,11 @@ abstract class ProviderGroupController {
 
             pg.properties = params
             pg.userLastModified = collectoryAuthService?.username()
-            if (!pg.hasErrors() && pg.save(flush: true)) {
+
+            if (!pg.hasErrors()) {
+                DataResource.withTransaction {
+                    pg.save(flush: true)
+                }
                 flash.message =
                   "${message(code: 'default.updated.message', args: [message(code: "${pg.urlForm()}.label", default: pg.entityType()), pg.uid])}"
                 redirect(action: "show", id: pg.uid)
@@ -235,41 +238,19 @@ abstract class ProviderGroupController {
      * Update base attributes
      */
     def updateBase = { //BaseCommand cmd ->
+
         BaseCommand cmd = new BaseCommand()
-
         bindData(cmd, params)
-        //Institution institution
-//        def cmd = new BaseCommand(params)
 
-        if(cmd.hasErrors()) {
-            cmd.errors.each {println it}
-            cmd.id = params.id as int   // these do not seem to be injected
-            cmd.version = params.version as int
-            render(view:'/shared/base', model: [command: cmd])
+        def result = providerGroupService.updateBase(params)
+        def pg = result.pg
+
+        if (pg && result.success) {
+            flash.message =
+                "${message(code: 'default.updated.message', args: [message(code: "${pg.urlForm()}.label", default: pg.entityType()), pg.uid])}"
+            redirect(action: "show", id: pg.uid)
         } else {
-            def pg = get(params.id)
-            if (pg) {
-                if (checkLocking(pg,'/shared/base')) { return }
-
-                // special handling for membership
-                pg.networkMembership = toJson(params.networkMembership)
-                params.remove('networkMembership')
-
-                pg.properties = params
-                pg.userLastModified = collectoryAuthService?.username()
-                if (!pg.hasErrors() && pg.save(flush: true)) {
-                    flash.message =
-                        "${message(code: 'default.updated.message', args: [message(code: "${pg.urlForm()}.label", default: pg.entityType()), pg.uid])}"
-                    redirect(action: "show", id: pg.uid)
-                }
-                else {
-                    render(view: "/shared/base", model: [command: pg])
-                }
-            } else {
-                flash.message =
-                    "${message(code: 'default.not.found.message', args: [message(code: "${entityNameLower}.label", default: entityNameLower), params.id])}"
-                redirect(action: "show", id: params.id)
-            }
+            render(view: "/shared/base", model: [command: pg])
         }
     }
 
@@ -277,35 +258,53 @@ abstract class ProviderGroupController {
      * Update descriptive attributes
      */
     def updateDescription = {
-        def pg = get(params.id)
+
+        def result = providerGroupService.updateDescription(params)
+        def pg = result.pg
         if (pg) {
-            if (checkLocking(pg,'description')) { return }
-
-            // do any entity specific processing
-            entitySpecificDescriptionProcessing(pg, params)
-
-            pg.properties = params
-            pg.userLastModified = collectoryAuthService?.username()
-            if (!pg.hasErrors() && pg.save(flush: true)) {
+            if (result.success){
                 flash.message =
-                  "${message(code: 'default.updated.message', args: [message(code: "${pg.urlForm()}.label", default: pg.entityType()), pg.uid])}"
+                        "${message(code: 'default.updated.message', args: [message(code: "${pg.urlForm()}.label", default: pg.entityType()), pg.uid])}"
                 redirect(action: "show", id: pg.uid)
-            }
-            else {
+            } else {
                 render(view: "description", model: [command: pg])
             }
         } else {
             flash.message =
-                "${message(code: 'default.not.found.message', args: [message(code: "${entityNameLower}.label", default: entityNameLower), params.id])}"
+                    "${message(code: 'default.not.found.message', args: [message(code: "${entityNameLower}.label", default: entityNameLower), params.id])}"
             redirect(action: "show", id: params.id)
         }
+
+//
+//        def pg = get(params.id)
+//        if (pg) {
+//            if (checkLocking(pg,'description')) { return }
+//
+//            // do any entity specific processing
+//            entitySpecificDescriptionProcessing(pg, params)
+//
+//            pg.properties = params
+//            pg.userLastModified = collectoryAuthService?.username()
+//            if (!pg.hasErrors() && pg.save(flush: true)) {
+//                flash.message =
+//                  "${message(code: 'default.updated.message', args: [message(code: "${pg.urlForm()}.label", default: pg.entityType()), pg.uid])}"
+//                redirect(action: "show", id: pg.uid)
+//            }
+//            else {
+//                render(view: "description", model: [command: pg])
+//            }
+//        } else {
+//            flash.message =
+//                "${message(code: 'default.not.found.message', args: [message(code: "${entityNameLower}.label", default: entityNameLower), params.id])}"
+//            redirect(action: "show", id: params.id)
+//        }
     }
 
     def entitySpecificDescriptionProcessing(pg, params) {
         // default is to do nothing
         // sub-classes override to do specific processing
     }
-    
+
     /**
      * Update location attributes
      */
@@ -475,7 +474,7 @@ abstract class ProviderGroupController {
                 flash.message = "${message(code: 'contactRole.updated.message')}"
                 redirect(action: "edit", id: params.id, params: [page: '/shared/showContacts'])
             } else {
-                render(view: '/shared/contactRole', model: [command: ProviderGroup._get(params.id), cf: contactFor])
+                render(view: '/shared/contactRole', model: [command: providerGroupService._get(params.id), cf: contactFor])
             }
 
         } else {
@@ -553,7 +552,7 @@ abstract class ProviderGroupController {
             flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'contactFor.label', default: "Contact for ${entityNameLower}", args: [entityNameLower]), params.id])}"
             redirect(action: "list")
         } else {
-            ProviderGroup pg = ProviderGroup._get(contactFor.entityUid)
+            ProviderGroup pg = providerGroupService._get(contactFor.entityUid)
             if (pg) {
                 // are they allowed to edit
                 if (isAuthorisedToEdit(pg.uid)) {
@@ -634,8 +633,6 @@ abstract class ProviderGroupController {
         redirect([controller: 'dataResource', action: 'show', id: dataResource.uid])
     }
 
-
-
     /**
      * Get the instance for this entity based on either uid or DB id.
      * All sub-classes must implement this method.
@@ -679,7 +676,7 @@ abstract class ProviderGroupController {
                     File f = new File(colDir, filename)
                     log.debug "saving ${filename} to ${f.absoluteFile}"
                     file.transferTo(f)
-                    //ActivityLog.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(ProviderGroup.ROLE_ADMIN), Action.UPLOAD_IMAGE, filename
+                    //ActivityLog.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), Action.UPLOAD_IMAGE, filename
                 } else {
                     println "reject file of size ${file.size}"
                     pg.errors.rejectValue('imageRef', 'image.too.big', message(code: "provider.group.controller.13", default: "The image you selected is too large. Images are limited to 200KB."))
@@ -776,10 +773,10 @@ abstract class ProviderGroupController {
     def delete = {
         def pg = get(params.id)
         if (pg) {
-            if (collectoryAuthService?.userInRole(ProviderGroup.ROLE_ADMIN) || grailsApplication.config.security.cas.bypass.toBoolean()) {
+            if (collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN) || grailsApplication.config.security.cas.bypass.toBoolean()) {
                 def name = pg.name
                 log.info ">>${collectoryAuthService?.username()} deleting ${entityName} " + name
-                //ActivityLog.log collectoryAuthService?.username(), authService?.userInRole(ProviderGroup.ROLE_ADMIN), pg.uid, Action.DELETE
+                //ActivityLog.log collectoryAuthService?.username(), authService?.userInRole(grailsApplication.config.ROLE_ADMIN), pg.uid, Action.DELETE
                 try {
                     // remove contact links (does not remove the contact)
                     ContactFor.findAllByEntityUid(pg.uid).each {
@@ -871,7 +868,7 @@ abstract class ProviderGroupController {
         } else {
             def email = RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()?.attributes?.email
             if (email) {
-                return ProviderGroup._get(uid)?.isAuthorised(email)
+                return providerGroupService._get(uid)?.isAuthorised(email)
             }
         }
         return false

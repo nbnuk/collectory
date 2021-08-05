@@ -2,7 +2,7 @@ package au.org.ala.collectory
 
 import grails.converters.JSON
 
-class DataHub extends ProviderGroup implements Serializable {
+class DataHub implements ProviderGroup, Serializable {
 
     static final String ENTITY_TYPE = 'DataHub'
     static final String ENTITY_PREFIX = 'dh'
@@ -23,6 +23,14 @@ class DataHub extends ProviderGroup implements Serializable {
     }
 
     static mapping = {
+        uid index:'uid_idx'
+        pubShortDescription type: "text"
+        pubDescription type: "text"
+        techDescription type: "text"
+        focus type: "text"
+        taxonomyHints type: "text"
+        notes type: "text"
+        networkMembership type: "text"
         memberCollections  type: "text"
         memberInstitutions  type: "text"
         memberDataResources  type: "text"
@@ -60,7 +68,7 @@ class DataHub extends ProviderGroup implements Serializable {
     def listMemberInstitutions() {
         if (!memberInstitutions) { return []}
         JSON.parse(memberInstitutions).collect {
-            def pg = ProviderGroup._get(it)
+            def pg = findByUid(it)
             if (pg) {
                 [uid: it, name: pg?.name, uri: pg.buildUri()]
             } else {
@@ -72,7 +80,7 @@ class DataHub extends ProviderGroup implements Serializable {
     def listMemberCollections() {
         if (!memberCollections) { return []}
         JSON.parse(memberCollections).collect {
-            def pg = ProviderGroup._get(it)
+            def pg = findByUid(it)
             if (pg) {
                 [uid: it, name: pg?.name, uri: pg.buildUri()]
             } else {
@@ -84,7 +92,7 @@ class DataHub extends ProviderGroup implements Serializable {
     def listMemberDataResources() {
         if (!memberDataResources) { return []}
         JSON.parse(memberDataResources).collect {
-            def pg = ProviderGroup._get(it)
+            def pg = findByUid(it)
             if (pg) {
                 [uid: it, name: pg?.name, uri: pg.buildUri()]
             } else {

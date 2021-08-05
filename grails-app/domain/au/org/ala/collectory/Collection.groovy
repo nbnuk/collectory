@@ -17,9 +17,7 @@ package au.org.ala.collectory
 
 import grails.converters.JSON
 
-class Collection extends ProviderGroup implements Serializable {
-
-    def idGeneratorService
+class Collection implements ProviderGroup, Serializable {
 
     static final String ENTITY_TYPE = 'Collection'
     static final String ENTITY_PREFIX = 'co'
@@ -28,9 +26,9 @@ class Collection extends ProviderGroup implements Serializable {
     
     String collectionType       // list of type of collection as JSON e.g ['live', 'preserved', 'tissue', 'DNA']
     String active               // tdwg developmentStatus
-    int numRecords = ProviderGroup.NO_INFO_AVAILABLE
+    int numRecords
                                 // total number of records held that are able to be digitised
-    int numRecordsDigitised = ProviderGroup.NO_INFO_AVAILABLE
+    int numRecordsDigitised
                                 // number of records that are digitised
 
     /* Coverage - What the collection covers */
@@ -38,13 +36,13 @@ class Collection extends ProviderGroup implements Serializable {
     // Geographic Coverage
     String states               // states and territories that are covered by the collection - see state vocab
     String geographicDescription// a free text description of where the data relates to
-    BigDecimal eastCoordinate = ProviderGroup.NO_INFO_AVAILABLE
+    BigDecimal eastCoordinate
                                 // furthest point East for this collection in decimal degrees
-    BigDecimal westCoordinate = ProviderGroup.NO_INFO_AVAILABLE
+    BigDecimal westCoordinate
                                 // furthest point West for this collection in decimal degrees
-    BigDecimal northCoordinate = ProviderGroup.NO_INFO_AVAILABLE
+    BigDecimal northCoordinate
                                 // furthest point North for this collection in decimal degrees
-    BigDecimal southCoordinate = ProviderGroup.NO_INFO_AVAILABLE
+    BigDecimal southCoordinate
                                 // furthest point South for this collection in decimal degrees
 
     //Temporal Coverage - Time period the collection covers	single_date	The single date that the collection covers
@@ -71,6 +69,14 @@ class Collection extends ProviderGroup implements Serializable {
     static transients =  ['listOfCollectionCodesForLookup', 'listOfinstitutionCodesForLookup','mappable','inexactlyMapped','attributionList']
 
     static mapping = {
+        uid index:'uid_idx'
+        pubShortDescription type: "text"
+        pubDescription type: "text"
+        techDescription type: "text"
+        focus type: "text"
+        taxonomyHints type: "text"
+        notes type: "text"
+        networkMembership type: "text"
         sort: 'name'
         subCollections type: 'text'
         keywords type: 'text'
@@ -95,6 +101,31 @@ class Collection extends ProviderGroup implements Serializable {
     static developmentStatuses = ['Active growth', 'Closed', 'Consumable', 'Decreasing', 'Lost', 'Missing', 'Passive growth', 'Static']
 
     static constraints = {
+        guid(nullable:true, maxSize:256)
+        uid(blank:false, maxSize:20)
+        name(blank:false, maxSize:1024)
+        acronym(nullable:true, maxSize:45)
+        pubShortDescription(nullable:true, maxSize:100)
+        pubDescription(nullable:true)
+        techDescription(nullable:true)
+        focus(nullable:true)
+        address(nullable:true)
+        latitude(nullable:true)
+        longitude(nullable:true)
+        altitude(nullable:true)
+        state(nullable:true, maxSize:45)
+        websiteUrl(nullable:true, maxSize:256)
+        logoRef(nullable:true)
+        imageRef(nullable:true)
+        email(nullable:true, maxSize:256)
+        phone(nullable:true, maxSize:200)
+        isALAPartner()
+        notes(nullable:true)
+        networkMembership(nullable:true, maxSize:256)
+        attributions(nullable:true, maxSize:256)
+        taxonomyHints(nullable:true)
+        keywords(nullable:true)
+        gbifRegistryKey(nullable:true, maxSize:36)
         collectionType(nullable: true, maxSize: 256,
                 validator: { ct ->
                 if (!ct) {return true}
@@ -279,7 +310,7 @@ class Collection extends ProviderGroup implements Serializable {
         cs.derivedCollCodes = getListOfCollectionCodesForLookup()
         cs.hubMembership = listHubMembership().collect { [uid: it.uid, name: it.name] }
         listProviders().each {
-            def pg = ProviderGroup._get(it)
+            def pg = findByUid(it)
             if (pg) {
                 if (it[0..1] == 'dp') {
                     cs.relatedDataProviders << [uid: pg.uid, name: pg.name]
@@ -335,8 +366,8 @@ class Collection extends ProviderGroup implements Serializable {
         return [:]
     }
 
-    def List<Attribution> getAttributionList() {
-        List<Attribution> list = super.getAttributionList();
+    List<Attribution> getCollectionAttributionList() {
+        List<Attribution> list = getAttributionList();
         // add institution
         if (institution) {
             list << new Attribution(name: institution.name, url: institution.websiteUrl, uid: institution.uid)
@@ -349,7 +380,7 @@ class Collection extends ProviderGroup implements Serializable {
      * @return
      */
     @Override def resolveAddress() {
-        return super.resolveAddress() ?: institution?.resolveAddress()
+        return ProviderGroup.super.resolveAddress() ?: institution?.resolveAddress()
     }
 
     /**
@@ -357,7 +388,7 @@ class Collection extends ProviderGroup implements Serializable {
      * @return
      */
     @Override def createdBy() {
-        return institution ? institution.createdBy() : super.createdBy()
+        return institution ? institution.createdBy() : ProviderGroup.super.createdBy()
     }
 
     /**
@@ -366,7 +397,7 @@ class Collection extends ProviderGroup implements Serializable {
      */
     @Override def buildLogoUrl() {
         if (logoRef) {
-            return super.buildLogoUrl()
+            return ProviderGroup.super.buildLogoUrl()
         }
         else {
             return institution?.buildLogoUrl()

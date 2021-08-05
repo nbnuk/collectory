@@ -5,6 +5,7 @@
         <meta name="layout" content="${grailsApplication.config.skin.layout}" />
         <g:set var="entityName" value="${message(code: 'providerMap.label', default: 'ProviderMap')}" />
         <title><g:message code="default.show.label" args="[entityName]" /></title>
+        <asset:stylesheet src="application.css"/>
     </head>
     <body>
         <div class="btn-toolbar">
@@ -20,7 +21,7 @@
             <div class="message">${flash.message}</div>
             </g:if>
             <div class="dialog">
-                <table>
+                <table class="table ">
                     <tbody>
                     
                         <tr class="prop">

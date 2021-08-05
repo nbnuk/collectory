@@ -13,18 +13,15 @@ import java.text.SimpleDateFormat
 
 class DataController {
 
-    def crudService, emlRenderService, collectoryAuthService, metadataService
-
-    /** make sure that uid params point to an existing entity and json is parsable **/
-    def beforeInterceptor = this.&check
+    def crudService, emlRenderService, collectoryAuthService, metadataService, providerGroupService
 
     def index = { }
 
-    def check() {
+    private def check(params) {
         def uid = params.uid
         if (uid) {
             // it must exist
-            def pg = uid.startsWith('drt') ? TempDataResource.findByUid(uid) : ProviderGroup._get(uid)
+            def pg = uid.startsWith('drt') ? TempDataResource.findByUid(uid) : providerGroupService._get(uid)
             if (pg) {
                 params.pg = pg
                 // if entity is specified, the instance must be of type entity
@@ -36,7 +33,7 @@ class DataController {
             } else {
 
                 if (params.entity){
-                    params.pg = ProviderGroup._get(params.uid, params.entity)
+                    params.pg = providerGroupService._get(params.uid, params.entity)
                 }
 
                 if(!params.pg){
@@ -166,6 +163,10 @@ class DataController {
         render(status:404, text: text)
     }
 
+    def return404() {
+        render(status:404)
+    }
+
     def notAllowed = {
         response.addHeader 'allow','POST'
         render(status:405, text: 'Only POST supported')
@@ -232,6 +233,7 @@ class DataController {
      * @param json - the body of the request
      */
     def saveEntity = {
+        check(params)
         def pg = params.pg
         def obj = params.json
         def urlForm = params.entity
@@ -329,6 +331,7 @@ class DataController {
      * @param api_key - optional param for displaying any sensitive data
      */
     def getEntity = {
+        check(params)
         if (params.entity == 'tempDataResource') {
             forward(controller: 'tempDataResource', action: 'getEntity')
         } else {
@@ -494,7 +497,7 @@ class DataController {
         def uids = params.uids.tokenize(',')
         def result = [:]
         uids.each {
-            def pg = ProviderGroup._get(it)
+            def pg = providerGroupService._get(it)
             if (pg) {
                 result << ["${pg.uid}": pg.name]
             }
@@ -514,7 +517,7 @@ class DataController {
         if (params.uid) {
             def pg = params.uid.startsWith('drt') ?
                 TempDataResource.findByUid(params.uid) :
-                ProviderGroup._get(params.uid)
+                providerGroupService._get(params.uid)
             if (pg) {
                 def name = pg.name
                 pg.delete()
@@ -531,7 +534,7 @@ class DataController {
 
     def eml = {
         if (params.id) {
-            def pg = ProviderGroup._get(params.id)
+            def pg = providerGroupService._get(params.id)
             if (pg) {
                 response.contentType = 'text/xml'
                 def xml = emlRenderService.emlForEntity(pg)
@@ -570,7 +573,7 @@ class DataController {
 
     def validate = {
         if (params.id) {
-            def pg = ProviderGroup._get(params.id)
+            def pg = providerGroupService._get(params.id)
             if (pg) {
                 def xml = emlRenderService.emlForEntity(pg)
                 def error = ''
@@ -971,7 +974,7 @@ class DataController {
 
     /**** html fragment services ****/
     def getFragment = {
-        def pg = ProviderGroup._get(params.uid)
+        def pg = providerGroupService._get(params.uid)
         if (!pg) {
             def message = "${message(code: 'default.not.found.message', args: [message(code: 'entity.label', default: 'Entity'), params.uid])}"
             render message

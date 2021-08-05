@@ -4,6 +4,8 @@ class DataProviderController extends ProviderGroupController {
 
     def gbifRegistryService
     def authService
+    def activityLogService
+    def providerGroupService
 
     DataProviderController() {
         entityName = "DataProvider"
@@ -21,7 +23,7 @@ class DataProviderController extends ProviderGroupController {
         }
         params.max = Math.min(params.max ? params.int('max') : 10000, 10000)
         params.sort = params.sort ?: "name"
-        ActivityLog.log username(), isAdmin(), Action.LIST
+        activityLogService.log username(), isAdmin(), Action.LIST
         [instanceList: DataProvider.list(params), entityType: 'DataProvider', instanceTotal: DataProvider.count()]
     }
 
@@ -33,7 +35,7 @@ class DataProviderController extends ProviderGroupController {
         }
         else {
             log.debug "Ala partner = " + instance.isALAPartner
-            ActivityLog.log username(), isAdmin(), instance.uid, Action.VIEW
+            activityLogService.log username(), isAdmin(), instance.uid, Action.VIEW
 
             [instance: instance, contacts: instance.getContacts(), changes: getChanges(instance.uid)]
         }
@@ -151,7 +153,7 @@ class DataProviderController extends ProviderGroupController {
             redirect(action: "list")
         } else {
             // are they allowed to edit
-            if (collectoryAuthService?.userInRole(ProviderGroup.ROLE_ADMIN) || grailsApplication.config.security.cas.bypass.toBoolean()) {
+            if (collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN) || grailsApplication.config.security.cas.bypass.toBoolean()) {
                 render(view: '../dataResource/consumers', model:[command: pg, source: params.source])
             } else {
                 render("You are not authorised to edit these properties.")
@@ -202,7 +204,7 @@ class DataProviderController extends ProviderGroupController {
                 }
                 // now delete
                 try {
-                    ActivityLog.log username(), isAdmin(), params.id as long, Action.DELETE
+                    activityLogService.log username(), isAdmin(), params.id as long, Action.DELETE
                     instance.delete(flush: true)
                     flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'dataProvider.label', default: 'dataProvider'), params.id])}"
                     redirect(action: "list")
@@ -303,7 +305,7 @@ class DataProviderController extends ProviderGroupController {
     protected ProviderGroup get(id) {
         if (id.size() > 2) {
             if (id[0..1] == DataProvider.ENTITY_PREFIX) {
-                return ProviderGroup._get(id)
+                return providerGroupService._get(id)
             }
         }
         // else must be long id

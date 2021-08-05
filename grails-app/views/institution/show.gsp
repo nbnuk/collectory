@@ -1,4 +1,3 @@
-
 <%@ page import="au.org.ala.collectory.ProviderGroup; au.org.ala.collectory.Institution" %>
 <html>
     <head>
@@ -9,7 +8,6 @@
         <script async defer
                 src="https://maps.googleapis.com/maps/api/js?key=${grailsApplication.config.google?.apikey}"
                 type="text/javascript"></script>
-        <r:require module="collectory"/>
     </head>
     <body onload="initializeLocationMap('${instance.canBeMapped()}',${instance.latitude},${instance.longitude});">
     <style>
@@ -143,7 +141,7 @@
             <div class="btn-toolbar">
                 <g:form class="btn-group">
                     <g:hiddenField name="id" value="${instance?.id}"/>
-                    <cl:ifGranted role="${ProviderGroup.ROLE_ADMIN}">
+                    <cl:ifGranted role="${grailsApplication.config.ROLE_ADMIN}">
                         <g:actionSubmit class="delete btn btn-danger" action="delete" value="${message(code: 'default.button.delete.label', default: 'Delete')}" onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');"/>
                     </cl:ifGranted>
                 </g:form>

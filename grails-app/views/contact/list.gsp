@@ -6,6 +6,7 @@
         <meta name="layout" content="${grailsApplication.config.skin.layout}" />
         <g:set var="entityName" value="${message(code: 'contact.label', default: 'Contact')}" />
         <title><g:message code="default.list.label" args="[entityName]" /></title>
+        <asset:stylesheet src="application.css" />
     </head>
     <body>
         <div class="btn-toolbar">

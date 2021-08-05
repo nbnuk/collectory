@@ -1,6 +1,6 @@
 package au.org.ala.collectory
 
-class Institution extends ProviderGroup {
+class Institution implements ProviderGroup, Serializable {
 
     def idGeneratorService
 
@@ -19,6 +19,32 @@ class Institution extends ProviderGroup {
     static hasMany = [collections: Collection]
 
     static constraints = {
+        guid(nullable:true, maxSize:256)
+        uid(blank:false, maxSize:20)
+        name(blank:false, maxSize:1024)
+        acronym(nullable:true, maxSize:45)
+        pubShortDescription(nullable:true, maxSize:100)
+        pubDescription(nullable:true)
+        techDescription(nullable:true)
+        focus(nullable:true)
+        address(nullable:true)
+        latitude(nullable:true)
+        longitude(nullable:true)
+        altitude(nullable:true)
+        state(nullable:true, maxSize:45)
+        websiteUrl(nullable:true, maxSize:256)
+        logoRef(nullable:true)
+        imageRef(nullable:true)
+        email(nullable:true, maxSize:256)
+        phone(nullable:true, maxSize:200)
+        isALAPartner()
+        notes(nullable:true)
+        networkMembership(nullable:true, maxSize:256)
+        attributions(nullable:true, maxSize:256)
+        taxonomyHints(nullable:true)
+        keywords(nullable:true)
+        gbifRegistryKey(nullable:true, maxSize:36)
+
         // based on TDWG Ontology - http://code.google.com/p/tdwg-ontology/source/browse/trunk/ontology/voc/InstitutionType.rdf
         institutionType(nullable:true, maxSize:45,
                 inList:['aquarium', 'archive', 'botanicGarden', 'conservation', 'fieldStation', 'government',
@@ -34,6 +60,14 @@ class Institution extends ProviderGroup {
     static transients = ['summary','mappable']
 
     static mapping = {
+        uid index:'uid_idx'
+        pubShortDescription type: "text"
+        pubDescription type: "text"
+        techDescription type: "text"
+        focus type: "text"
+        taxonomyHints type: "text"
+        notes type: "text"
+        networkMembership type: "text"
         sort: 'name'
     }
     
@@ -55,7 +89,7 @@ class Institution extends ProviderGroup {
         is.institutionName = name
         is.collections = collections.collect { [it.uid, it.name] }
         listProviders().each {
-            def pg = ProviderGroup._get(it)
+            def pg = findByUid(it)
             if (pg) {
                 if (it[0..1] == 'dp') {
                     is.relatedDataProviders << [uid: pg.uid, name: pg.name]
@@ -158,7 +192,7 @@ class Institution extends ProviderGroup {
     def listChildren() {
         def list = []
         childInstitutions?.tokenize(' ').each {
-            list << Institution._get(it)
+            list << findByUid(it)
         }
         return list
     }
@@ -191,12 +225,12 @@ class Institution extends ProviderGroup {
         return uids
     }
 
-    List<Attribution> getAttributionList() {
-        List<Attribution> list = super.getAttributionList();
-        // add institution
-        list << new Attribution(name: name, url: websiteUrl, uid: uid)
-        return list
-    }
+//    List<Attribution> getInstitutionAttributionList() {
+//        List<Attribution> list = getAttributionList();
+//        // add institution
+//        list << new Attribution(name: name, url: websiteUrl, uid: uid)
+//        return list
+//    }
 
 
     List<DataLink> getLinkedDataResources() {

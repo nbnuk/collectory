@@ -1,6 +1,8 @@
 package au.org.ala.collectory
 
-class DataProvider extends ProviderGroup implements Serializable {
+class DataProvider implements ProviderGroup, Serializable {
+
+    def providerGroupService
 
     static final String ENTITY_TYPE = 'DataProvider'
     static final String ENTITY_PREFIX = 'dp'
@@ -14,6 +16,14 @@ class DataProvider extends ProviderGroup implements Serializable {
     String gbifCountryToAttribute      // the 3 digit iso code of the country to attribute in GBIF
 
     static mapping = {
+        uid index:'uid_idx'
+        pubShortDescription type: "text"
+        pubDescription type: "text"
+        techDescription type: "text"
+        focus type: "text"
+        taxonomyHints type: "text"
+        notes type: "text"
+        networkMembership type: "text"
         sort: 'name'
         hiddenJSON type: "text"
         pubShortDescription type: "text"
@@ -26,6 +36,56 @@ class DataProvider extends ProviderGroup implements Serializable {
     }
 
     static constraints = {
+        guid(nullable:true, maxSize:256)
+        uid(blank:false, maxSize:20)
+        name(blank:false, maxSize:1024)
+        acronym(nullable:true, maxSize:45)
+        pubShortDescription(nullable:true, maxSize:100)
+        pubDescription(nullable:true)
+        techDescription(nullable:true)
+        focus(nullable:true)
+        address(nullable:true)
+        latitude(nullable:true)
+        longitude(nullable:true)
+        altitude(nullable:true)
+        state(nullable:true, maxSize:45)
+        websiteUrl(nullable:true, maxSize:256)
+        logoRef(nullable:true)
+        imageRef(nullable:true)
+        email(nullable:true, maxSize:256)
+        phone(nullable:true, maxSize:200)
+        isALAPartner()
+        notes(nullable:true)
+        networkMembership(nullable:true, maxSize:256)
+        attributions(nullable:true, maxSize:256)
+        taxonomyHints(nullable:true)
+        keywords(nullable:true)
+        gbifRegistryKey(nullable:true, maxSize:36)
+        guid(nullable:true, maxSize:256)
+        uid(blank:false, maxSize:20)
+        name(blank:false, maxSize:1024)
+        acronym(nullable:true, maxSize:45)
+        pubShortDescription(nullable:true, maxSize:100)
+        pubDescription(nullable:true)
+        techDescription(nullable:true)
+        focus(nullable:true)
+        address(nullable:true)
+        latitude(nullable:true)
+        longitude(nullable:true)
+        altitude(nullable:true)
+        state(nullable:true, maxSize:45)
+        websiteUrl(nullable:true, maxSize:256)
+        logoRef(nullable:true)
+        imageRef(nullable:true)
+        email(nullable:true, maxSize:256)
+        phone(nullable:true, maxSize:200)
+        isALAPartner()
+        notes(nullable:true)
+        networkMembership(nullable:true, maxSize:256)
+        attributions(nullable:true, maxSize:256)
+        taxonomyHints(nullable:true)
+        keywords(nullable:true)
+        gbifRegistryKey(nullable:true, maxSize:36)
         hiddenJSON(nullable:true, blank: false)
         keywords(nullable:true)
         gbifCountryToAttribute(nullable:true, maxSize: 3)
@@ -60,7 +120,7 @@ class DataProvider extends ProviderGroup implements Serializable {
         }
         def consumers = listConsumers()
         consumers.each {
-            def pg = ProviderGroup._get(it)
+            def pg = findByUid(it)
             if (pg) {
                 if (it[0..1] == 'co') {
                     dps.relatedCollections << [uid: pg.uid, name: pg.name]
@@ -77,16 +137,16 @@ class DataProvider extends ProviderGroup implements Serializable {
      * @return
      */
     @Override def resolveAddress() {
-        if (super.resolveAddress()) {
-            return super.resolveAddress()
+        if (ProviderGroup.super.resolveAddress()) {
+            return ProviderGroup.super.resolveAddress()
         }
         else {
             def pg = listConsumers().find {
-                def related = _get(it)
+                def related = providerGroupService._get(it)
                 return related && related.resolveAddress()
             }
             if (pg) {
-                return _get(pg).resolveAddress()
+                return providerGroupService._get(pg).resolveAddress()
             }
             else {
                 return null
@@ -105,7 +165,7 @@ class DataProvider extends ProviderGroup implements Serializable {
         }
         else {
             for (con in listConsumers()) {
-                def related = _get(con)
+                def related = providerGroupService._get(con)
                 if (related.inheritPrimaryContact()) {
                     return related.inheritPrimaryContact()
                 }
@@ -125,7 +185,7 @@ class DataProvider extends ProviderGroup implements Serializable {
         }
         else {
             for (con in listConsumers()) {
-                def related = _get(con)
+                def related = providerGroupService._get(con)
                 if (related.inheritPrimaryPublicContact()) {
                     return related.inheritPrimaryPublicContact()
                 }

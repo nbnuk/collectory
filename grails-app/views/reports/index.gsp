@@ -2,8 +2,8 @@
 <html>
     <head>
         <title><g:message code="reports.index.title" /></title>
-	<meta name="layout" content="${grailsApplication.config.skin.layout}" />
-
+	    <meta name="layout" content="${grailsApplication.config.skin.layout}" />
+        <asset:stylesheet src="application.css"/>
     </head>
     <body>
     <div class="btn-toolbar">
@@ -27,7 +27,7 @@
         </div>
       </cl:isNotLoggedIn>
 
-    <cl:ifGranted role="${ProviderGroup.ROLE_ADMIN}">
+        <cl:ifGranted role="${grailsApplication.config.ROLE_ADMIN}">
     <div class="dashboard">
 
 
@@ -109,8 +109,8 @@
     </div>
     </cl:ifGranted>
 
-    <cl:ifNotGranted role="${ProviderGroup.ROLE_ADMIN}">
-      <p>Your must have the admin role (ROLE_COLLECTION_ADMIN) to view reports.</p>
+    <cl:ifNotGranted role="${grailsApplication.config.ROLE_ADMIN}">
+      <p>Your must have the admin role (${grailsApplication.config.ROLE_ADMIN}) to view reports.</p>
     </cl:ifNotGranted>
 
     </body>

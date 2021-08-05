@@ -3,13 +3,17 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="breadcrumbParent"
+              content="${createLink(action: 'list', controller: 'manage')},${message(code: 'manage.list.title01')}"
+        />
         <meta name="layout" content="${grailsApplication.config.skin.layout}" />
         <g:set var="entityName" value="${instance.ENTITY_TYPE}" />
         <g:set var="entityNameLower" value="${cl.controller(type: instance.ENTITY_TYPE)}"/>
-        <title>${instance.name} | <g:message code="default.show.label" args="[entityName]" /></title>
+        <title>${instance.name}</title>
         <script async defer
                 src="https://maps.googleapis.com/maps/api/js?key=${grailsApplication.config.google?.apikey}"
                 type="text/javascript"></script>
+        <asset:stylesheet src="application.css"/>
     </head>
     <body onload="initializeLocationMap('${instance.canBeMapped()}',${instance.latitude},${instance.longitude});">
     <style>
@@ -185,7 +189,7 @@
               <!-- mobilisation -->
               <div class="show-section well">
                 <g:if test="${instance.gbifDataset}">
-                    <cl:ifGranted role="${ProviderGroup.ROLE_ADMIN}">
+                    <cl:ifGranted role="${grailsApplication.config.ROLE_ADMIN}">
                         <div class="pull-right"><span class="buttons"><g:link class="edit btn btn-default" controller="manage" action="gbifDatasetDownload" id="${instance.uid}">
                             <i class="glyphicon-refresh"> </i>
                             ${message(code: 'datasource.button.update', default: 'Reload from GBIF')}</g:link></span></div>
@@ -243,7 +247,7 @@
 
                 </g:if>
 
-                <cl:ifGranted role="${ProviderGroup.ROLE_ADMIN}">
+                <cl:ifGranted role="${grailsApplication.config.ROLE_ADMIN}">
                   <div><span class="buttons"><g:link class="edit btn btn-default" action='edit' params="[page:'contribution']" id="${instance.uid}">${message(code: 'default.button.edit.label', default: 'Edit')}</g:link></span></div>
                 </cl:ifGranted>
 
@@ -410,7 +414,7 @@
             <div class="btn-toolbar">
                 <g:form class="btn-group">
                     <g:hiddenField name="id" value="${instance?.id}"/>
-                    <cl:ifGranted role="${ProviderGroup.ROLE_ADMIN}">
+                    <cl:ifGranted role="${grailsApplication.config.ROLE_ADMIN}">
                         <g:actionSubmit class="delete btn btn-danger" action="delete" value="${message(code: 'default.button.delete.label', default: 'Delete')}" onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');"/>
                     </cl:ifGranted>
                 </g:form>

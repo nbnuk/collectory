@@ -3,20 +3,25 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <meta name="layout" content="${grailsApplication.config.skin.layout}"/>
-    <title><g:message code="public.datasets.title" /> | ${grailsApplication.config.projectName} </title>
+    <title><g:message code="public.datasets.title" /></title>
       <script type="text/javascript">
           var COLLECTORY_CONF = {
               contextPath: "${request.contextPath}",
               locale: "${(org.springframework.web.servlet.support.RequestContextUtils.getLocale(request).toString())?:request.locale}",
               cartodbPattern: "${grailsApplication.config.cartodb.pattern}"
           };
+          var CHARTS_CONFIG = {
+              biocacheServicesUrl: "https://biocache-ws.ala.org.au/ws",
+              biocacheWebappUrl: "https://biocache.ala.org.au",
+              bieWebappUrl: "",
+              collectionsUrl: "https://collections.ala.org.au"
+          };
       </script>
       <asset:stylesheet src="application.css"/>
       <asset:javascript src="application.js"/>
   </head>
 
-  <body id="page-datasets" class="nav-datasets">
-    <div id="content">
+  <body>
         <div id="header">
         <div class="full-width">
           <g:if test="${flash.message}">
@@ -36,14 +41,12 @@
       </noscript>
 
       <div class="collectory-content row">
-          <div id="sidebarBoxXXX" class="col-md-3 facets well well-small">
+          <div id="sidebarBox" class="col-md-3 facets well well-small">
             <div class="sidebar-header">
               <h3><g:message code="public.datasets.sidebar.header" /></h3>
             </div>
-
             <div id="currentFilterHolder">
             </div>
-
             <div id="dsFacets">
             </div>
           </div>
@@ -51,7 +54,6 @@
           <div id="data-set-list" class="col-md-9">
             <div class="well">
                 <div class="row">
-
                     <form class="form-inline">
                         <div class="col-md-12">
                             <div>
@@ -111,11 +113,9 @@
 
     </div><!-- close collectory-content-->
 
-    </div><!--close content-->
   <asset:script>
       var altMap = true;
       $(document).ready(function() {
-%{--          $('#nav-tabs > ul').tabs();--}%
           loadResources("${grailsApplication.config.grails.serverURL}","${grailsApplication.config.biocacheUiURL}");
           $('select#per-page').change(onPageSizeChange);
           $('select#sort').change(onSortChange);

@@ -19,7 +19,7 @@ cache:
 
 after_success:
   - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && travis_retry ./gradlew publish'
-  -
+
 env:
   global:
     - secure: G31IscTcNtjjFA0R2pDRaZ2Std1d5F3pIfr3NUe0PsKcj8F2ubFd6xZ3LCccKu/HdDdlJ/6K6Khn1EfwHie5NRP+Uu7oAUOVkTXSeI4KfQFywpf3TvKLILh8/2NUe0451ESivKQ28UW4jPOehmLtCyd7MbxnO9GIrYyaWjNEJJw=

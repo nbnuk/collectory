@@ -1,4 +1,7 @@
-<%@ page import="au.org.ala.collectory.DataResource; au.org.ala.collectory.DataProvider; au.org.ala.collectory.Collection; au.org.ala.collectory.Institution; au.org.ala.collectory.ProviderGroup; au.org.ala.collectory.DataLink" %>
+<%@ page import="au.org.ala.collectory.DataResource; au.org.ala.collectory.DataProvider; au.org.ala.collectory.Collection; au.org.ala.collectory.Institution; au.org.ala.collectory.ProviderGroupService; au.org.ala.collectory.DataLink" %>
+<%
+    def providerGroupService = grailsApplication.classLoader.loadClass('au.org.ala.collectory.ProviderGroupService').newInstance()
+%>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -29,8 +32,8 @@
                 <g:hiddenField name="id" value="${dataLinkInstance?.id}" />
                 <g:hiddenField name="version" value="${dataLinkInstance?.version}" />
                 <g:hiddenField name="returnTo" value="${returnTo}"/>
-                <g:set var="provider" value="${ProviderGroup._get(dataLinkInstance.provider)}"/>
-                <g:set var="consumer" value="${ProviderGroup._get(dataLinkInstance.consumer)}"/>
+                <g:set var="provider" value="${providerGroupService._get(dataLinkInstance.provider)}"/>
+                <g:set var="consumer" value="${providerGroupService._get(dataLinkInstance.consumer)}"/>
                 <div class="form-group ${hasErrors(bean: dataLinkInstance, field: 'consumer', 'errors')}">
                     <label for="consumer"><g:message code="dataLink.consumer.label" default="Consumer" /></label>
                     <g:select class="form-control" from="${Collection.list([sort:'name']) + Institution.list([sort:'name'])}" optionKey="uid" name="consumer" value="${consumer.uid}"/>

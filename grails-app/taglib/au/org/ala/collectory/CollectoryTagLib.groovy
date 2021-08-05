@@ -14,7 +14,7 @@ import java.text.SimpleDateFormat
 
 class CollectoryTagLib {
 
-    def collectoryAuthService, metadataService
+    def collectoryAuthService, metadataService, providerGroupService
 
     static namespace = 'cl'
 
@@ -52,7 +52,7 @@ class CollectoryTagLib {
     def createAlertsLink(attrs, urlPath) {
 
         if (!grailsApplication.config.disableAlertLinks?:''.toBoolean()){
-            def link = grailsApplication.config.alertUrl + urlPath
+            def link = grailsApplication.config.alertsUrl + urlPath
             String query = '/occurrences/search?q=' + attrs.query
             String encodedQuery = encodeWithinQuery(query, "UTF-8")
             link += '?webserviceQuery=' + encodedQuery
@@ -212,7 +212,7 @@ class CollectoryTagLib {
     }
 
     private boolean isAdmin() {
-        return grailsApplication.config.security.cas.bypass?:''.toBoolean() || request?.isUserInRole(ProviderGroup.ROLE_ADMIN)
+        return grailsApplication.config.security.cas.bypass?:''.toBoolean() || request?.isUserInRole(grailsApplication.config.ROLE_ADMIN)
     }
 
     /**
@@ -231,7 +231,7 @@ class CollectoryTagLib {
             return true
         }
         else if (email) {
-            ProviderGroup pg = ProviderGroup._get(uid)
+            ProviderGroup pg = providerGroupService._get(uid)
             if (pg) {
                 return pg.isAuthorised(email)
             }
@@ -279,11 +279,12 @@ class CollectoryTagLib {
         BigDecimal val = -1
         if (attrs.value?.class == BigDecimal.class) {
             val = attrs.value
-        } else if (attrs.value?.class == StreamCharBuffer.class) {
-            try {
-                val = new BigDecimal(Double.parseDouble(attrs.value.toString()))
-            } catch (NumberFormatException e) {}
         }
+//        else if (attrs.value?.class == StreamCharBuffer.class) {
+//            try {
+//                val = new BigDecimal(Double.parseDouble(attrs.value.toString()))
+//            } catch (NumberFormatException e) {}
+//        }
         if (val != -1) {
             NumberFormat formatter = new DecimalFormat("#0.000000")
             out << formatter.format(val)
@@ -605,7 +606,7 @@ class CollectoryTagLib {
         ProviderGroup pg = attrs.coll
         if (pg) {
             // check collection's membership
-            ProviderGroup.networkTypes.each {
+            grailsApplication.config.networkTypes.each {
                 if (pg.isMemberOf(it)) {
                     out << "<span class='label'>Member of ${it} </span> <br/>"
                     // this will be tidied up when hubs are entities
@@ -624,14 +625,6 @@ class CollectoryTagLib {
                     out << "<br/>"
                 }
             }
-            // check institution membership
-            /*if (coll.institution) {
-                ProviderGroup.networkTypes.each {
-                    if (coll.institution.isMemberOf(it)) {
-                        out << it
-                    }
-                }
-            }*/
         }
     }
 
@@ -979,7 +972,7 @@ class CollectoryTagLib {
         // handle descendant institutions
         def uidStr = uid;
         if (uid.size() > 1 && uid[0..1] == 'in') {
-            uidStr = Institution._get(uid)?.descendantUids()?.join(",") ?: uid
+            uidStr = providerGroupService._get(uid)?.descendantUids()?.join(",") ?: uid
         }
         def queryStr
         // need to handle multiple uids differently
@@ -1162,7 +1155,7 @@ class CollectoryTagLib {
 
     def returnLink = { attrs ->
         if (attrs.uid) {
-            def pg = ProviderGroup._get(attrs.uid)
+            def pg = providerGroupService._get(attrs.uid)
             if (pg) {
                 out << link(class: 'return', controller: controllerFromUid(uid: attrs.uid), action: 'show', id: pg.uid) { '<span class="glyphicon glyphicon-arrow-left"></span> Return to ' + pg.name}
             }
@@ -1495,7 +1488,7 @@ class CollectoryTagLib {
                     out << "<p class='viewList' style='margin-top:5px;'>View data sources<br/><ul>\n"
                     first = false
                 }
-                def provider = ProviderGroup._get(it)
+                def provider = providerGroupService._get(it)
                 if (provider) {
                     out << "<li>" +
                             link(action:'show',id:provider.uid) {provider.name} +
@@ -1516,7 +1509,7 @@ class CollectoryTagLib {
                     out << "<p class='viewList' style='margin-top:5px;'>View data consumers<br/><ul>\n"
                     first = false
                 }
-                def consumer = ProviderGroup._get(it)
+                def consumer = providerGroupService._get(it)
                 if (consumer) {
                     out << "<li>" +
                             link(action:'show',id:consumer.uid) {consumer.name} +
@@ -1698,11 +1691,11 @@ class CollectoryTagLib {
 
     def jsonSummaryLink = { attrs, body ->
         // have to use this method rather than 'link' so we can specify the accept format as json
-        out << "<a class='json' href='${resource(dir:"lookup",file:"summary/${attrs.uid}.json")}'><img class='json' alt='summary' src='${resource(dir:"images", file:"json.png")}'/> View summary</a>"
+        out << "<a class='json' href='${g.createLink(controller: "lookup", action: "summary", id:attrs.uid)}'><img class='json' alt='summary' src='${resource(dir:"images", file:"json.png")}'/> View summary</a>"
     }
 
     def jsonDataLink = { attrs, body ->
-        def uri = "${grailsApplication.config.grails.serverURL}/ws/${ProviderGroup.urlFormFromUid(attrs.uid)}/${attrs.uid}.json"
+        def uri = "${grailsApplication.config.grails.serverURL}/ws/${providerGroupService.urlFormFromUid(attrs.uid)}/${attrs.uid}"
         // have to use this method rather than 'link' so we can specify the accept format as json
         out << "<a class='json' href='${uri}'><img class='json' alt='json' src='${resource(dir:"images", file:"json.png")}'/> View raw data</a>"
     }
@@ -1718,7 +1711,7 @@ class CollectoryTagLib {
     }
 
     def editLink = {attrs, body ->
-        out << link(class:"preview", controller:ProviderGroup.urlFormFromUid(attrs.uid), action:'show', id:attrs.uid) { body() }
+        out << link(class:"preview", controller:providerGroupService.urlFormFromUid(attrs.uid), action:'show', id:attrs.uid) { body() }
     }
 
     def displayLicenseType = { attrs ->
@@ -1726,14 +1719,14 @@ class CollectoryTagLib {
         def licenceVersionStr = attrs.version
         if (licenseStr) {
             Licence licence = Licence.find { acronym == licenseStr && licenceVersion == licenceVersionStr  }
-            if(licence){
+            if (licence){
                 def imageHtml = "<a rel='license' target='_blank' href='${licence.url}'><img class='ccimage no-radius' src='${licence.imageUrl}' alt='${licence.name} ${licence.licenceVersion}' style='border:none;' max-height='31' max-width='88'></a>"
                 if (attrs.imageOnly && licence.imageUrl) {
                     out << imageHtml
                 } else if (attrs.imageOnly) {
                     out << "${imageHtml}"
                 } else {
-                    out << "${licence.name} ${licence.licenceVersion?:''} ${imageHtml}"
+                    out << "${licence.name} ${licence.licenceVersion?:''} <br/> <span class='licenceImage'> ${imageHtml} </span>"
                 }
             } else {
                 out << licenseStr

@@ -1,8 +1,10 @@
 <%@ page import="au.org.ala.collectory.CollectoryTagLib" %>
-<section class="public-metadata">
+<div class="public-metadata">
     <g:set var="facet" value="${new CollectoryTagLib().getFacetForEntity(instance)}"/>
-
-    <h3 id="totalRecordCountLinkHdr"><a id="totalRecordCountLink" href="${grailsApplication.config.biocacheUiURL}/occurrences/search?q=${facet}:${instance.uid}"></a></h3>
+    <h3 id="totalRecordCountLinkHdr">
+        <a id="totalRecordCountLink" href="${grailsApplication.config.biocacheUiURL}/occurrences/search?q=${facet}:${instance.uid}">
+        </a>
+    </h3>
 
     <h4><g:message code="dataAccess.title"/></h4>
     <div class="dataAccess btn-group-vertical">
@@ -18,4 +20,4 @@
         <cl:createNewAnnotationsAlertsLink query="${facet}:${instance.uid}" displayName="${instance.name}"
             linkText="${g.message(code:'dataAccess.alert.annotations.alt')}" altText="${g.message(code:'dataAccess.alert.annotations')} ${instance.name}"/>
     </div>
-</section>
+</div>
