@@ -28,7 +28,7 @@
 <div id="content">
     <cl:pageOptionsPopup instance="${instance}"/>
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-9">
 
             <cl:h1 value="${instance.name}"/>
             <g:render template="editButton"/>
@@ -98,7 +98,7 @@
             </div>
 
         </div><!--close column-one-->
-        <div class="col-md-4">
+        <div class="col-md-3">
 
             <!-- logo -->
             <g:if test="${fieldValue(bean: instance, field: 'logoRef') && fieldValue(bean: instance, field: 'logoRef.file')}">

@@ -38,7 +38,7 @@
 <body>
 <div id="content">
     <div class="row">
-            <div class="col-md-8">
+            <div class="col-md-9">
                 <cl:h1 value="${instance.name}"/>
                 <g:render template="editButton"/>
                 <g:set var="parents" value="${instance.listParents()}"/>
@@ -104,7 +104,7 @@
                 </div>
 
             </div><!--close section-->
-            <section class="col-md-4">
+            <section class="col-md-3">
 
                 <g:if test="${fieldValue(bean: instance, field: 'logoRef') && fieldValue(bean: instance, field: 'logoRef.file')}">
                     <section class="public-metadata">
@@ -149,10 +149,10 @@
                     <cl:ifNotBlank value='${fieldValue(bean: instance, field: "phone")}'/>
                 </section>
 
-            <!-- contacts -->
+                <!-- contacts -->
                 <g:render template="contacts" bean="${instance.getPublicContactsPrimaryFirst()}"/>
 
-            <!-- web site -->
+                <!-- web site -->
                 <g:if test="${instance.websiteUrl}">
                     <section class="public-metadata">
                         <h4><g:message code="public.website" /></h4>
@@ -165,7 +165,7 @@
                     </section>
                 </g:if>
 
-            <!-- network membership -->
+                <!-- network membership -->
                 <g:if test="${instance.networkMembership}">
                     <section class="public-metadata">
                         <h4><g:message code="public.network.membership.label" /></h4>
@@ -190,11 +190,10 @@
                     </div>
                 </g:if>
 
-            <!-- external identifiers -->
+                <!-- external identifiers -->
                 <g:render template="externalIdentifiers" model="[instance:instance]"/>
-
-    </div>
-        </div><!--close content-->
+        </div>
+    </div><!--close content-->
 </div>
 <asset:script>
     // stats

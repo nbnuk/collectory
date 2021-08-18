@@ -26,7 +26,7 @@
 <body>
     <cl:pageOptionsPopup instance="${instance}"/>
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-9">
             <div id="titleSection">
                 <cl:h1 value="${instance.name}"/>
                 <g:render template="editButton"/>
@@ -157,7 +157,7 @@
             </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-3">
             <g:if test="${dp?.logoRef?.file}">
                 <g:link action="show" id="${dp.uid}">
                     <img class="institutionImage" src='${resource(absolute:"true", dir:"data/dataProvider/",file:dp.logoRef.file)}' />
