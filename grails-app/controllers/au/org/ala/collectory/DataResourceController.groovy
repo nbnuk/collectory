@@ -21,19 +21,23 @@ class DataResourceController extends ProviderGroupController {
     }
 
     def markAsVerified = {
-        def instance = providerGroupService._get(params.id)
-        if(instance){
-            instance.markAsVerified()
+        def instance = DataResource.findByUid(params.uid)
+        if (instance){
+            DataResource.withTransaction {
+                instance.markAsVerified()
+            }
         }
-        redirect(action: 'show', params: [id:params.id])
+        redirect(action: 'show', params: [id:params.uid])
     }
 
     def markAsUnverified = {
-        def instance = get(params.id)
-        if(instance){
-            instance.markAsUnverified()
+        def instance =  DataResource.findByUid(params.uid)
+        if (instance){
+            DataResource.withTransaction {
+                instance.markAsUnverified()
+            }
         }
-        redirect(action: 'show', params: [id:params.id])
+        redirect(action: 'show', params: [id:params.uid])
     }
 
     // list all entities

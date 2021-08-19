@@ -131,7 +131,7 @@ class CrudService {
                 // provider specific
                 dataResources = p.resources.briefEntity()
                 if (p.listConsumers()) {
-                    linkedRecordConsumers = p.listConsumers().formatEntitiesFromUids()
+                    linkedRecordConsumers = formatEntitiesFromUids(p.listConsumers())
                 }
                 if (p.externalIdentifiers) {
                     externalIdentifiers = p.externalIdentifiers.formatExternalIdentifiers()
@@ -350,7 +350,7 @@ class CrudService {
                 }
                 contentTypes = p.contentTypes ? p.contentTypes.formatJSON() : []
                 if (p.listConsumers()) {
-                    linkedRecordConsumers = p.listConsumers().formatEntitiesFromUids()
+                    linkedRecordConsumers = formatEntitiesFromUids(p.listConsumers())
                 }
                 if (p.connectionParameters) {
                     def connParams =  p.connectionParameters.formatJSON()
@@ -568,7 +568,7 @@ class CrudService {
                 parentInstitutions = p.listParents().briefEntity()
                 childInstitutions = p.listChildren().briefEntity()
                 if (p.listProviders()) {
-                    linkedRecordProviders = p.listProviders().formatEntitiesFromUids()
+                    linkedRecordProviders = formatEntitiesFromUids(p.listProviders())
                 }
                 gbifRegistryKey = p.gbifRegistryKey
                 if (p.externalIdentifiers) {
@@ -685,7 +685,7 @@ class CrudService {
                 }
                 startDate = p.startDate
                 endDate = p.endDate
-                kingdomCoverage = p.kingdomCoverage?.formatSpaceSeparatedList()
+                kingdomCoverage = formatSpaceSeparatedList(p.kingdomCoverage)
                 scientificNames = p.scientificNames?.formatJSON()
                 subCollections = p.listSubCollections()
                 if (p.institution) {
@@ -707,7 +707,7 @@ class CrudService {
                     }
                 }
                 if (p.listProviders()) {
-                    linkedRecordProviders = p.listProviders().formatEntitiesFromUids()
+                    linkedRecordProviders = formatEntitiesFromUids(p.listProviders())
                 }
                 gbifRegistryKey = p.gbifRegistryKey
                 if (p.externalIdentifiers) {
@@ -949,11 +949,8 @@ class CrudService {
             }
         }
     }
-}
 
-class OutputFormat {
-
-    static def formatEntitiesFromUids(listOfUid) {
+    def formatEntitiesFromUids(listOfUid) {
         if (!listOfUid) return null
         def result = []
         listOfUid.each {
@@ -964,6 +961,13 @@ class OutputFormat {
         }
         return result
     }
+
+    def formatSpaceSeparatedList(str) {
+        str.tokenize(" ")
+    }
+}
+
+class OutputFormat {
 
     static def formatJSON(jsonListStr) {
         if (!jsonListStr) return null
@@ -982,10 +986,6 @@ class OutputFormat {
             result << [name: it.name, url: it.url]
         }
         return result
-    }
-
-    static def formatSpaceSeparatedList(str) {
-        str.tokenize(" ")
     }
 
     static def briefEntity(list) {
@@ -1035,5 +1035,4 @@ class OutputFormat {
     static def formatExternalIdentifiers(externalIdentifiers) {
         return externalIdentifiers.collect { [source: it.source, identifier: it.identifier, uri: it.uri ] }
     }
-
 }

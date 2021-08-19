@@ -229,7 +229,7 @@ class DataResource implements ProviderGroup, Serializable {
 
     def markAsVerified(){
 
-        if(!defaultDarwinCoreValues){
+        if (!defaultDarwinCoreValues){
             defaultDarwinCoreValues = "{}"
         }
 
@@ -243,7 +243,7 @@ class DataResource implements ProviderGroup, Serializable {
 
     def markAsUnverified(){
 
-        if(!defaultDarwinCoreValues){
+        if (!defaultDarwinCoreValues){
             defaultDarwinCoreValues = "{}"
         }
 

@@ -18,14 +18,6 @@ abstract class ProviderGroupController {
 
     def idGeneratorService, collectoryAuthService, metadataService, gbifService, dataImportService, providerGroupService
 
-    /*
-     * Access control
-     *
-     * All methods require EDITOR role.
-     * Edit methods require ADMIN or the user to be an administrator for the entity.
-     */
-    def beforeInterceptor = [action:this.&auth]
-
     def auth() {
         if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_EDITOR) && !grailsApplication.config.security.cas.bypass.toBoolean()) {
             response.setHeader("Content-type", "text/plain; charset=UTF-8")
@@ -152,16 +144,18 @@ abstract class ProviderGroupController {
                 pg = new DataHub(uid: idGeneratorService.getNextDataHubId(), name: name, userLastModified: collectoryAuthService?.username()); break
         }
 
-        if (!pg.hasErrors() && pg.save(flush: true)) {
-            // add the user as a contact if specified
-            if (params.addUserAsContact) {
-                addUserAsContact(pg, params)
+        DataResource.withTransaction {
+            if (!pg.hasErrors() && pg.save(flush: true)) {
+                // add the user as a contact if specified
+                if (params.addUserAsContact) {
+                    addUserAsContact(pg, params)
+                }
+                flash.message = "${message(code: 'default.created.message', args: [message(code: "${pg.urlForm()}", default: pg.urlForm()), pg.uid])}"
+                redirect(action: "show", id: pg.uid)
+            } else {
+                flash.message = message(code: "provider.group.controller.06", default: "Failed to create new") + " ${entityName}"
+                redirect(controller: 'admin', action: 'index')
             }
-            flash.message = "${message(code: 'default.created.message', args: [message(code: "${pg.urlForm()}", default: pg.urlForm()), pg.uid])}"
-            redirect(action: "show", id: pg.uid)
-        } else {
-            flash.message = message(code: "provider.group.controller.06", default: "Failed to create new") + " ${entityName}"
-            redirect(controller: 'admin', action: 'index')
         }
     }
 
@@ -274,30 +268,6 @@ abstract class ProviderGroupController {
                     "${message(code: 'default.not.found.message', args: [message(code: "${entityNameLower}.label", default: entityNameLower), params.id])}"
             redirect(action: "show", id: params.id)
         }
-
-//
-//        def pg = get(params.id)
-//        if (pg) {
-//            if (checkLocking(pg,'description')) { return }
-//
-//            // do any entity specific processing
-//            entitySpecificDescriptionProcessing(pg, params)
-//
-//            pg.properties = params
-//            pg.userLastModified = collectoryAuthService?.username()
-//            if (!pg.hasErrors() && pg.save(flush: true)) {
-//                flash.message =
-//                  "${message(code: 'default.updated.message', args: [message(code: "${pg.urlForm()}.label", default: pg.entityType()), pg.uid])}"
-//                redirect(action: "show", id: pg.uid)
-//            }
-//            else {
-//                render(view: "description", model: [command: pg])
-//            }
-//        } else {
-//            flash.message =
-//                "${message(code: 'default.not.found.message', args: [message(code: "${entityNameLower}.label", default: entityNameLower), params.id])}"
-//            redirect(action: "show", id: params.id)
-//        }
     }
 
     def entitySpecificDescriptionProcessing(pg, params) {
@@ -310,48 +280,37 @@ abstract class ProviderGroupController {
      */
     def updateLocation = {
 
-        LocationCommand cmd = new LocationCommand()
-        bindData(cmd, params)
+        def pg = get(params.id)
+        if (pg) {
+            if (checkLocking(pg,'/shared/location')) { return }
 
-        if(cmd.hasErrors()) {
-            cmd.id = params.id as int   // these do not seem to be injected
-            cmd.version = params.version as int
-            render(view:'/shared/location', model: [command: cmd])
-        } else {
-            def pg = get(params.id)
-            if (pg) {
-                if (checkLocking(pg,'/shared/location')) { return }
+            // special handling for lat & long
+            if (!params.latitude) { params.latitude = -1 }
+            if (!params.longitude) { params.longitude = -1 }
 
-                // special handling for lat & long
-                if (!params.latitude) { params.latitude = -1 }
-                if (!params.longitude) { params.longitude = -1 }
-
-                // special handling for embedded address - need to create address obj if none exists and we have data
-                if (!pg.address && [params.address?.street, params.address?.postBox, params.address?.city,
-                    params.address?.state, params.address?.postcode, params.address?.country].join('').size() > 0) {
-                    pg.address = new Address()
-                }
-
-                // special handling for embedded postal address - need to create address obj if none exists and we have data
-                /*if (!pg.postalAddress && [params.postalAddress?.street, params.postalAddress?.postBox, params.postalAddress?.city,
-                    params.postalAddress?.state, params.postalAddress?.postcode, params.postalAddress?.country].join('').size() > 0) {
-                    pg.postalAddress = new Address()
-                }*/
-
-                pg.properties = params
-                pg.userLastModified = collectoryAuthService?.username()
-                if (!pg.hasErrors() && pg.save(flush: true)) {
-                    flash.message =
-                      "${message(code: 'default.updated.message', args: [message(code: "${pg.urlForm()}.label", default: pg.entityType()), pg.uid])}"
-                    redirect(action: "show", id: pg.uid)
-                } else {
-                    render(view: "/shared/location", model: [command: pg])
-                }
-            } else {
-                flash.message =
-                    "${message(code: 'default.not.found.message', args: [message(code: "${entityNameLower}.label", default: entityNameLower), params.id])}"
-                redirect(action: "show", id: params.id)
+            // special handling for embedded address - need to create address obj if none exists and we have data
+            if (!pg.address && [params.address?.street, params.address?.postBox, params.address?.city,
+                params.address?.state, params.address?.postcode, params.address?.country].join('').size() > 0) {
+                pg.address = new Address()
             }
+
+            pg.properties = params
+            pg.userLastModified = collectoryAuthService?.username()
+
+            if (!pg.hasErrors() ) {
+                DataResource.withTransaction {
+                    pg.save(flush: true)
+                }
+                flash.message =
+                        "${message(code: 'default.updated.message', args: [message(code: "${pg.urlForm()}.label", default: pg.entityType()), pg.uid])}"
+                redirect(action: "show", id: pg.uid)
+            } else {
+                render(view: "/shared/location", model: [command: pg])
+            }
+        } else {
+            flash.message =
+                "${message(code: 'default.not.found.message', args: [message(code: "${entityNameLower}.label", default: entityNameLower), params.id])}"
+            redirect(action: "show", id: params.id)
         }
     }
 
@@ -374,9 +333,12 @@ abstract class ProviderGroupController {
             pg.taxonomyHints = th as JSON
 
             pg.userLastModified = collectoryAuthService?.username()
-            if (!pg.hasErrors() && pg.save(flush: true)) {
+            if (!pg.hasErrors() ) {
+                DataResource.withTransaction {
+                    pg.save(flush: true)
+                }
                 flash.message =
-                  "${message(code: 'default.updated.message', args: [message(code: "${pg.urlForm()}.label", default: pg.entityType()), pg.uid])}"
+                        "${message(code: 'default.updated.message', args: [message(code: "${pg.urlForm()}.label", default: pg.entityType()), pg.uid])}"
                 redirect(action: "show", id: pg.uid)
             }
             else {
@@ -402,7 +364,11 @@ abstract class ProviderGroupController {
             println pg.taxonomyHints
 
             pg.userLastModified = collectoryAuthService?.username()
-            if (!pg.hasErrors() && pg.save(flush: true)) {
+            if (!pg.hasErrors()) {
+                DataResource.withTransaction {
+                    pg.save(flush: true)
+                }
+
                 flash.message =
                   "${message(code: 'default.updated.message', args: [message(code: "${pg.urlForm()}.label", default: pg.entityType()), pg.uid])}"
                 redirect(action: "show", id: pg.uid)
@@ -439,17 +405,20 @@ abstract class ProviderGroupController {
             external.each { ext ->
                 def old = existing.find { prev -> prev.same(ext) }
                 if (!old) {
-                    ext.save(flush: true)
+                    DataResource.withTransaction { ext.save(flush: true) }
                 } else {
                     old.uri = ext.uri
-                     old.save(flush: true)
+                    DataResource.withTransaction { old.save(flush: true) }
                     existing.remove(old)
                 }
             }
             // Delete non-matching, existing external IDs
-            existing.each { ext -> ext.delete(flush: true) }
+            existing.each { ext -> DataResource.withTransaction { ext.delete(flush: true) } }
             pg.userLastModified = collectoryAuthService?.username()
-            if (!pg.hasErrors() && pg.save(flush: true)) {
+            if (!pg.hasErrors()) {
+                DataResource.withTransaction {
+                    pg.save(flush: true)
+                }
                 flash.message =
                         "${message(code: 'default.updated.message', args: [message(code: "${pg.urlForm()}.label", default: pg.entityType()), pg.uid])}"
                 redirect(action: "show", id: pg.uid)
@@ -470,7 +439,10 @@ abstract class ProviderGroupController {
         if (contactFor) {
             contactFor.properties = params
             contactFor.userLastModified = collectoryAuthService?.username()
-            if (!contactFor.hasErrors() && contactFor.save(flush: true)) {
+            if (!contactFor.hasErrors()) {
+                ContactFor.withTransaction {
+                    contactFor.save(flush: true)
+                }
                 flash.message = "${message(code: 'contactRole.updated.message')}"
                 redirect(action: "edit", id: params.id, params: [page: '/shared/showContacts'])
             } else {
@@ -536,7 +508,9 @@ abstract class ProviderGroupController {
             if (isAuthorisedToEdit(pg.uid)) {
                 ContactFor cf = ContactFor.get(params.idToRemove)
                 if (cf) {
-                    cf.delete()
+                    ContactFor.withTransaction {
+                        cf.delete()
+                    }
                     redirect(action: "edit", params: [page:"/shared/showContacts"], id: params.id)
                 }
             } else {
@@ -583,7 +557,7 @@ abstract class ProviderGroupController {
 
         try {
             def dr = gbifService.createGBIFResourceFromArchiveURL(params.url)
-            if(dr){
+            if (dr){
                 render(text:([success:true, dataResourceName:dr.name, dataResourceUid: dr.uid] as JSON).toString(),
                         encoding:"UTF-8", contentType: "application/json")
             } else {

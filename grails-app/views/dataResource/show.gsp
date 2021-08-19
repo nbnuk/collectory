@@ -97,11 +97,11 @@
                     <span class="category"><g:message code="dataresource.show.verificationStatus" default="Verification status"/>: </span>
                     <g:if test="${instance.isVerified()}">
                         Currently this data resource is marked as verified <i class="fa fa-check-circle tooltips" style="color:green;"></i>
-                        <g:link class="btn btn-default btn-sm" controller="dataResource" action="markAsUnverified" id="${instance.id}">Mark as <strong>unverified</strong></g:link>
+                        <g:link class="btn btn-default btn-sm" controller="dataResource" action="markAsUnverified" params="[uid: instance.uid]">Mark as <strong>unverified</strong></g:link>
                     </g:if>
                     <g:else>
                         Currently this data resource is marked as unverified
-                            <g:link class="btn btn-default btn-sm" controller="dataResource" action="markAsVerified" id="${instance.id}">Mark as <strong>verified</strong></g:link>
+                            <g:link class="btn btn-default btn-sm" controller="dataResource" action="markAsVerified" params="[uid: instance.uid]">Mark as <strong>verified</strong></g:link>
                     </g:else>
                 </p>
 

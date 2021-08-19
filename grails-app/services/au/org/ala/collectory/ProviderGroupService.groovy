@@ -10,13 +10,10 @@ class ProviderGroupService {
     def collectoryAuthService
     def grailsApplication
 
-    def serviceMethod() {
-    }
+    def serviceMethod() {}
 
     static transients = ['primaryInstitution', 'primaryContact', 'memberOf', 'networkTypes', 'mappable','ALAPartner',
                          'primaryPublicContact','publicContactsPrimaryFirst','contactsPrimaryFirst', 'authorised']
-
-    def statesList = ['Australian Capital Territory', 'New South Wales', 'Queensland', 'Northern Territory', 'Western Australia', 'South Australia', 'Tasmania', 'Victoria']
 
     /**
      * Returns the form that can be used in url path, ie as a controller name, one of:

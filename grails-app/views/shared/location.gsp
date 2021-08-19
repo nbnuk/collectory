@@ -8,19 +8,17 @@
   <title><g:message code="collection.base.label" default="Edit ${entityNameLower} metadata" args="[entityNameLower]" /></title>
   <script async defer
           src="https://maps.googleapis.com/maps/api/js?key=${grailsApplication.config.google?.apikey}"
-          type="text/javascript"></script></head>
+          type="text/javascript"></script>
+  <asset:stylesheet src="application.css"/>
+</head>
 <body onload="load();">
   <style>
   #mapCanvas {
     width: 100%;
-    min-height: 200px;
-    min-width: 200px;
+    min-height: 500px;
   }
   </style>
-<div class="nav">
   <h1><g:message code="shared.location.main.title01" />: ${fieldValue(bean: command, field: "name")}</h1>
-</div>
-<div class="container">
   <g:if test="${message}">
     <div class="message">${message}</div>
   </g:if>
@@ -37,8 +35,8 @@
       <div class="col-md-8">
         <!-- state -->
         <div class="form-group">
-          <label for="state"><g:message code="providerGroup.state.label" default="State/Territory/County"/><cl:helpText code="${entityNameLower}.state"/>
-            <br/><span class=hint>(where the ${entityNameLower}<br>resides)</span>
+          <label for="state"><g:message code="providerGroup.state.label" default="State/Territory/County"/>
+            <cl:helpText code="${entityNameLower}.state"/><span class=hint>(where the ${entityNameLower} resides)</span>
           </label>
           <g:textField class="form-control" name="sate" maxLength="256" value="${command?.state}"/>
         </div>
@@ -81,7 +79,7 @@
           <g:textField class="form-control" name="address.postBox" maxlength="128" value="${command?.address?.postBox}"/>
         </div>
 
-        <!-- latitude and longitude -->
+        <!-- latitude -->
         <div class="form-group">
           <label for="latitude"><g:message code="providerGroup.latitude.label" default="Latitude"/><cl:helpText code="collection.latitude"/>
             <br/><span class=hint>(decimal degrees)</span>
@@ -117,7 +115,7 @@
         </div>
 
       </div>
-      <div class="col-md-4 pull-right">
+      <div class="col-md-4">
         <div id="mapCanvas"></div>
       </div>
     </div>
@@ -126,7 +124,6 @@
       <span class="button"><input type="submit" name="_action_cancel" value="${message(code:"shared.location.button.cancel")}" class="cancel btn btn-default"></span>
     </div>
   </g:form>
-</div>
 
 <script type="text/javascript">
   function codeAddress() {
