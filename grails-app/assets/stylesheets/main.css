@@ -13,3 +13,43 @@
     width: 100%;
 }
 
+
+#resultsReturned {
+    font-size: 13px !important;
+}
+
+.rowA {
+    border-top: 1px solid silver;
+    padding-top:8px;
+}
+
+.rowA img {
+    cursor: pointer;
+}
+
+.rowA, .rowB {
+    padding-bottom: 0 !important;
+}
+
+.rowB {
+    border-bottom: none !important;
+    padding-left:20px;
+}
+
+.rowB .viewRecords {
+    padding-left:10px;
+}
+
+.rowC p {
+    overflow: hidden;
+    /*background-color: #f8f8f8;*/
+    padding-bottom: 1px !important;
+    padding-left:20px;
+}
+
+.rowA img {
+    vertical-align: middle;
+}
+
+.resultsLabel { margin-left:10px; }
+

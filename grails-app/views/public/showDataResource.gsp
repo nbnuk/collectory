@@ -42,8 +42,10 @@
             <div class="tabbable">
                 <ul class="nav nav-tabs" id="home-tabs">
                     <li class="active"><a href="#basicMetadata" data-toggle="tab">Metadata</a></li>
-                    <li><a href="#usage-stats" data-toggle="tab">Usage stats</a></li>
-                    <li><a href="#metrics" data-toggle="tab">Metrics</a></li>
+                    <g:if test="${instance.resourceType=='records'}">
+                        <li><a href="#usage-stats" data-toggle="tab">Usage stats</a></li>
+                        <li><a href="#metrics" data-toggle="tab">Metrics</a></li>
+                    </g:if>
                 </ul>
             </div>
 
