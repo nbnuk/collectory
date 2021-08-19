@@ -84,7 +84,7 @@ class DataImportService {
 
             log.debug "Transferring file to directory...."
             if (filetoImport.metaClass.respondsTo(filetoImport, "transferTo")) {
-                newFile = new File(uploadDirPath + File.separatorChar + filetoImport.getFileItem().getName())
+                newFile = new File(uploadDirPath + File.separatorChar + filetoImport.getOriginalFilename())
                 filetoImport.transferTo(newFile)
             } else {
                 newFile = new File(uploadDirPath + File.separatorChar + filetoImport.getName())
@@ -156,10 +156,12 @@ class DataImportService {
         }
 
         dataResource.connectionParameters = (new JsonOutput()).toJson(connParams)
-        dataResource.save(flush:true)
+        DataResource.withTransaction {
+            dataResource.save(flush: true)
+        }
 
         //add contacts
-        if(contacts){
+        if (contacts){
             def existingContacts = dataResource.getContacts()
             contacts.each { contact ->
                 def isNew = true

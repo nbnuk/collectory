@@ -11,7 +11,7 @@
         <title><g:message code="default.show.label" args="[entityName]" /></title>
         <script type="text/javascript" src="https://maps.google.com/maps/api/js?v=3.3&sensor=false"></script>
         <asset:stylesheet src="application.css"/>
-        <r:require modules="fileupload"/>
+        <asset:javascript src="application-pages.js"/>
     </head>
     <body>
         <h1><g:message code="dataresource.upload.title" />:

@@ -10,6 +10,7 @@
 *= require main
 *= require map
 *= require jquery-ui
+*= require fileupload.css
 *= require ala/ala-charts.css
 *= require_self
 */
