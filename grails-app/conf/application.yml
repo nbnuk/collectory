@@ -8,6 +8,8 @@ grails:
     config:
         locations:
             - file:/data/collectory/config/collectory-config.yml
+            - file:/data/collectory/config/collectory-config.properties
+            - file:/data/collectory/config/collectory-config.groovy
     cors:
         enabled: true
     gorm:
