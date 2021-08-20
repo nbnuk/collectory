@@ -18,6 +18,7 @@ cache:
     - $HOME/.gradle/wrapper/
 
 after_success:
+  - './gradlew bootJar'
   - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && travis_retry ./gradlew publish'
 
 env:
