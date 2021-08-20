@@ -466,4 +466,18 @@ class ProviderGroupService {
     protected isAdmin = {
         collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN) ?: false
     }
+
+    /**
+     * Returns the list of provider groups that this contact is a contact for.
+     *
+     * @return list of ProviderGroup or empty list
+     */
+    List<ProviderGroup> getContactsFor(Contact contact) {
+        List<ProviderGroup> result = []
+        ContactFor.findAllByContact(contact).each {
+            result << _get(it.entityUid)
+        }
+        return result
+    }
+
 }

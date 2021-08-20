@@ -231,10 +231,10 @@
                         <p class="mainText hide"><g:message code="manage.list.addtools.des13" />.</p>
                     </div>
 
-                    <div class="homeCell btn btn-default">
-                        <g:link class="mainLink" controller="auditLogEvent" action="list" params="[max:1000]"><g:message code="manage.list.addtools.vae" /></g:link>
-                        <p class="mainText hide"><g:message code="manage.list.addtools.des14" /></p>
-                    </div>
+%{--                    <div class="homeCell btn btn-default">--}%
+%{--                        <g:link class="mainLink" controller="auditLogEvent" action="list" params="[max:1000]"><g:message code="manage.list.addtools.vae" /></g:link>--}%
+%{--                        <p class="mainText hide"><g:message code="manage.list.addtools.des14" /></p>--}%
+%{--                    </div>--}%
 
                   </div>
                   <div>

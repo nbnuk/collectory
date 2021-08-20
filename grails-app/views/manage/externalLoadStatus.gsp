@@ -70,7 +70,7 @@
 <h3><g:message code="manage.extloads.title.completed" /> <g:formatNumber number="${load.getPercentageComplete()}" format="#0.00"/> %</h3>
 <g:if test="${!load.isComplete()}">
 <p>
-    <g:img uri="/images/spinner.gif" alt="Loading..."/>
+    <g:img uri="/static/images/spinner.gif" alt="Loading..."/>
     Keep this page open - it automatically refreshes every 15 seconds.
 </p>
 </g:if>

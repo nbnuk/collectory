@@ -1,5 +1,8 @@
-
 <%@ page import="au.org.ala.collectory.Contact; au.org.ala.collectory.ProviderGroup" %>
+<%@ page import="au.org.ala.collectory.ProviderGroupService" %>
+<%
+    def providerGroupService = grailsApplication.classLoader.loadClass('au.org.ala.collectory.ProviderGroupService').newInstance()
+%>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -28,7 +31,7 @@
             <div class="message">${flash.message}</div>
             </g:if>
             <div class="dialog">
-                <table class="table"">
+                <table class="table">
                     <tbody>
                     
                         <tr class="prop">
@@ -102,16 +105,15 @@
                         </tr>
                     
 <!-- contact for -->    <tr class="prop">
-                            <td valign="top" class="name"><g:message code="contact.for.label" default="Contact for:" /></td>
+                            <td class="name"><g:message code="contact.for.label" default="Contact for:" /></td>
 
-                            <td valign="top" style="text-align: left;" class="value">
+                            <td style="text-align: left;" class="value">
                                 <ul>
-                                <g:each in="${contactInstance?.getContactsFor()}" var="entity">
+                                <g:each in="${providerGroupService.getContactsFor(contactInstance)}" var="entity">
                                     <li><g:link controller="${cl.controller(type: entity?.entityType())}" action="show" id="${entity?.uid}">${entity?.name}</g:link></li>
                                 </g:each>
                                 </ul>
                             </td>
-
                         </tr>
 
                         <!-- change history -->

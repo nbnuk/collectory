@@ -1,12 +1,11 @@
 package au.org.ala.collectory
-/*  represents a person who acts as a contact for an ALA entity such as
+/**
+ * Represents a person who acts as a contact for an ALA entity such as
  *  an institution, collection or dataset.
  *
  *  - based on collectory data model version 5
  */
 class Contact implements Serializable {
-
-    def providerGroupService
 
     String title            // the person's honorific eg Dr
     String firstName
@@ -116,18 +115,5 @@ class Contact implements Serializable {
      */
     boolean hasContent() {
         lastName || phone || mobile || email || fax
-    }
-
-    /**
-     * Returns the list of provider groups that this contact is a contact for.
-     *
-     * @return list of ProviderGroup or empty list
-     */
-    List<ProviderGroup> getContactsFor() {
-        List<ProviderGroup> result = []
-        ContactFor.findAllByContact(this).each {
-            result << providerGroupService._get(it.entityUid)
-        }
-        return result
     }
 }
