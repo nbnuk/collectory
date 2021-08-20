@@ -241,9 +241,9 @@ trait ProviderGroup implements Serializable {
         ExternalIdentifier.withTransaction {
             ext.save(flush: true)
         }
-        if (ext.hasErrors()) {
-            ext.errors.each { println it.toString() }
-        }
+//        if (ext.hasErrors()) {
+//            ext.errors.each { log.error(it.toString()) }
+//        }
         return ext
     }
 
@@ -253,7 +253,7 @@ trait ProviderGroup implements Serializable {
      * @return The external identifiers
      */
     List<ExternalIdentifier> getExternalIdentifiers() {
-        if (id != null) {
+        if (uid != null) {
             return ExternalIdentifier.findAllByEntityUid(uid)
         } else {
             return []

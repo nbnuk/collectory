@@ -123,7 +123,7 @@ class TempDataResource {
         cf.userLastModified = modifiedBy
         cf.save(flush: true)
         if (cf.hasErrors()) {
-            cf.errors.each {println it.toString()}
+            cf.errors.each {log.error( it.toString())}
         }
         return cf
     }

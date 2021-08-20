@@ -182,7 +182,6 @@ class ContactController {
     }
 
     def updateProfile() {
-        params.each {println it}
         def contactInstance = Contact.get(params.id)
         // only the user or admin can update
         if (contactInstance.email == collectoryAuthService?.username() || collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN)) {
