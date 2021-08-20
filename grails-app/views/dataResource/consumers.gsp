@@ -5,7 +5,8 @@
         <meta name="layout" content="${grailsApplication.config.skin.layout}" />
         <title><g:message code="dataResource.base.label" default="Edit data resource metadata" /></title>
         <link rel="stylesheet" href="${resource(dir:'css/smoothness',file:'jquery-ui-1.12.1.min.css')}" type="text/css" media="screen"/>
-        <r:require modules="jquery_ui_custom"/>
+        <asset:stylesheet src="application.css"/>
+        <asset:javascript src="application-pages.js"/>
     </head>
     <body>
         <div class="nav">

@@ -73,34 +73,6 @@ trait ProviderGroup implements Serializable {
 
     static embedded = ['address', 'logoRef', 'imageRef']
 
-    static constraints = {
-        guid(nullable:true, maxSize:256)
-        uid(blank:false, maxSize:20)
-        name(blank:false, maxSize:1024)
-        acronym(nullable:true, maxSize:45)
-        pubShortDescription(nullable:true, maxSize:100)
-        pubDescription(nullable:true)
-        techDescription(nullable:true)
-        focus(nullable:true)
-        address(nullable:true)
-        latitude(max:360.0, min:-360.0, scale:10)
-        longitude(max:360.0, min:-360.0, scale:10)
-        altitude(nullable:true)
-        state(nullable:true, maxSize:45)
-        websiteUrl(nullable:true, maxSize:256)
-        logoRef(nullable:true)
-        imageRef(nullable:true)
-        email(nullable:true, maxSize:256)
-        phone(nullable:true, maxSize:200)
-        isALAPartner()
-        notes(nullable:true)
-        networkMembership(nullable:true, maxSize:256)
-        attributions(nullable:true, maxSize:256)
-        taxonomyHints(nullable:true)
-        keywords(nullable:true)
-        gbifRegistryKey(nullable:true, maxSize:36)
-    }
-
     /**
      * Adds a contact for this group using the supplied relationship attributes
      *
@@ -266,8 +238,9 @@ trait ProviderGroup implements Serializable {
      */
     ExternalIdentifier addExternalIdentifier(String identifier, String source, String link) {
         ExternalIdentifier ext = new ExternalIdentifier(entityUid: uid, identifier: identifier, source: source, uri: link)
-
-        ext.save(flush: true)
+        ExternalIdentifier.withTransaction {
+            ext.save(flush: true)
+        }
         if (ext.hasErrors()) {
             ext.errors.each { println it.toString() }
         }
@@ -456,7 +429,7 @@ trait ProviderGroup implements Serializable {
      * @return list of Attribution
      */
     List<Attribution> getAttributionList() {
-        def uids = attributions.tokenize(' ')
+        def uids = attributions?:''.tokenize(' ')
         List<Attribution> list = []
         uids.each {
             def att = Attribution.findByUid(it as String)

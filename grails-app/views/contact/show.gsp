@@ -4,8 +4,15 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <meta name="layout" content="${grailsApplication.config.skin.layout}" />
+        <meta name="breadcrumbParent"
+              content="${createLink(action: 'list', controller: 'manage')},${message(code: 'manage.list.title01')}"
+        />
+        <meta name="breadcrumbs"
+              content="${createLink(action: 'list', controller: 'contact')},Contacts"
+        />
         <g:set var="entityName" value="${message(code: 'contact.label', default: 'Contact')}" />
         <title><g:message code="default.show.label" args="[entityName]" /></title>
+        <asset:stylesheet src="application.css"/>
     </head>
     <body>
         <div class="btn-toolbar">
@@ -21,7 +28,7 @@
             <div class="message">${flash.message}</div>
             </g:if>
             <div class="dialog">
-                <table>
+                <table class="table"">
                     <tbody>
                     
                         <tr class="prop">
@@ -124,7 +131,7 @@
             <div class="buttons">
                 <g:form>
                     <g:hiddenField name="id" value="${contactInstance?.id}" />
-                    <span class="button"><g:actionSubmit class="edit btn btn-default" action="edit" value="${message(code: 'default.button.edit.label', default: 'Edit')}" /></span>
+                    <g:link class="btn btn-danger" controller="contact" action="edit" id="${contactInstance?.id}">${message(code: 'default.button.edit.label', default: 'Edit')}</g:link>
                     <span class="button"><g:actionSubmit class="delete btn btn-danger" action="delete" value="${message(code: 'default.button.delete.label', default: 'Delete')}" onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');" /></span>
                 </g:form>
             </div>

@@ -10,14 +10,8 @@ public class AuthenticationCookieUtils {
     
     private final static Logger logger = LoggerFactory.getLogger(AuthenticationCookieUtils.class);
     
-    public static final String ALA_AUTH_COOKIE = "ALA-Auth";
-
-    public static boolean isUserLoggedIn(HttpServletRequest request) {
-      return cookieExists(request, ALA_AUTH_COOKIE);
-    }
-    
-    public static String getUserName(HttpServletRequest request) {
-        return getCookieValue(request, ALA_AUTH_COOKIE);
+    public static String getUserName(HttpServletRequest request, String cookieName) {
+        return getCookieValue(request, cookieName);
     }
     
     public static boolean cookieExists(HttpServletRequest request, String name) {

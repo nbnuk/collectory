@@ -25,6 +25,11 @@ apply plugin:"com.bertramlabs.asset-pipeline"
 apply plugin:"org.grails.grails-gsp"
 apply plugin:"maven-publish"
 
+bootJar {
+    enabled = true
+    classifier = 'exec'
+}
+
 publishing {
     repositories {
         maven {
@@ -52,8 +57,8 @@ publishing {
                 }
             }
             from components.web
-//            if (bootRepackage && bootRepackage.enabled && bootRepackage.classifier) {
-//                def repackagedFile = file("$libsDir/$project.name-$project.version-${bootRepackage.classifier}.jar")
+//            if (bootJar && bootJar.enabled && bootJar.classifier) {
+//                def repackagedFile = file("$libsDir/$project.name-$project.version-${bootJar.classifier}.jar")
 //                if (repackagedFile.exists()) {
 //                    artifact(repackagedFile) {
 //                        classifier bootRepackage.classifier
@@ -78,10 +83,6 @@ configurations {
         extendsFrom developmentOnly
     }
 }
-
-//bootRepackage {
-//    enabled = false
-//}
 
 dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools")
@@ -117,6 +118,7 @@ dependencies {
     compile "au.org.ala.plugins.grails:ala-charts-plugin:2.1.1"
     compile "org.grails.plugins:ala-auth:3.2.3"
     compile "org.grails.plugins:audit-logging:4.0.3"
+    compile "org.grails.plugins:external-config:2.0.0"
 
     console "org.grails:grails-console"
     profile "org.grails.profiles:web"
@@ -172,3 +174,9 @@ assets {
     minifyJs = true
     minifyCss = true
 }
+
+springBoot {
+    buildInfo()
+}
+
+

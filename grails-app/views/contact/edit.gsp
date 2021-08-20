@@ -3,16 +3,23 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="breadcrumbParent"
+              content="${createLink(action: 'list', controller: 'manage')},${message(code: 'manage.list.title01')}"
+        />
+        <meta name="breadcrumbs"
+              content="${createLink(action: 'list', controller: 'contact')},Contacts"
+        />
         <meta name="layout" content="${grailsApplication.config.skin.layout}" />
         <g:set var="entityName" value="${message(code: 'contact.label', default: 'Contact')}" />
         <title><g:message code="default.edit.label" args="[entityName]" /></title>
+        <asset:stylesheet src="application.css"/>
     </head>
     <body>
-        <div class="nav">
-            <ul>
-            <li><span class="menuButton"><cl:homeLink/></span></li>
-            <li><span class="menuButton"><g:link class="list" action="list"><g:message code="default.list.label" args="[entityName]" /></g:link></span></li>
-            <li><span class="menuButton"><g:link class="create" action="create"><g:message code="default.new.label" args="[entityName]" /></g:link></span></li>
+        <div class="btn-toolbar">
+            <ul class="btn-group">
+                <li class="btn btn-default"><cl:homeLink/> </li>
+                <li class="btn btn-default"><g:link class="list" action="list"><g:message code="default.list.label" args="[entityName]" /></g:link> </li>
+                <li class="btn btn-default"><g:link class="create" action="create"><g:message code="default.new.label" args="[entityName]" /></g:link> </li>
             </ul>
         </div>
         <div class="body">
@@ -31,7 +38,7 @@
                 <g:hiddenField name="returnTo" value="${returnTo}" />
                 <div class="form-group">
                     <label for="title"><g:message code="contact.title.label" default="Title" /></label>
-                    <g:select name="title" class="form-control" from="${contactInstance.constraints.title.inList}" value="${contactInstance?.title}" valueMessagePrefix="contact.title" noSelection="['': '']" />
+                    <g:select name="title" class="form-control" from="${grailsApplication.config.contacts.titles}" value="${contactInstance?.title}" valueMessagePrefix="contact.title" noSelection="['': '']" />
                 </div>
 
                 <div class="form-group">

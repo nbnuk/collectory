@@ -1,7 +1,5 @@
 ---
 grails:
-    cors:
-        enabled: true
     appName: collectory
     serverURL: http://dev.ala.org.au:8080
     profile: web
@@ -9,10 +7,9 @@ grails:
         defaultPackage: au.org.ala.collectory
     config:
         locations:
-            - file:/data/collectory/config/collectory-config.properties
             - file:/data/collectory/config/collectory-config.yml
-            - file:/data/collectory/config/collectory-config.groovy
-            - file:/data/collectory/config
+    cors:
+        enabled: true
     gorm:
         reactor:
             # Whether to translate GORM events into Reactor events
@@ -118,6 +115,7 @@ gbif:
         lookup: "https://www.gbif.org/api/resource/search?contentType=literature&gbifDatasetKey="
         search: "https://www.gbif.org/resource/search?contentType=literature&gbifDatasetKey="
         enabled: true
+
 # GBIF Registration enables the Collectory to create and update organisations and datasets
 # This mode of operation is only expected to be used by National Nodes running the ALA as a publishing gateway to GBIF.
 # (i.e. where the ALA installation is not sourcing information from GBIF.org itself)
@@ -127,11 +125,11 @@ gbifInstallationKey: XXXXXXXXXXXXXXXX
 gbifApiUser: XXXXXXXXXXXXXXXX
 gbifApiPassword: XXXXXXXXXXXXXXXX
 gbifExportUrlBase:
-useGbifDoi: true
 gbifRegistrationDryRun: true
 gbifLicenceMappingUrl: file:///data/collectory/config/default-gbif-licence-mapping.json
 gbifOrphansPublisherID: XXXXXXXXXXXXXXXX
 gbifRegistrationRole: ROLE_ADMIN
+useGbifDoi: true
 
 skin:
     layout: ala-main
@@ -173,6 +171,7 @@ security:
         loginUrl: https://auth-test.ala.org.au/cas/login
         logoutUrl: https://auth-test.ala.org.au/cas/logout
         bypass: false
+        authCookieName: ALA-Auth-Test
 
 repository:
     location:
@@ -259,6 +258,15 @@ dataResource:
         - "Individual sightings"
         - "Published dataset"
         - "Draft"
+contacts:
+    titles:
+        - "Dr"
+        - "Prof"
+        - "Mr"
+        - "Ms"
+        - "Mrs"
+        - "Assoc Prof"
+        - "Assist Prof"
 
 cartodb:
     pattern: "https://cartodb-basemaps-${s}.global.ssl.fastly.net/light_nolabels/${z}/${x}/${y}.png"
@@ -299,7 +307,7 @@ environments:
                 storagePath: "/data/collectory"
         dataSource:
             dbCreate: none
-            url: jdbc:h2:./prodDb;MVCC=TRUE;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
+            url: jdbc:mysql://localhost:3306/collectory?autoReconnect=true&connectTimeout=0&useUnicode=true&characterEncoding=UTF-8
             properties:
                 jmxEnabled: true
                 initialSize: 5

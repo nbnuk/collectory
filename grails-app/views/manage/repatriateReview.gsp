@@ -2,13 +2,18 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="breadcrumbParent"
+          content="${createLink(action: 'list', controller: 'manage')},${message(code: 'manage.list.title01')}"
+    />
+    <meta name="breadcrumbs"
+          content="${createLink(action: 'list', controller: 'manage')},Repatriation tools"
+    />
     <meta name="layout" content="${grailsApplication.config.skin.layout}" />
     <title><g:message code="manage.extloadr.title" /></title>
-    <r:require module="jquery_ui_custom"/>
-    <r:require module="datatables"/>
+    <asset:stylesheet src="application.css"/>
+    <asset:javascript src="application-pages.js"/>
 </head>
 <body>
-
 <h1>
     <g:if test="${dataProvider?.name}">
         <g:message code="manage.extloadr.title01" args="${[ configuration.country, dataProvider?.name ?: 'none' ]}"/>
@@ -17,12 +22,7 @@
         <g:message code="manage.extloadr.title01.noprovider" />
     </g:else>
 </h1>
-<div class="btn-toolbar">
-    <ul class="btn-group">
-        <li class="btn btn-default"><cl:homeLink/></li>
-    </ul>
-</div>
-<div id="baseForm">
+<div>
     <g:form action="updateFromExternalSources" controller="manage">
         <g:hiddenField name="loadGuid" value="${loadGuid}"/>
         <g:hiddenField name="guid" value="${configuration.guid}"/>
@@ -36,59 +36,57 @@
         <g:hiddenField name="country" value="${configuration.country}"/>
         <g:hiddenField name="minRecordCount" value="${configuration.minRecordCount}"/>
         <g:hiddenField name="maxRecordCount" value="${configuration.maxRecordCount}"/>
-            <div class="col-md-12">
-                <table id="resource-table" class="resource-table table table-hover table-sm">
-                    <thead>
-                        <tr class="header">
-                            <th>ID</th>
-                            <th><g:message code="manage.extloadr.label01"/></th>
-                            <th><g:message code="manage.extloadr.label03"/></th>
-                            <th><g:message code="manage.extloadr.label04"/></th>
-                            <th><g:message code="manage.extloadr.label05"/></th>
-                            <th><g:message code="manage.extloadr.label06"/> <button type="btn btn-sm" onclick="invertColumn('.addResource'); return false"><span class="glyphicon glyphicon-check"></span></button></th>
-                            <th><g:message code="manage.extloadr.label07"/> <button type="btn btn-sm" onclick="invertColumn('.updateMetadata'); return false"><span class="glyphicon glyphicon-check"></span></button></th>
-                            <th><g:message code="manage.extloadr.label08"/> <button type="btn btn-sm" onclick="invertColumn('.updateConnection'); return false"><span class="glyphicon glyphicon-check"></span></button></th>
-                            <th><g:message code="manage.extloadr.label09"/></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <g:if test="${configuration.resources}">
-                    <g:each in="${configuration.resources}" var="res" status="rs">
-                    <tr class="resource-scan-${res.status}">
-                        <td>
-                            <small><a href="https://dx.doi.org/${res.source}"><g:fieldValue field="guid" bean="${res}"/></a></small>
-                        </td>
-                        <td>
-                            <g:hiddenField id="resources-${rs}-uid" name="resources[${rs}].uid" value="${res.uid}"/>
-                            <g:hiddenField name="resources[${rs}].guid" value="${res.guid}"/>
-                            <g:hiddenField name="resources[${rs}].source" value="${res.source}"/>
-                            <g:hiddenField name="resources[${rs}].country" value="${configuration.country}"/>
-                            <g:textField class="resource-name col-xs-4" name="resources[${rs}].name" value="${res.name}" />
-                        </td>
-                        <td><span title="<g:message code="manage.extstatus.${res.status}.detail"/>"><g:message code="manage.extstatus.${res.status}"/></span></td>
-                        <td class="resource-mapping"><span id="existing-${rs}"><g:if test="${res.uid}">
-                            <g:link controller="dataResource" action="show" id="${res.uid}" target="_new"> <g:fieldValue field="uid" bean="${res}"/></g:link>
-                            </g:if></span>
-                            &nbsp; &nbsp; <span class="btn btn-default btn-xs" onclick="existingDialog('#existing-${rs}', '#resources-${rs}-uid'); return false"><g:message code="manage.extloadr.button01" default="..."/></span> </td>
-                        <td><g:formatDate type="datetime" date="${res.sourceUpdated}"/><g:if test="${res.existingChecked}">&nbsp;(<g:formatDate type="datetime" date="${res.existingChecked}"/>)</g:if></td>
-                        <td><g:checkBox name="resources[${rs}].addResource" value="${res.addResource}"/></td>
-                        <td><g:checkBox name="resources[${rs}].updateMetadata" value="${res.updateMetadata}"/></td>
-                        <td><g:checkBox name="resources[${rs}].updateConnection" value="${res.updateConnection}"/></td>
-                        <td>${res.recordCount}</td>
-                    </tr>
-                    </g:each>
-                    </g:if>
-                    <g:else>
-                        <tr><td colspan="8"><g:message code="manage.extloadr.noresources"/></td></tr>
-                    </g:else>
-                    </tbody>
-                </table>
-                <div>
-                    <g:if test="${configuration.resources}">
-                        <span class="button"><g:actionSubmit class="save btn btn-warning" controller="manage" action="updateFromExternalSources" value="${message(code: 'default.button.load.label', default: 'Load')}" onclick="return confirm('${message(code: 'default.button.load.confirm.message', default: 'Are you sure?')}');" /></span>
-                    </g:if>
-                </div>
-         </div>
+        <table id="resource-table" class="resource-table table table-hover table-sm">
+            <thead>
+                <tr class="header">
+                    <th>ID</th>
+                    <th><g:message code="manage.extloadr.label01"/></th>
+                    <th><g:message code="manage.extloadr.label03"/></th>
+                    <th><g:message code="manage.extloadr.label04"/></th>
+                    <th><g:message code="manage.extloadr.label05"/></th>
+                    <th><g:message code="manage.extloadr.label06"/> <button type="btn btn-sm" onclick="invertColumn('.addResource'); return false"><span class="glyphicon glyphicon-check"></span></button></th>
+                    <th><g:message code="manage.extloadr.label07"/> <button type="btn btn-sm" onclick="invertColumn('.updateMetadata'); return false"><span class="glyphicon glyphicon-check"></span></button></th>
+                    <th><g:message code="manage.extloadr.label08"/> <button type="btn btn-sm" onclick="invertColumn('.updateConnection'); return false"><span class="glyphicon glyphicon-check"></span></button></th>
+                    <th><g:message code="manage.extloadr.label09"/></th>
+                </tr>
+            </thead>
+            <tbody>
+            <g:if test="${configuration.resources}">
+            <g:each in="${configuration.resources}" var="res" status="rs">
+            <tr class="resource-scan-${res.status}">
+                <td>
+                    <small><a href="https://dx.doi.org/${res.source}"><g:fieldValue field="guid" bean="${res}"/></a></small>
+                </td>
+                <td>
+                    <g:hiddenField id="resources-${rs}-uid" name="resources[${rs}].uid" value="${res.uid}"/>
+                    <g:hiddenField name="resources[${rs}].guid" value="${res.guid}"/>
+                    <g:hiddenField name="resources[${rs}].source" value="${res.source}"/>
+                    <g:hiddenField name="resources[${rs}].country" value="${configuration.country}"/>
+                    <g:textField class="resource-name col-xs-4" name="resources[${rs}].name" value="${res.name}" />
+                </td>
+                <td><span title="<g:message code="manage.extstatus.${res.status}.detail"/>"><g:message code="manage.extstatus.${res.status}"/></span></td>
+                <td class="resource-mapping"><span id="existing-${rs}"><g:if test="${res.uid}">
+                    <g:link controller="dataResource" action="show" id="${res.uid}" target="_new"> <g:fieldValue field="uid" bean="${res}"/></g:link>
+                    </g:if></span>
+                    &nbsp; &nbsp; <span class="btn btn-default btn-xs" onclick="existingDialog('#existing-${rs}', '#resources-${rs}-uid'); return false"><g:message code="manage.extloadr.button01" default="..."/></span> </td>
+                <td><g:formatDate type="datetime" date="${res.sourceUpdated}"/><g:if test="${res.existingChecked}">&nbsp;(<g:formatDate type="datetime" date="${res.existingChecked}"/>)</g:if></td>
+                <td><g:checkBox name="resources[${rs}].addResource" value="${res.addResource}"/></td>
+                <td><g:checkBox name="resources[${rs}].updateMetadata" value="${res.updateMetadata}"/></td>
+                <td><g:checkBox name="resources[${rs}].updateConnection" value="${res.updateConnection}"/></td>
+                <td>${res.recordCount}</td>
+            </tr>
+            </g:each>
+            </g:if>
+            <g:else>
+                <tr><td colspan="8"><g:message code="manage.extloadr.noresources"/></td></tr>
+            </g:else>
+            </tbody>
+        </table>
+        <div>
+            <g:if test="${configuration.resources}">
+                <span class="button"><g:actionSubmit class="save btn btn-warning" controller="manage" action="updateFromExternalSources" value="${message(code: 'default.button.load.label', default: 'Load')}" onclick="return confirm('${message(code: 'default.button.load.confirm.message', default: 'Are you sure?')}');" /></span>
+            </g:if>
+        </div>
     </g:form>
 </div>
 <div class="hide">

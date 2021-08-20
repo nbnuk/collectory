@@ -25,7 +25,7 @@ class Contact implements Serializable {
     static auditable = [ignore: ['version','dateCreated','lastUpdated','userLastModified']]
 
     static constraints = {
-        title(nullable:true, maxSize: 20, inList: ["Dr", "Prof", "Mr", "Ms", "Mrs", "Assoc Prof", "Assist Prof"])
+        title(nullable:true, maxSize: 20)
         firstName(nullable: true, maxSize: 255)
         lastName(nullable: true, maxSize: 255)
         phone(nullable: true, maxSize:45)

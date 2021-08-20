@@ -6,6 +6,9 @@
   <meta name="breadcrumbParent"
         content="${createLink(action: 'list', controller: 'manage')},${message(code: 'manage.list.title01')}"
   />
+  <meta name="breadcrumbs"
+        content="${createLink(action: 'list', controller: 'collection')},Collections"
+  />
   <meta name="layout" content="${grailsApplication.config.skin.layout}"/>
   <g:set var="entityName" value="${message(code: 'collection.label', default: 'Collection')}"/>
   <title><g:message code="default.show.label" args="[entityName]"/></title>

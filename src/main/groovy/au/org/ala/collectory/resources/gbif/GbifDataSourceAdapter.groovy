@@ -15,6 +15,8 @@ import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.client.HttpClient
 import io.reactivex.Flowable
+import org.apache.commons.io.FileUtils
+import org.apache.commons.io.IOUtils
 import org.grails.web.json.JSONObject
 import org.reactivestreams.Publisher
 import org.slf4j.LoggerFactory
@@ -75,7 +77,7 @@ class GbifDataSourceAdapter extends DataSourceAdapter {
 
     int pageSize = 500
 
-    def GbifService gbifService
+    def gbifService
 
     GbifDataSourceAdapter(DataSourceConfiguration configuration) {
         super(configuration)
@@ -173,7 +175,7 @@ class GbifDataSourceAdapter extends DataSourceAdapter {
         return json ? translate(json) : null
     }
 
-    Map translate(JSONObject dataset) {
+    Map translate(dataset) {
         def currency = null
         def originator = dataset.contacts?.find { it.type == "ORIGINATOR" }
         def address = originator == null ? null : [
@@ -222,6 +224,33 @@ class GbifDataSourceAdapter extends DataSourceAdapter {
     }
 
     /**
+     * Uses a HTTP "GET" to return the JSON output of the supplied url
+     *
+     * @param url The request URL, relative to the configuration endpoint
+     *
+     * @return A JSON response
+     */
+    def getJSONWS(String path) throws ExternalResourceException {
+
+        def url = new URL(configuration.endpoint, path)
+        def httpRequest = HttpRequest.GET(url.toURI())
+        if (configuration.username) {
+            httpRequest.basicAuth(configuration.username, configuration.password)
+        }
+
+        HttpClient http = HttpClient.create(url)
+        Flowable<HttpResponse<String>> call = http.exchange(httpRequest, String.class)
+        HttpResponse<String> response =  call.blockingFirst();
+        Optional<String> message = response.getBody(String.class);
+
+        if (message.isPresent()){
+            new JsonSlurper().parseText(message.get())
+        } else {
+            throw new ExternalResourceException("Unable to get ${http.uri} response ${resp.statusLine}", "manage.note.note10", http.uri, resp.statusLine)
+        }
+    }
+
+    /**
      * Check to see if data is available for the supplied resource ID.
      * @param guid The resource GUID
      *
@@ -230,22 +259,47 @@ class GbifDataSourceAdapter extends DataSourceAdapter {
     @Override
     boolean isDataAvailableForResource(String guid) throws ExternalResourceException {
         def url = new URL(configuration.endpoint, DATASET_RECORD_COUNT.format([guid].toArray()))
-        HttpClient http = HttpClient.create(url)
+        def httpRequest = HttpRequest.GET(url.toURI())
 
-        def count = null
         if (configuration.username) {
-            http.auth.basic(configuration.username, configuration.password)
+            httpRequest.basicAuth(configuration.username, configuration.password)
         }
-        http.request(Method.GET, ContentType.TEXT) { req ->
-            headers.Accept = ContentType.ANY.acceptHeader
-            response.failure = { resp ->
-                throw new ExternalResourceException("Unable check for data", "manage.note.note11", guid, resp.statusLine)
-            }
-            response.success = { resp, responseBody ->
-                count = responseBody.text
-            }
+
+        HttpClient http = HttpClient.create(url)
+        Flowable<HttpResponse<String>> call = http.exchange(httpRequest, String.class)
+        HttpResponse<String> response =  call.blockingFirst();
+        Optional<String> message = response.getBody(String.class);
+
+        if (message.isPresent()){
+            def count = message.get()
+            return count && count.toInteger() > 0
+        } else {
+            throw new ExternalResourceException("Unable check for data", "manage.note.note11", guid, response.getStatus().toString())
         }
-        return count && count.toInteger() > 0
+    }
+
+    /**
+     * Collect the generated data from the GBIF server
+     *
+     * @param id The download id
+     * @param target The target file
+     */
+    @Override
+    void downloadData(String id, File target) throws ExternalResourceException {
+        def status = getJSONWS(DOWNLOAD_STATUS.format([id].toArray()))
+        if (DOWNLOAD_STATUS_MAP[status?.status] != TaskPhase.COMPLETED) {
+            throw new ExternalResourceException("Expecting completed generation", "manage.note.note07", status.status)
+        }
+        def downloadUrl = new URL(status.downloadLink)
+        Authenticator.setDefault (new Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication (configuration.username, configuration.password.toCharArray());
+            }
+        });
+        target.withOutputStream { out ->
+            def url = downloadUrl.openConnection()
+            out << url.inputStream
+        }
     }
 
     /**
@@ -273,38 +327,7 @@ class GbifDataSourceAdapter extends DataSourceAdapter {
     TaskPhase generateStatus(String id) throws ExternalResourceException {
         def status = getJSONWS(DOWNLOAD_STATUS.format([id].toArray()))
         LOGGER.debug("Download status for ${id}: ${status}")
-        return DOWNLOAD_STATUS_MAP[status?.status] ?: TaskPhase.GENERATING
-    }
-
-    /**
-     * Collect the generated data from the GBIF server
-     *
-     * @param id The download id
-     * @param target The target file
-     */
-    @Override
-    void downloadData(String id, File target) throws ExternalResourceException {
-        def status = getJSONWS(DOWNLOAD_STATUS.format([id].toArray()))
-        if (DOWNLOAD_STATUS_MAP[status?.status] != TaskPhase.COMPLETED) {
-            throw new ExternalResourceException("Expecting completed generation", "manage.note.note07", status.status)
-        }
-        def link = status.downloadLink
-        HttpClient http = HttpClient.create(link)
-        def is = null
-        http.handler.failure = { resp ->
-            throw new ExternalResourceException("Unable to retrieve ${link}", "manage.note.note08", link, resp.statusLine)
-        }
-        if (configuration.username) {
-            http.auth.basic(configuration.username, configuration.password)
-        }
-        http.get(contentType: ContentType.BINARY) { resp, responseBody ->
-            FileOutputStream os = new FileOutputStream(target)
-            try {
-                IOUtils.copy(responseBody, os)
-            } finally {
-                IOUtils.closeQuietly(os);
-            }
-        }
+        DOWNLOAD_STATUS_MAP[status?.status] ?: TaskPhase.GENERATING
     }
 
     /**
@@ -344,32 +367,5 @@ class GbifDataSourceAdapter extends DataSourceAdapter {
         connection.termsForUniqueKey = ["http://rs.gbif.org/terms/1.0/gbifID"]
         update.connectionParameters = (new JsonOutput()).toJson(connection)
         return update
-    }
-
-    /**
-     * Uses a HTTP "GET" to return the JSON output of the supplied url
-     *
-     * @param url The request URL, relative to the configuration endpoint
-     *
-     * @return A JSON response
-     */
-    def getJSONWS(String path) throws ExternalResourceException {
-
-        def url = new URL(configuration.endpoint, path)
-        def httpRequest = HttpRequest.GET(url.toURI())
-        if (configuration.username) {
-            httpRequest.basicAuth(configuration.username, configuration.password)
-        }
-
-        HttpClient http = HttpClient.create(url)
-        Flowable<HttpResponse<String>> call = http.exchange(httpRequest, String.class)
-        HttpResponse<String> response =  call.blockingFirst();
-        Optional<String> message = response.getBody(String.class);
-
-        if (message.isPresent()){
-            new JsonSlurper().parseText(message.get())
-        } else {
-            throw new ExternalResourceException("Unable to get ${http.uri} response ${resp.statusLine}", "manage.note.note10", http.uri, resp.statusLine)
-        }
     }
 }

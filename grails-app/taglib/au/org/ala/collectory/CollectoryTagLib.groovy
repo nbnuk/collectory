@@ -19,8 +19,8 @@ class CollectoryTagLib {
     static namespace = 'cl'
 
     def loggedInName = {
-        if (AuthenticationCookieUtils.cookieExists(request, AuthenticationCookieUtils.ALA_AUTH_COOKIE)) {
-            out << "logged in as ${AuthenticationCookieUtils.getUserName(request)}"
+        if (AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
+            out << "logged in as ${AuthenticationCookieUtils.getUserName(request, grailsApplication.config.security.cas.authCookieName)}"
         } else {
             out << "no cookie found"
         }
@@ -76,7 +76,7 @@ class CollectoryTagLib {
      */
     def loginoutLink = {
         def requestUri = grailsApplication.config.security.cas.serverName + request.forwardURI
-        if (AuthenticationCookieUtils.cookieExists(request, AuthenticationCookieUtils.ALA_AUTH_COOKIE)) {
+        if (AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
             // currently logged in
             out << "<li class='nav-logout nav-right'><a id='${AuthenticationCookieUtils.getUserName(request)}' href='${grailsApplication.config.security.cas.logoutUrl}?url=${requestUri}'><span>Log out</span></a></li>"
         } else {
@@ -96,7 +96,7 @@ class CollectoryTagLib {
      */
     def loginoutLink2011 = { attrs ->
         def requestUri = grailsApplication.config.security.cas.serverName + request.forwardURI
-        if (AuthenticationCookieUtils.cookieExists(request, AuthenticationCookieUtils.ALA_AUTH_COOKIE)) {
+        if (AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
             // currently logged in
             if (attrs.showUser) {
                 out << "<span id='logged-in'>Logged in as ${loggedInUsername()}</span>"
@@ -188,13 +188,13 @@ class CollectoryTagLib {
     }
 
     def isLoggedIn = { attrs, body ->
-        if (AuthenticationCookieUtils.cookieExists(request, AuthenticationCookieUtils.ALA_AUTH_COOKIE)) {
+        if (AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
             out << body()
         }
     }
 
     def isNotLoggedIn = {attrs, body ->
-        if (!grailsApplication.config.security.cas.bypass.toBoolean() && !AuthenticationCookieUtils.cookieExists(request, AuthenticationCookieUtils.ALA_AUTH_COOKIE)) {
+        if (!grailsApplication.config.security.cas.bypass.toBoolean() && !AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
             out << body()
         }
     }
@@ -206,8 +206,8 @@ class CollectoryTagLib {
         else if (request.getUserPrincipal()) {
             out << request.getUserPrincipal().name
         }
-        else if (AuthenticationCookieUtils.cookieExists(request, AuthenticationCookieUtils.ALA_AUTH_COOKIE)) {
-            out << AuthenticationCookieUtils.getUserName(request) + '*'
+        else if (AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
+            out << AuthenticationCookieUtils.getUserName(request, grailsApplication.config.security.cas.authCookieName) + '*'
         }
     }
 
@@ -245,7 +245,7 @@ class CollectoryTagLib {
      * @attrs uid - the uid of the entity
      */
     def isAuth = { attrs, body ->
-        if (isAuthorisedToEdit(attrs.uid, request.getUserPrincipal()?.attributes?.email)) {
+            if (isAuthorisedToEdit(attrs.uid, request.getUserPrincipal()?.attributes?.email)) {
             out << body()
         } else {
             out << ' You are not authorised to change this record '// + debugString

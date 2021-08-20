@@ -3,6 +3,12 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <meta name="layout" content="${grailsApplication.config.skin.layout}" />
+        <meta name="breadcrumbParent"
+              content="${createLink(action: 'list', controller: 'manage')},${message(code: 'manage.list.title01')}"
+        />
+        <meta name="breadcrumbs"
+              content="${createLink(action: 'list', controller: 'institution')},Institutions"
+        />
         <g:set var="entityName" value="${message(code: 'institution.label', default: 'Institution')}" />
         <title>${instance.name} | <g:message code="default.show.label" args="[entityName]" /></title>
         <script async defer

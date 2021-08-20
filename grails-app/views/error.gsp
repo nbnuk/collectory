@@ -1,6 +1,6 @@
 <html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
   <head>
-	  <title>Grails Runtime Exception</title>
+	  <title>There was problem....</title>
       <meta name="layout" content="${grailsApplication.config.skin.layout}"/>
       <g:javascript library="collectory" />
 	  <style type="text/css">
@@ -15,13 +15,6 @@
 	  			padding: 5px;
 	  			overflow:auto;
 	  			height: 300px;
-	  		}
-	  		.snippet {
-	  			padding: 5px;
-	  			background-color:white;
-	  			border:1px solid black;
-	  			margin:3px;
-	  			font-family:courier;
 	  		}
             h3 {
                 margin-top: 25px;

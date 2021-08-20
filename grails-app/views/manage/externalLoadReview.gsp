@@ -5,10 +5,13 @@
     <meta name="breadcrumbParent"
           content="${createLink(action: 'list', controller: 'manage')},${message(code: 'manage.list.title01')}"
     />
+    <meta name="breadcrumbs"
+          content="${createLink(action: 'list', controller: 'manage')},GBIF downloads"
+    />
     <meta name="layout" content="${grailsApplication.config.skin.layout}" />
     <title><g:message code="manage.extloadr.title" /></title>
-    <r:require module="jquery_ui_custom"/>
-    <r:require module="datatables"/>
+    <asset:stylesheet src="application.css"/>
+    <asset:javascript src="application-pages.js"/>
 </head>
 <body>
 

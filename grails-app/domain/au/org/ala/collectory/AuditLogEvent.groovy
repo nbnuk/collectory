@@ -70,7 +70,7 @@ class AuditLogEvent implements Serializable {
         // autoImport false
 
         version false
-        autoTimestamp false
+        autoTimestamp true
 
         // for large column support (as in < 1.0.6 plugin versions), use this
         // oldValue type: 'text'

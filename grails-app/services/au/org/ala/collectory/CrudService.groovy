@@ -6,12 +6,13 @@ import grails.converters.JSON
 
 import grails.web.JSONBuilder
 import org.grails.web.converters.exceptions.ConverterException
+
+import javax.transaction.Transactional
 import java.text.SimpleDateFormat
 import org.grails.web.json.JSONObject
 
+@grails.gorm.transactions.Transactional
 class CrudService {
-
-    static transactional = true
 
     def grailsApplication
     def idGeneratorService
@@ -21,6 +22,7 @@ class CrudService {
                                    'pubDescription','techDescription','notes', 'isALAPartner','focus','attributions',
                                    'websiteUrl','networkMembership','altitude', 'street','postBox','postcode','city',
                                    'state','country','file','caption','attribution','copyright', 'gbifRegistryKey']
+
     static baseNumberProperties = ['latitude','longitude']
     static baseObjectProperties = ['address', 'imageRef','logoRef']
     static baseJSONArrays = ['networkMembership']
@@ -396,22 +398,25 @@ class CrudService {
             updateDataResourceProperties(dr, obj)
             dr.userLastModified = obj.user ?: 'Data services'
             if (!dr.hasErrors()) {
-                dr.save(flush: true)
+                DataResource.withTransaction {
+                    dr.save(flush: true)
+                }
             }
-            return dr
+            dr
         } catch (Exception e){
             log.error("Insert failed: " + e.getMessage(), e)
         }
     }
 
+    @Transactional
     def updateDataResource(dr, obj) {
         updateBaseProperties(dr, obj)
         updateDataResourceProperties(dr, obj)
         dr.userLastModified = obj.user ?: 'Data services'
         if (!dr.hasErrors()) {
-             dr.save(flush: true)
+            dr.save(flush: true)
         }
-        return dr
+        dr
     }
 
     private void updateDataResourceProperties(DataResource dr, obj) {

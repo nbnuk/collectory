@@ -10,6 +10,7 @@
 //= require jquery.i18n.properties-1.0.9.min
 //= require jquery.ba-bbq.min
 //= require fileupload.js
+//= require datatables.min.js
 //= require ala/ala-charts.js
 //= require collectory.js
 //= require_self

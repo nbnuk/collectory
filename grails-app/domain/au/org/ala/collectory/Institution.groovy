@@ -145,7 +145,7 @@ class Institution implements ProviderGroup, Serializable {
         List result = collections.collect {it}
         if (childInstitutions) {
             childInstitutions.tokenize(' ').each {
-                def i = _get(it)
+                def i = get(it)
                 if (i) {
                     result.addAll i.listCollections()
                 }

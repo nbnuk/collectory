@@ -829,6 +829,7 @@ abstract class ProviderGroupController {
                   oldValue: truncate(oldValue),
                   newValue: truncate(newValue)
           )
+        audit.dateCreated = new Date()
         audit.save()
     }
 
