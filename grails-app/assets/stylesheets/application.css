@@ -9,6 +9,8 @@
 *
 *= require main
 *= require leaflet
+*= require MarkerCluster
+*= require MarkerCluster.Default
 *= require map
 *= require jquery-ui
 *= require fileupload.css

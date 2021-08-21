@@ -9,5 +9,6 @@
 //= require jquery.i18n.properties-1.0.9.min
 //= require jquery.ba-bbq.min
 //= require leaflet
+//= require leaflet.markercluster
 //= require map.js
 //= require_self

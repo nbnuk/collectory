@@ -55,7 +55,7 @@ var myStyle = {
 function onEachFeature(feature, layer) {
     // does this feature have a property named popupContent?
     if (feature.properties) {
-        layer.bindPopup(feature.properties.popupContent);
+        layer.bindPopup(feature.properties.popupContent, {maxWidth : 600 });
     }
 }
 
@@ -89,13 +89,16 @@ function initMap(mapOptions) {
 
 
     $.getJSON(featuresUrl, function(data) {
+        var markers = L.markerClusterGroup({
+            maxClusterRadius:10});
         geoJsonLayer = L.geoJson(data,
             {
                 style: myStyle,
                 onEachFeature: onEachFeature
             }
         );
-        geoJsonLayer.addTo(map);
+        markers.addLayer(geoJsonLayer);
+        map.addLayer(markers);
     });
 }
 
