@@ -19,7 +19,7 @@
     <asset:script>
         // define biocache server
         bieUrl = "${grailsApplication.config.bie.baseURL}";
-        loadLoggerStats = ${!grailsApplication.config.disableLoggerLinks?:''.toBoolean()};
+        loadLoggerStats = ${!grailsApplication.config.disableLoggerLinks.toBoolean()};
     </asset:script>
     <asset:javascript src="application-pages.js"/>
 </head>
@@ -138,7 +138,7 @@
                     <cl:lastUpdated date="${instance.lastUpdated}"/>
                 </div>
 
-                <g:if test="${!grailsApplication.config.disableLoggerLinks?:''.toBoolean() && (instance.resourceType == 'website' || instance.resourceType == 'records')}">
+                <g:if test="${!grailsApplication.config.disableLoggerLinks.toBoolean() && (instance.resourceType == 'website' || instance.resourceType == 'records')}">
                     <div id="usage-stats" class="tab-pane">
                         <div id='usage'>
                             <p><g:message code="public.usage.des" />...</p>

@@ -23,7 +23,7 @@
               biocacheServicesUrl: "${grailsApplication.config.biocacheServicesUrl}",
               biocacheWebappUrl: "${grailsApplication.config.biocacheUiURL}",
               loggerServiceUrl: "${grailsApplication.config.loggerURL}",
-              loadLoggerStats: ${!grailsApplication.config.disableLoggerLinks?:''.toBoolean()},
+              loadLoggerStats: ${!grailsApplication.config.disableLoggerLinks.toBoolean()},
               instanceUuid: "${instance.uid}",
               instanceName:"${instance.name}"
           }
@@ -32,7 +32,7 @@
           orgNameLong = "${orgNameLong}";
           biocacheServicesUrl = "${grailsApplication.config.biocacheServicesUrl}";
           biocacheWebappUrl = "${grailsApplication.config.biocacheUiURL}";
-          loadLoggerStats = ${!grailsApplication.config.disableLoggerLinks?:''.toBoolean()};
+          loadLoggerStats = ${!grailsApplication.config.disableLoggerLinks.toBoolean()};
         </asset:script>
         <asset:javascript src="application-pages.js"/>
     </head>
@@ -131,7 +131,7 @@
                         </div>
                     </div>
                     <div id="usage-stats" class="tab-pane">
-                        <g:if test="${!grailsApplication.config.disableLoggerLinks?:''.toBoolean()}">
+                        <g:if test="${!grailsApplication.config.disableLoggerLinks.toBoolean()}">
                             <div id='usage'></div>
                         </g:if>
                     </div>
