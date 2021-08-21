@@ -122,8 +122,6 @@ function dataRequestHandler(data) {
     var unMappedText = "";
     switch (unMappable.length) {
         case 0: unMappedText = ""; break;
-        //case 1: unMappedText = "1 collection cannot be mapped."; break;
-        //default: unMappedText = unMappable.length + " collections cannot be mapped."; break;
         case 1: unMappedText = "1 " + jQuery.i18n.prop('map.js.collectioncannotbemapped'); break;
         default: unMappedText = unMappable.length + " " + jQuery.i18n.prop('map.js.collectionscannotbemapped'); break;
     }
@@ -142,7 +140,7 @@ function dataRequestHandler(data) {
         //case 1: innerFeatures = "One collection is selected."; break;
         case 0: innerFeatures = jQuery.i18n.prop('map.js.nocollectionsareselected'); break;
         case 1: innerFeatures = jQuery.i18n.prop('map.js.onecollectionisselected'); break;
-        default: innerFeatures = data.features.length + " "+ selectedFrom + "."; break;
+        default: innerFeatures = data.features.length + " " + selectedFrom + "."; break;
     }
     $('span#numFeatures').html(innerFeatures);
 

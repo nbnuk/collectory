@@ -75,26 +75,37 @@ div > div#map-container {
 .filter-buttons .all a {
     background: transparent url(../static/images/ala/all_button_bgwd.png) no-repeat;
     background-size: 100%;
+    background-position: 20px -8px;
 }
 
 .filter-buttons .fauna a {
     background: transparent url(../static/images/ala/fauna_button_bgwd.png) no-repeat;
     background-size: 100%;
+    background-position: 20px -22px;
 }
 
 .filter-buttons .insects a {
     background: transparent url(../static/images/ala/insects_button_bgwd.png) no-repeat;
     background-size: 100%;
+    background-position: 20px -22px;
 }
 
 .filter-buttons .microbes a {
     background: transparent url(../static/images/ala/microbes_button_bgwd.png) no-repeat;
     background-size: 100%;
+    background-position: 20px -22px;
 }
 
 .filter-buttons .plants a {
     background: transparent url(../static/images/ala/plants_button_bgwd.png) no-repeat;
     background-size: 100%;
+    background-position: 20px -8px;
+}
+
+.filter-buttons .fungi a {
+    background: transparent url(../static/images/ala/fungi_button_bgwd.png) no-repeat;
+    background-size: 100%;
+    background-position: 25px -3px;
 }
 
 .filter-buttons h2 a:hover, .filter-buttons h2 a:active, .filter-buttons h2 a:hover span, .filter-buttons h2 a:active span {
