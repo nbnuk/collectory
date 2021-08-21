@@ -10,7 +10,7 @@
     <div class="dataAccess btn-group-vertical">
 
         <a href="${grailsApplication.config.biocacheUiURL}/occurrences/search?q=${facet}:${instance.uid}" class="btn btn-default"><i class="glyphicon glyphicon-list"></i> <g:message code="dataAccess.view.records"/></a>
-        <g:if test="${!grailsApplication.config.disableLoggerLinks?:''.toBoolean() && grailsApplication.config.loggerURL}">
+        <g:if test="${!grailsApplication.config.disableLoggerLinks.toBoolean() && grailsApplication.config.loggerURL}">
             <a href="${grailsApplication.config.loggerURL}/reasonBreakdownCSV?eventId=1002&entityUid=${instance.uid}" class="btn btn-default"><i class="glyphicon glyphicon-download-alt"></i> <g:message code="dataAccess.download.stats"/></a>
         </g:if>
 
