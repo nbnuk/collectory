@@ -680,7 +680,8 @@ class PublicController {
                                 address     : it.address?.buildAddress(),
                                 desc        : it.makeAbstract(),
                                 url         : request.getContextPath() + "/public/show/" + it.uid,
-                                collectionCount: relevantCollections.size()
+                                collectionCount: relevantCollections.size(),
+                                collections: it.collections.collect { [uid: it.uid, name:it.name, url:request.getContextPath() + "/public/show/" + it.uid] }
                         ]
                         loc.properties.popupContent = contructHTML(loc.properties, relevantCollections, request.getContextPath() + "/public/show/")
                         loc.geometry = [type: "Point", coordinates: [lon, lat]]
@@ -709,6 +710,7 @@ class PublicController {
                             address: it.address?.buildAddress(),
                             desc: it.makeAbstract(),
                             dataResourceCount: it.resources.size(),
+                            dataResources: it.resources.collect { [uid: it.uid, name:it.name, url:request.getContextPath() + "/public/show/" + it.uid] },
                             url: request.getContextPath() + "/public/show/" + it.uid
                     ]
                     loc.properties.popupContent = contructHTML(loc.properties, it.resources, request.getContextPath() + "/public/show/")
