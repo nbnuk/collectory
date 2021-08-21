@@ -17,12 +17,6 @@ jQuery.i18n.properties({
 // the map
 var map;
 
-// the WGS projection
-var proj = new OpenLayers.Projection("EPSG:4326");
-
-// projection options for interpreting GeoJSON data
-var proj_options;
-
 // the data layer
 var vectors;
 
@@ -50,154 +44,79 @@ var defaultZoom;
 // represents the number in 'all' collections - used in case the total number changes on an ajax request
 var maxCollections = 0;
 
+var geoJsonLayer;
+
+var myStyle = {
+    "color": "#ff7800",
+    "weight": 3,
+    "opacity": 0.65
+};
+
+function onEachFeature(feature, layer) {
+    // does this feature have a property named popupContent?
+    if (feature.properties) {
+        layer.bindPopup(feature.properties.popupContent);
+    }
+}
+
 /************************************************************\
 * initialise the map
 * note this must be called from body.onload() not jQuery document.ready() as the latter is too early
 \************************************************************/
 function initMap(mapOptions) {
 
-    centrePoint = new OpenLayers.LonLat(mapOptions.centreLon, mapOptions.centreLat);
+    centrePoint = [mapOptions.centreLon, mapOptions.centreLat];
     defaultZoom = mapOptions.defaultZoom;
-
     // serverUrl is the base url for the site eg https://collections.ala.org.au in production
     // cannot use relative url as the context path varies with environment
     baseUrl = mapOptions.serverUrl;
     featuresUrl = mapOptions.serverUrl + "/public/mapFeatures";
-
     var featureGraphicUrl = mapOptions.serverUrl + "/static/images/map/orange-dot.png";
     var clusterGraphicUrl = mapOptions.serverUrl + "/static/images/map/orange-dot-multiple.png";
     var cartodbPattern = COLLECTORY_CONF.cartodbPattern;
     var patterns = ['a', 'b', 'c', 'd'].map(function(s) { return cartodbPattern.replace('${s}', s)});
-    // create the map
-    map = new OpenLayers.Map('map_canvas', {
-        controls: [],
-        sphericalMercator: true,
-        layers: [
-            new OpenLayers.Layer.XYZ("Base layer", patterns, {
-                sphericalMercator: true,
-                wrapDateLine: true
-            })
-        ]
-    });
 
-    // restrict mouse wheel chaos
-    map.addControl(new OpenLayers.Control.Navigation({zoomWheelEnabled:false}));
-    map.addControl(new OpenLayers.Control.ZoomPanel());
-    map.addControl(new OpenLayers.Control.PanPanel());
+    var map = L.map('map_canvas').setView([mapOptions.centreLat, mapOptions.centreLon], defaultZoom);
 
-    // zoom map
-    map.zoomToMaxExtent();
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+        maxZoom: 18,
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
+            'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        id: 'mapbox/light-v9',
+        tileSize: 512,
+        zoomOffset: -1
+    }).addTo(map);
 
-    // add layer switcher for now - review later
-    map.addControl(new OpenLayers.Control.LayerSwitcher());
 
-    // centre the map on Australia
-    map.setCenter(centrePoint.transform(proj, map.getProjectionObject()), defaultZoom);
-
-    // set projection options
-    proj_options = {
-        'internalProjection': map.baseLayer.projection,
-        'externalProjection': proj
-    };
-
-    // create a style that handles clusters
-    var style = new OpenLayers.Style({
-        externalGraphic: "${pin}",
-        graphicHeight: "${size}",
-        graphicWidth: "${size}",
-        graphicYOffset: -23
-    }, {
-        context: {
-            pin: function(feature) {
-                return (feature.cluster) ? clusterGraphicUrl : featureGraphicUrl;
-            },
-            size: function(feature) {
-                return (feature.cluster) ? 25 : 23;
+    $.getJSON(featuresUrl, function(data) {
+        geoJsonLayer = L.geoJson(data,
+            {
+                style: myStyle,
+                onEachFeature: onEachFeature
             }
-        }
+        );
+        geoJsonLayer.addTo(map);
     });
-
-    // create a layer for markers and set style
-    var clusterStrategy = new OpenLayers.Strategy.Cluster({distance: 11, threshold: 2});
-    vectors = new OpenLayers.Layer.Vector("Collections", {
-        strategies: [clusterStrategy],
-        styleMap: new OpenLayers.StyleMap({"default": style})});
-
-    // listen for feature selection
-    vectors.events.register("featureselected", vectors, selected);
-    map.addLayer(vectors);
-
-    // listen for changes to visible region
-    map.events.register("moveend", map, moved);
-    
-    // control for hover labels
-    var hoverControl = new OpenLayers.Control.SelectFeature(vectors, {
-        hover: true,
-        highlightOnly: true,
-        renderIntent: "default",
-        eventListeners: {
-            //beforefeaturehighlighted: hoverOn,
-            featurehighlighted: hoverOn,
-            featureunhighlighted: hoverOff
-        }
-    });
-
-    // control for selecting features (on click)
-    var control = new OpenLayers.Control.SelectFeature(vectors, {
-        clickout: true
-    });
-    map.addControl(control);
-    control.activate();
-
-    // create custom button to zoom extents to Australia
-    var button = new OpenLayers.Control.Button({
-        displayClass: "resetZoom",
-        title: jQuery.i18n.prop('zoom.to.australia'),
-        trigger: resetZoom
-    });
-    var panel = new OpenLayers.Control.Panel({defaultControl: button});
-    panel.addControls([button]);
-    map.addControl(panel);
-
-    // initial data load
-    reloadData();
-}
-
-/************************************************************\
-*   load features via ajax call
-\************************************************************/
-function reloadData() {
-    if (altMap) {
-        $.get(featuresUrl, {filters: 'all'}, dataRequestHandler);
-    } else {
-        $.get(featuresUrl, {filters: getAll()}, dataRequestHandler);
-    }
 }
 
 /************************************************************\
 *   handler for loading features
 \************************************************************/
 function dataRequestHandler(data) {
-    // clear existing
-    vectors.destroyFeatures();
 
-    // parse returned json
-    var features = new OpenLayers.Format.GeoJSON(proj_options).read(data);
+    geoJsonLayer.clearLayers();
+    geoJsonLayer.addData(data)
 
     // update list
-    updateList(features);
-
-    // add features to map
-    vectors.addFeatures(features);
+    // updateList(features);
 
     // remove non-mappable collections
     var unMappable = new Array();
-    for (var i = 0; i < features.length; i++) {
-        if (!features[i].attributes.isMappable) {
-            unMappable.push(features[i]);
+    for (var i = 0; i < data.features.length; i++) {
+        if (!data.features[i].properties.isMappable) {
+            unMappable.push(data.features[i]);
         }
     }
-    vectors.destroyFeatures(unMappable);
 
     // update number of unmappable collections
     var unMappedText = "";
@@ -214,18 +133,16 @@ function dataRequestHandler(data) {
     var selectedFilters = getSelectedFiltersAsString();
     var selectedFrom = jQuery.i18n.prop('map.js.collectionstotal');
     if (selectedFilters != 'all') {
-        selectedFrom = jQuery.i18n.prop(selectedFilters)/*selectedFilters*/ + " " + jQuery.i18n.prop('collections');
+        selectedFrom = jQuery.i18n.prop(selectedFilters)+ " " + jQuery.i18n.prop('collections');
     }
     var innerFeatures = "";
 
-    //console.log('Console: ' + jQuery.i18n.prop('map.js.nocollectionsareselected'));
-
-    switch (features.length) {
+    switch (data.features.length) {
         //case 0: innerFeatures = "No collections are selected."; break;
         //case 1: innerFeatures = "One collection is selected."; break;
         case 0: innerFeatures = jQuery.i18n.prop('map.js.nocollectionsareselected'); break;
         case 1: innerFeatures = jQuery.i18n.prop('map.js.onecollectionisselected'); break;
-        default: innerFeatures = features.length + " "+ selectedFrom + "."; break;
+        default: innerFeatures = data.features.length + " "+ selectedFrom + "."; break;
     }
     $('span#numFeatures').html(innerFeatures);
 
@@ -318,15 +235,15 @@ function updateList(features) {
                 acronym = " (" + coll.attributes.acronym + ")"
             }
             content += "<li>";
-            content += "<a href=" + baseUrl + "/public/show/" + coll.attributes.uid + ">" +
-                    coll.attributes.name + acronym + "</a>";
-            if (!coll.attributes.isMappable) {
+            content += "<a href=" + baseUrl + "/public/show/" + coll.properties.uid + ">" +
+                    coll.properties.name + acronym + "</a>";
+            if (!coll.properties.isMappable) {
               content += "<img style='vertical-align:middle' src='" + baseUrl + "/static/images/map/nomap.gif'/>";
             }
             content += "</li>";
         }
         content += "</ul></li>"
-        if (firstColl.attributes.instName == null) {
+        if (firstColl.properties.instName == null) {
             orphansHtml = content;
         } else {
             innerHtml += content;
@@ -364,18 +281,6 @@ function hoverOn(evt) {
     } else {
         content = feature.attributes.name;
     }
-    var popup = new OpenLayers.Popup.FramedCloud(feature.attributes.id,
-                        feature.geometry.getBounds().getCenterLonLat(),
-                        new OpenLayers.Size(10, 10),
-                        content,
-                        null,
-                        false);
-    // attach to feature
-    feature.popup = popup;
-    // add to map
-    map.addPopup(popup);
-    // fit to content
-    popup.updateSize();
 }
 
 /************************************************************\
@@ -447,26 +352,6 @@ function selected(evt) {
     } else {
         content = outputSingleFeature(feature);
     }
-
-    // create popoup
-    var popup = new OpenLayers.Popup.FramedCloud("featurePopup",
-            feature.geometry.getBounds().getCenterLonLat(),
-            new OpenLayers.Size(50, 100),
-            content,
-            null, true, onPopupClose);
-
-    // control shape
-    if (!feature.cluster) {
-        popup.maxSize = new OpenLayers.Size(350, 500);
-    }
-
-    popup.onmouseup(function() {
-        alert('up');
-    });
-
-    // add to map
-    map.addPopup(popup);
-
 }
 
 /************************************************************\

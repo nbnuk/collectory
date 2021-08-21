@@ -8,6 +8,6 @@
 //= require jquery-3.3.1.min
 //= require jquery.i18n.properties-1.0.9.min
 //= require jquery.ba-bbq.min
-//= require OpenLayers/lib/OpenLayers.js
+//= require leaflet
 //= require map.js
 //= require_self

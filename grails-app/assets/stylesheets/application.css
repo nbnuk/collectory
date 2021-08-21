@@ -8,6 +8,7 @@
 * compiled file, but it's generally better to create a new file per style scope.
 *
 *= require main
+*= require leaflet
 *= require map
 *= require jquery-ui
 *= require fileupload.css

@@ -635,37 +635,95 @@ class PublicController {
         def locations = [type:"FeatureCollection", features: new ArrayList()]
         def showAll = params.filters == 'all'
 
-        //add collections
-        Collection.list([sort:"name"]).each {
-            // only show ALA partners
-            if (it.isALAPartner()) {
+
+        def criteria = Collection.createCriteria()
+        def results = criteria.list {
+            projections {
+                groupProperty("institution")
+            }
+        }
+
+        results.each {
+
+            if (it) {
+                // only show ALA partners
                 // make 0 values be -1
                 def lat = (it.latitude == 0.0) ? -1 : it.latitude
                 def lon = (it.longitude == 0.0) ? -1 : it.longitude
-                // use parent institution if lat/long not defined
-                def inst = it.getInstitution()
-                if (inst && lat == -1) {lat = inst.latitude}
-                if (inst && lon == -1) {lon = inst.longitude}
-                // show if matches current filter
-                if (showAll || Classification.matchKeywords(it.keywords, params.filters)) {
-                    def loc = [type: "Feature"]
-                    loc.properties = [
-                            name: it.name,
-                            entityType: it.ENTITY_TYPE,
-                            acronym: it.acronym,
-                            uid: it.uid,
-                            instName: inst?.name,
-                            instUid: inst?.uid,
-                            instAcronym: inst?.acronym,
-                            isMappable: it.canBeMapped(),
-                            address: it.address?.buildAddress(),
-                            desc: it.makeAbstract(),
-                            url: request.getContextPath() + "/public/show/" + it.uid]
-                    loc.geometry = [type: "Point", coordinates: [lon,lat]]
-                    locations.features << loc
+
+                if (it.collections) {
+
+                    def relevantCollectionsCount = null
+
+                    if (showAll ) {
+                        relevantCollectionsCount = it.collections.size()
+                    } else {
+                        relevantCollectionsCount = 0
+                        it.collections.each { Collection collection ->
+                            if (Classification.matchKeywords(collection.keywords, params.filters)){
+                                relevantCollectionsCount ++
+                            }
+                        }
+                    }
+
+                    if (relevantCollectionsCount){
+                        // show if matches current filter
+                        def loc = [type: "Feature"]
+                        loc.properties = [
+                                name        : it.name,
+                                entityType  : it.ENTITY_TYPE,
+                                acronym     : it.acronym,
+                                uid         : it.uid,
+                                instName    : it.name,
+                                instUid     : it.uid,
+                                instAcronym : it.acronym,
+                                isMappable  : it.canBeMapped(),
+                                address     : it.address?.buildAddress(),
+                                desc        : it.makeAbstract(),
+                                url         : request.getContextPath() + "/public/show/" + it.uid,
+                                collectionCount: relevantCollectionsCount
+                        ]
+                        loc.properties.popupContent = contructHTML(loc.properties)
+                        loc.geometry = [type: "Point", coordinates: [lon, lat]]
+                        locations.features << loc
+                        }
                 }
             }
         }
+
+        //add collections
+//        Collection.list([sort:"name"]).each {
+//            // only show ALA partners
+//            if (it.isALAPartner()) {
+//                // make 0 values be -1
+//                def lat = (it.latitude == 0.0) ? -1 : it.latitude
+//                def lon = (it.longitude == 0.0) ? -1 : it.longitude
+//                // use parent institution if lat/long not defined
+//                def inst = it.getInstitution()
+//                if (inst && lat == -1) {lat = inst.latitude}
+//                if (inst && lon == -1) {lon = inst.longitude}
+//                // show if matches current filter
+//                if (showAll || Classification.matchKeywords(it.keywords, params.filters)) {
+//                    def loc = [type: "Feature"]
+//                    loc.properties = [
+//                            name: it.name,
+//                            entityType: it.ENTITY_TYPE,
+//                            acronym: it.acronym,
+//                            uid: it.uid,
+//                            instName: inst?.name,
+//                            instUid: inst?.uid,
+//                            instAcronym: inst?.acronym,
+//                            isMappable: it.canBeMapped(),
+//                            address: it.address?.buildAddress(),
+//                            desc: it.makeAbstract(),
+//                            url: request.getContextPath() + "/public/show/" + it.uid,
+//                            popupContent: contructHTML(it)
+//                    ]
+//                    loc.geometry = [type: "Point", coordinates: [lon,lat]]
+//                    locations.features << loc
+//                }
+//            }
+//        }
 
         //add data providers
         DataProvider.list([sort:"name"]).each {
@@ -686,7 +744,9 @@ class PublicController {
                             address: it.address?.buildAddress(),
                             desc: it.makeAbstract(),
                             dataResourceCount: it.resources.size(),
-                            url: request.getContextPath() + "/public/show/" + it.uid]
+                            url: request.getContextPath() + "/public/show/" + it.uid
+                    ]
+                    loc.properties.popupContent = contructHTML(loc.properties)
                     loc.geometry = [type: "Point", coordinates: [lon,lat]]
                     locations.features << loc
                 }
@@ -695,6 +755,24 @@ class PublicController {
 
         render( locations as JSON )
     }
+
+    String contructHTML(entity){
+        def writer = new StringWriter()  // html is written here by markup builder
+        def markup = new groovy.xml.MarkupBuilder(writer)  // the builder
+        def collectionsStr = ""
+        if (entity.collectionCount){
+            collectionsStr = " - has ${entity.collectionCount} collections"
+        }
+        if (entity.dataResourceCount){
+            collectionsStr = " - has ${entity.dataResourceCount} data resources"
+        }
+        markup.span {
+            a (href: entity.url,  entity.name)
+            span(collectionsStr)
+        }
+        writer.toString()
+    }
+
 
     def chart = {}
     

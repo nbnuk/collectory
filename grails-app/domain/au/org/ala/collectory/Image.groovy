@@ -15,11 +15,11 @@ class Image {
         copyright(nullable:true)
     }
 
-    def String toString() {
+    String toString() {
         return ([file,caption,attribution,copyright].findAll {it}).join(", ")
     }
 
-    def boolean equals(Object obj) {
+    boolean equals(Object obj) {
         return obj instanceof Image && file == obj.file && caption == obj.caption &&
                 attribution == obj.attribution && copyright == obj.copyright
     }
