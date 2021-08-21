@@ -46,6 +46,8 @@ var maxCollections = 0;
 
 var geoJsonLayer;
 
+var clusterMarkers;
+
 var myStyle = {
     "color": "#ff7800",
     "weight": 3,
@@ -89,16 +91,15 @@ function initMap(mapOptions) {
 
 
     $.getJSON(featuresUrl, function(data) {
-        var markers = L.markerClusterGroup({
-            maxClusterRadius:10});
+        clusterMarkers = L.markerClusterGroup({maxClusterRadius:10});
         geoJsonLayer = L.geoJson(data,
             {
                 style: myStyle,
                 onEachFeature: onEachFeature
             }
         );
-        markers.addLayer(geoJsonLayer);
-        map.addLayer(markers);
+        clusterMarkers.addLayer(geoJsonLayer);
+        map.addLayer(clusterMarkers);
         setLabels(data);
     });
 }
@@ -107,8 +108,10 @@ function initMap(mapOptions) {
 *   handler for loading features
 \************************************************************/
 function dataRequestHandler(data) {
+    clusterMarkers.clearLayers();
     geoJsonLayer.clearLayers();
     geoJsonLayer.addData(data);
+    clusterMarkers.addLayer(geoJsonLayer);
     setLabels(data);
 }
 
