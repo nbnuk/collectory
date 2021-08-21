@@ -99,6 +99,7 @@ function initMap(mapOptions) {
         );
         markers.addLayer(geoJsonLayer);
         map.addLayer(markers);
+        setLabels(data);
     });
 }
 
@@ -106,18 +107,23 @@ function initMap(mapOptions) {
 *   handler for loading features
 \************************************************************/
 function dataRequestHandler(data) {
-
     geoJsonLayer.clearLayers();
-    geoJsonLayer.addData(data)
+    geoJsonLayer.addData(data);
+    setLabels(data);
+}
 
-    // update list
-    // updateList(features);
+function setLabels(data){
 
     // remove non-mappable collections
     var unMappable = new Array();
+    var unMappableCount = 0
     for (var i = 0; i < data.features.length; i++) {
         if (!data.features[i].properties.isMappable) {
             unMappable.push(data.features[i]);
+            if (data.features[i].properties.entityType == "Institution") {
+                unMappableCount = unMappableCount + data.features[i].properties.collectionCount;
+            }
+
         }
     }
 
@@ -126,7 +132,7 @@ function dataRequestHandler(data) {
     switch (unMappable.length) {
         case 0: unMappedText = ""; break;
         case 1: unMappedText = "1 " + jQuery.i18n.prop('map.js.collectioncannotbemapped'); break;
-        default: unMappedText = unMappable.length + " " + jQuery.i18n.prop('map.js.collectionscannotbemapped'); break;
+        default: unMappedText = unMappableCount + " " + jQuery.i18n.prop('map.js.collectionscannotbemapped'); break;
     }
     $('span#numUnMappable').html(unMappedText);
 
@@ -138,17 +144,22 @@ function dataRequestHandler(data) {
     }
     var innerFeatures = "";
 
+    var collectionsCount = 0
+
+    $.each(data.features, function( index, entity ) {
+        if (entity.properties.entityType == "Institution") {
+            collectionsCount = collectionsCount + entity.properties.collectionCount;
+        }
+    });
+
     switch (data.features.length) {
         //case 0: innerFeatures = "No collections are selected."; break;
         //case 1: innerFeatures = "One collection is selected."; break;
         case 0: innerFeatures = jQuery.i18n.prop('map.js.nocollectionsareselected'); break;
         case 1: innerFeatures = jQuery.i18n.prop('map.js.onecollectionisselected'); break;
-        default: innerFeatures = data.features.length + " " + selectedFrom + "."; break;
+        default: innerFeatures = collectionsCount + " " + selectedFrom + "."; break;
     }
     $('span#numFeatures').html(innerFeatures);
-
-    // fire moved to initialise number visible
-    moved(null);
 
     // first time only: select the filter if one is specified in the url
     if (firstLoad) {
@@ -254,106 +265,6 @@ function updateList(features) {
     $('ul#filtered-list').html(innerHtml);
 }
 
-/************************************************************\
-*   hover handlers
-\************************************************************/
-function hoverOff(evt) {
-    feature = evt.feature;
-    if (feature != null && feature.popup != null) {
-        map.removePopup(feature.popup);
-        feature.destroyPopup(feature.popup);
-    }
-}
-
-/************************************************************\
-*   hovers NOT USED
-\************************************************************/
-function hoverOn(evt) {
-  feature = evt.feature;
-    var content = "";
-    if (feature.cluster) {
-        content = "<ul class='hoverPop'>";
-        for(var c = 0; c < feature.cluster.length; c++) {
-            content += "<li>"
-                    + feature.cluster[c].attributes.name
-                    + "</li>";
-        }
-        content += "</ul>";
-    } else {
-        content = feature.attributes.name;
-    }
-}
-
-/************************************************************\
-*   handle map movement (zoom pan)
-\************************************************************/
-function moved(evt) {
-    // determine how many individual features are visible
-    var visibleCount = 0;
-    var totalCount = 0;
-    for (var c = 0; c < vectors.features.length; c++) {
-        var f = vectors.features[c];
-        if (f.cluster) {
-            totalCount += f.cluster.length;
-            // for clusters count each feature
-            if (f.onScreen(true)) {
-                visibleCount += f.cluster.length;
-            }
-        } else {
-            totalCount++;
-            // single feature
-            if (f.onScreen(true)) {
-                visibleCount++;
-            }
-        }
-    }
-    // update display of number of features visible
-    var innerFeatures = "";
-    switch (visibleCount) {
-        case 0:
-            //innerFeatures = "No collections are currently visible on the map.";
-            innerFeatures = jQuery.i18n.prop('map.js.nocollectionsarecurrentlyvisible');
-            break;
-        case 1:
-            if (totalCount == 1) {
-                //innerFeatures = "It is currently visible on the map.";
-                innerFeatures = jQuery.i18n.prop('map.js.itiscurrentlyvisible');
-            } else {
-                //innerFeatures = visibleCount + " collection is currently visible on the map.";
-                innerFeatures = visibleCount + " " + jQuery.i18n.prop('map.js.collectioniscurrentlyvisible');
-            }
-            break;
-        default:
-            if (visibleCount == totalCount) {
-                //innerFeatures = "All are currently visible on the map.";
-                innerFeatures = jQuery.i18n.prop('map.js.allarecurrentlyvisible');
-            } else {
-                //innerFeatures = visibleCount + " collections are currently visible on the map.";
-                innerFeatures = visibleCount + " " + jQuery.i18n.prop('map.js.collectionarecurrentlyvisible');
-            }
-            break;
-    }
-    $('span#numVisible').html(innerFeatures);
-}
-
-
-/************************************************************\
-*   handle feature selection
-\************************************************************/
-function selected(evt) {
-    feature = evt.feature;
-
-    // get rid of any dags - hopefully
-    clearPopups();
-
-    // build content
-    var content = "";
-    if (feature.cluster) {
-        content = outputClusteredFeature(feature);
-    } else {
-        content = outputSingleFeature(feature);
-    }
-}
 
 /************************************************************\
 *   generate html for a single collection
