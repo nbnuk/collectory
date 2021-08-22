@@ -39,7 +39,8 @@
     <body>
         <div id="header">
           <cl:pageOptionsPopup instance="${instance}"/>
-          <div class="row">
+        </div>
+        <div class="row">
             <div class="col-md-9">
               <cl:h1 value="${instance.name}"/>
               <g:render template="editButton"/>
@@ -295,7 +296,6 @@
 
           <!-- external identifiers -->
               <g:render template="externalIdentifiers" model="[instance:instance]"/>
-
           </div>
         </div>
         <asset:script>
@@ -306,6 +306,5 @@
         </asset:script>
         <g:render template="charts" model="[facet:'collectionUid', instance: instance]" />
         <g:render template="progress" model="[facet:'collection_uid', instance: instance]" />
-
     </body>
 </html>
