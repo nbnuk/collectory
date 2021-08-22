@@ -302,7 +302,8 @@
             // stats
             if (loadLoggerStats){
               loadDownloadStats("${grailsApplication.config.loggerURL}", "${instance.uid}","${instance.name}", "1002");
-        }
+            }
+            loadImagesTab();
         </asset:script>
         <g:render template="charts" model="[facet:'collectionUid', instance: instance]" />
         <g:render template="progress" model="[facet:'collection_uid', instance: instance]" />

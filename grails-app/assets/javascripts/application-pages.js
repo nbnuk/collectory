@@ -13,4 +13,5 @@
 //= require datatables.min.js
 //= require ala/ala-charts.js
 //= require collectory.js
+//= require images.js
 //= require_self
