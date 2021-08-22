@@ -51,7 +51,7 @@ class CollectoryTagLib {
 
     def createAlertsLink(attrs, urlPath) {
 
-        if (!grailsApplication.config.disableAlertLinks?:''.toBoolean()){
+        if (!grailsApplication.config.disableAlertLinks.toBoolean()){
             def link = grailsApplication.config.alertsUrl + urlPath
             String query = '/occurrences/search?q=' + attrs.query
             String encodedQuery = encodeWithinQuery(query, "UTF-8")
