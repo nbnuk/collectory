@@ -79,7 +79,7 @@ class DataController {
 
     private String getApiKey(params) {
         def apiKey = {
-            if (params.json.api_key) {
+            if (params.json && params.json.api_key) {
                 params.json.api_key
             } else {
                 request.getHeader("Authorization")

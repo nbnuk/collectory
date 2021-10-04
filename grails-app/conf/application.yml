@@ -146,6 +146,9 @@ headerAndFooter:
     version: 2
 
 security:
+    apikey:
+        checkEnabled: true
+        serviceUrl: https://auth-test.ala.org.au/apikey/ws/check?apikey=
     cas:
         casServerName: https://auth-test.ala.org.au
         uriFilterPattern:
