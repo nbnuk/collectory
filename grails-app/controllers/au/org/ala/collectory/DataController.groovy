@@ -423,7 +423,8 @@ class DataController {
             unauthorised()
             return false
         }
-        gbifRegistryService.syncAllResources()
+        def results = gbifRegistryService.syncAllResources()
+        renderAsJson results
     }
 
     /**
