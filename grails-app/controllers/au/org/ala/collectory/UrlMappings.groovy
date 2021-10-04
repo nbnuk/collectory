@@ -193,6 +193,7 @@ class UrlMappings {
         "/ws/dataProvider/contacts/$uid(.$format)?"(controller: 'data', action: 'contactsForDataProviders')
         "/ws/dataResource/contacts/$uid(.$format)?"(controller: 'data', action: 'contactsForDataResources')
         "/ws/dataHub/contacts/$uid(.$format)?"(controller: 'data', action: 'contactsForDataHubs')
+        "/ws/syncGBIF"(controller: 'data', action: 'syncGBIF')
         "/ws"(controller: 'data', action: 'catalogue')
         "/showConsumers/$id(.$format)?"(controller: 'entity', action: 'showConsumers')
         "/showProviders/$id(.$format)?"(controller: 'entity', action: 'showProviders')

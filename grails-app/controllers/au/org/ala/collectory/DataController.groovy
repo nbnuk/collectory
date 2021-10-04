@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat
 
 class DataController {
 
-    def crudService, emlRenderService, collectoryAuthService, metadataService, providerGroupService
+    def crudService, emlRenderService, collectoryAuthService, metadataService, providerGroupService, gbifRegistryService
 
     def index = { }
 
@@ -36,7 +36,7 @@ class DataController {
                     params.pg = providerGroupService._get(params.uid, params.entity)
                 }
 
-                if(!params.pg){
+                if (!params.pg){
                     // doesn't exist
                     notFound "no entity with uid = ${uid}"
                     return false
@@ -65,14 +65,7 @@ class DataController {
                 return false
             }
 
-            def apiKey = {
-                if(params.json.api_key){
-                    params.json.api_key
-                } else {
-                    request.getHeader("Authorization")
-                }
-            }.call()
-
+            String apiKey = getApiKey(params)
             def keyCheck = collectoryAuthService?.checkApiKey(apiKey)
             if (!keyCheck.valid) {
                 unauthorised()
@@ -82,6 +75,17 @@ class DataController {
             session.username = keyCheck.app ?: (keyCheck.userEmail ?: params.json.user)
         }
         return true
+    }
+
+    private String getApiKey(params) {
+        def apiKey = {
+            if (params.json.api_key) {
+                params.json.api_key
+            } else {
+                request.getHeader("Authorization")
+            }
+        }.call()
+        apiKey
     }
 
     /******* Web Services Catalogue *******/
@@ -307,10 +311,10 @@ class DataController {
         def idx = request.forwardURI.lastIndexOf(dirpath) + dirpath.length()
         def fullFileName = request.forwardURI.substring(idx)
         def file = new File(grailsApplication.config.uploadFilePath + File.separator + params.directory, fullFileName)
-        if(!file.exists()){
+        if (!file.exists()){
             file = new File(grailsApplication.config.uploadFilePath + File.separator + params.directory, URLDecoder.decode(fullFileName, "UTF-8"))
         }
-        if(file.exists()){
+        if (file.exists()){
             //set the content type
             response.setContentType("application/octet-stream")
             response.setHeader("Content-disposition", "attachment;filename=" + file.getName())
@@ -410,6 +414,16 @@ class DataController {
         def last = latestModified(list)
 
         renderAsJson results, last, ""
+    }
+
+    def syncGBIF = {
+        String apiKey = getApiKey(params)
+        def keyCheck = collectoryAuthService?.checkApiKey(apiKey)
+        if (!keyCheck.valid) {
+            unauthorised()
+            return false
+        }
+        gbifRegistryService.syncAllResources()
     }
 
     /**
