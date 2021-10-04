@@ -15,7 +15,6 @@ import org.apache.http.client.methods.HttpPost
 import org.apache.http.client.methods.HttpPut
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.BasicCredentialsProvider
-import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.util.EntityUtils
 
@@ -564,7 +563,7 @@ class GbifRegistryService {
      */
     def loadOrganizationsByCountry(String countryCode, int limit = 1000) {
         def http = newHttpInstance(false)
-        HttpPut httpGet = new HttpGet(
+        HttpGet httpGet = new HttpGet(
                 grailsApplication.config.gbifApiUrl +
                 MessageFormat.format(API_ORGANIZATION_COUNTRY_LIMIT, countryCode, limit))
         HttpResponse httpResponse = http.execute(httpGet)
