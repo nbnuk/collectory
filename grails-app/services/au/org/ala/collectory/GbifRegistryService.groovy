@@ -361,7 +361,7 @@ class GbifRegistryService {
         if (!dataResource.gbifRegistryKey) {
             log.info("Creating GBIF resource for ${dataResource.uid}")
             def dataset = newGBIFDatasetInstance(dataResource, organisationRegistryKey)
-            log.info("Creating dataset in GBIF: ${dataset}")
+            log.info("Creating dataset in GBIF: ${(dataset as JSON).toString()}")
 
             if (dataset) {
                 if (!isDryRun()) {
@@ -423,7 +423,7 @@ class GbifRegistryService {
                     log.warn("Unable to update dataset - please check license: ${dataResource.uid} :  ${dataResource.name} :  ${dataResource.licenseType}")
                 }
             } else {
-                log.info("[DRY-RUN] DATASET Updating data resource ${dataset}")
+                log.info("[DRY-RUN] DATASET Updating data resource ${(dataset as JSON).toString()}")
             }
         }
         syncEndpoints(dataResource)
@@ -613,10 +613,16 @@ class GbifRegistryService {
         organisation.description = dp.pubDescription
         organisation.email = [dp.email]
         organisation.phone = [dp.phone]
-        organisation.homepage = [dp.websiteUrl]
+        if (dp.websiteUrl) {
+            organisation.homepage = [dp.websiteUrl]
+        }
         organisation.latitude = Math.floor(dp.latitude as float) == -1.0 ? null : dp.latitude
         organisation.longitude = Math.floor(dp.longitude as float) == -1.0 ? null : dp.longitude
-        organisation.logoUrl = dp.buildLogoUrl()
+
+        String logoUrl = dp.buildLogoUrl()
+        if (logoUrl) {
+            organisation.logoUrl = logoUrl
+        }
 
         // convert the 3 digit ISO code to the 2 digit ISO code GBIF needs
         // Note: GBIF use this for counting "data published by Country X".  There are cases where the postal Address
