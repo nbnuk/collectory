@@ -202,13 +202,13 @@ class CollectionController extends ProviderGroupController {
      */
     static def entitySpecificDescriptionProcessing(collection, params) {
         // special handling for collection type
-        collection.collectionType = toJson(params.collectionType)
+        collection.collectionType = (params.collectionType as JSON).toString()
         params.remove('collectionType')
 
         // special handling for keywords
         def keywords = params.keywords.tokenize(',')
         def trimmedKeywords = keywords.collect {return it.trim()}
-        collection.keywords = toJson(trimmedKeywords)
+        collection.keywords = (trimmedKeywords  as JSON).toString()
         params.remove('keywords')
 
         // special handling for sub-collections
@@ -279,7 +279,10 @@ class CollectionController extends ProviderGroupController {
                 collection.keywords = (keywords as JSON).toString()
             }
             collection.userLastModified = username()
-            if (!collection.hasErrors() && collection.save(flush: true)) {
+            if (!collection.hasErrors())  {
+                Collection.withTransaction {
+                    collection.save(flush: true)
+                }
                 flash.message = "${message(code: 'default.updated.message', args: [message(code: 'collection.label', default: 'Collection'), collection.uid])}"
                 redirect(action: "show", id: collection.id)
             } else {

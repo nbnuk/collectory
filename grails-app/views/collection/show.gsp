@@ -42,7 +42,7 @@
 </div>
 <div class="body">
   <g:if test="${flash.message}">
-    <div class="message "message alert alert-info">${flash.message}</div>
+    <div class="message alert alert-info">${flash.message}</div>
   </g:if>
   <div class="dialog emulate-public">
     <!-- base attributes -->

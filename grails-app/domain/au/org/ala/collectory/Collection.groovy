@@ -135,7 +135,7 @@ class Collection implements ProviderGroup, Serializable {
                 return true
         })
         keywords(nullable:true, maxSize:1024)
-        active(nullable:true, inList:developmentStatuses)
+        active(nullable:true)
         numRecords()
         numRecordsDigitised()
         states(nullable:true)
