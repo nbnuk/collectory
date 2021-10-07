@@ -60,8 +60,11 @@ class ContactController {
         def contactInstance = new Contact(params)
         contactInstance.userLastModified = collectoryAuthService?.username()?:'not available'
         contactInstance.validate()
-        contactInstance.errors.each {log.error(it) }
-        if (contactInstance.save(flush: true)) {
+
+        if (!contactInstance.hasErrors()) {
+            Contact.withTransaction {
+                contactInstance.save(flush: true)
+            }
             flash.message = "${message(code: 'default.created.message', args: [message(code: 'contact.label', default: 'Contact'), contactInstance.id])}"
             if (params.returnTo) {
                 redirect(uri: params.returnTo + "?contactId=${contactInstance.id}")
