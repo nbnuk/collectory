@@ -187,7 +187,7 @@ class DataResource implements ProviderGroup, Serializable {
         drs.hubMembership = listHubMembership().collect { [uid: it.uid, name: it.name] }
         def consumers = listConsumers()
         consumers.each {
-            def pg = findByUid(it)
+            def pg = DataResource.findByUid(it)
             if (pg) {
                 if (it[0..1] == 'co') {
                     drs.relatedCollections << [uid: pg.uid, name: pg.name]

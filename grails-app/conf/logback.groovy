@@ -1,3 +1,4 @@
+import ch.qos.logback.core.util.FileSize
 import grails.util.BuildSettings
 import grails.util.Environment
 import org.springframework.boot.logging.logback.ColorConverter
@@ -12,26 +13,60 @@ conversionRule 'wex', WhitespaceThrowableProxyConverter
 appender('STDOUT', ConsoleAppender) {
     encoder(PatternLayoutEncoder) {
         charset = StandardCharsets.UTF_8
-
         pattern =
                 '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} ' + // Date
-                        '%clr(%5p) ' + // Log level
-                        '%clr(---){faint} %clr([%15.15t]){faint} ' + // Thread
-                        '%clr(%-40.40logger{39}){cyan} %clr(:){faint} ' + // Logger
-                        '%m%n%wex' // Message
+                '%clr(%5p) ' + // Log level
+                '%clr(---){faint} %clr([%15.15t]){faint} ' + // Thread
+                '%clr(%-40.40logger{39}){cyan} %clr(:){faint} ' + // Logger
+                '%m%n%wex' // Message
     }
 }
 
-def targetDir = BuildSettings.TARGET_DIR
-if (Environment.isDevelopmentMode() && targetDir != null) {
-    appender("FULL_STACKTRACE", FileAppender) {
-        file = "${targetDir}/stacktrace.log"
-        append = true
-        encoder(PatternLayoutEncoder) {
-            charset = StandardCharsets.UTF_8
-            pattern = "%level %logger - %msg%n"
-        }
+appender('COLLECTORY_LOG', RollingFileAppender) {
+    file = "/tmp/collectory.log"
+    encoder(PatternLayoutEncoder) {
+        pattern =
+                '%d{yyyy-MM-dd HH:mm:ss.SSS} ' + // Date
+                        '%5p ' + // Log level
+                        '--- [%15.15t] ' + // Thread
+                        '%-40.40logger{39} : ' + // Logger
+                        '%m%n%wex' // Message
     }
-    logger("StackTrace", ERROR, ['FULL_STACKTRACE'], false)
+    rollingPolicy(FixedWindowRollingPolicy) {
+        fileNamePattern = "/tmp/collectory.log.%i.log.gz"
+        minIndex=1
+        maxIndex=4
+    }
+    triggeringPolicy(SizeBasedTriggeringPolicy) {
+        maxFileSize = FileSize.valueOf('10MB')
+    }
 }
-root(ERROR, ['STDOUT'])
+
+root(INFO, ['STDOUT'])
+
+
+final error = [
+        'org.springframework',
+        'grails.app',
+        'grails.plugins.mail',
+        'org.hibernate',
+        'org.quartz',
+        'asset.pipeline'
+]
+final warn = [
+        'au.org.ala.cas'
+
+]
+final info = [
+        'au.org.ala.collectory'
+]
+
+final debug = []
+final trace = []
+
+for (def name : error) logger(name, ERROR, ['COLLECTORY_LOG', 'STDOUT'], false)
+for (def name : warn) logger(name, WARN, ['COLLECTORY_LOG','STDOUT'], false)
+for (def name: info) logger(name, INFO,['COLLECTORY_LOG','STDOUT'], false)
+for (def name: debug) logger(name, DEBUG,['COLLECTORY_LOG','STDOUT'], false)
+for (def name: trace) logger(name, TRACE,['COLLECTORY_LOG','STDOUT'], false)
+

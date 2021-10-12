@@ -310,7 +310,7 @@ class Collection implements ProviderGroup, Serializable {
         cs.derivedCollCodes = getListOfCollectionCodesForLookup()
         cs.hubMembership = listHubMembership().collect { [uid: it.uid, name: it.name] }
         listProviders().each {
-            def pg = findByUid(it)
+            def pg = Collection.findByUid(it)
             if (pg) {
                 if (it[0..1] == 'dp') {
                     cs.relatedDataProviders << [uid: pg.uid, name: pg.name]

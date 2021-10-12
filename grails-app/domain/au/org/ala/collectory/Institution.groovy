@@ -46,12 +46,7 @@ class Institution implements ProviderGroup, Serializable {
         gbifRegistryKey(nullable:true, maxSize:36)
 
         // based on TDWG Ontology - http://code.google.com/p/tdwg-ontology/source/browse/trunk/ontology/voc/InstitutionType.rdf
-        institutionType(nullable:true, maxSize:45,
-                inList:['aquarium', 'archive', 'botanicGarden', 'conservation', 'fieldStation', 'government',
-                        'governmentDepartment', 'herbarium', 'historicalSociety', 'horticulturalInstitution',
-                        'independentExpert', 'industry', 'laboratory', 'library', 'management', 'museum',
-                        'natureEducationCenter', 'nonUniversityCollege', 'park', 'repository', 'researchInstitute',
-                        'school', 'scienceCenter', 'society', 'university', 'voluntaryObserver', 'zoo'])
+        institutionType(nullable:true, maxSize:45)
         collections(nullable:true)
         childInstitutions(nullable:true)
         gbifCountryToAttribute(nullable:true, maxSize: 3)
@@ -89,7 +84,7 @@ class Institution implements ProviderGroup, Serializable {
         is.institutionName = name
         is.collections = collections.collect { [it.uid, it.name] }
         listProviders().each {
-            def pg = findByUid(it)
+            def pg = Institution.findByUid(it)
             if (pg) {
                 if (it[0..1] == 'dp') {
                     is.relatedDataProviders << [uid: pg.uid, name: pg.name]
@@ -192,7 +187,7 @@ class Institution implements ProviderGroup, Serializable {
     def listChildren() {
         def list = []
         childInstitutions?.tokenize(' ').each {
-            list << findByUid(it)
+            list << Institution.findByUid(it)
         }
         return list
     }

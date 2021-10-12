@@ -298,6 +298,35 @@ collection:
         - "Missing"
         - "Passive growth"
         - "Static"
+institution:
+    institutionTypes:
+        - "aquarium"
+        - "archive"
+        - "botanicGarden"
+        - "conservation"
+        - "fieldStation"
+        - "government"
+        - "governmentDepartment"
+        - "herbarium"
+        - "historicalSociety"
+        - "horticulturalInstitution"
+        - "independentExpert"
+        - "industry"
+        - "laboratory"
+        - "library"
+        - "management"
+        - "museum"
+        - "natureEducationCenter"
+        - "nonUniversityCollege"
+        - "park"
+        - "repository"
+        - "researchInstitute"
+        - "school"
+        - "scienceCenter"
+        - "society"
+        - "university"
+        - "voluntaryObserver"
+        - "zoo"
 contacts:
     titles:
         - "Dr"
@@ -307,6 +336,7 @@ contacts:
         - "Mrs"
         - "Assoc Prof"
         - "Assist Prof"
+
 
 cartodb:
     pattern: "https://cartodb-basemaps-${s}.global.ssl.fastly.net/light_nolabels/${z}/${x}/${y}.png"

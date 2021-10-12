@@ -16,6 +16,31 @@ class DataHub implements ProviderGroup, Serializable {
                                            //  (suitable for identifying a unique list of occurrence records)
 
     static constraints = {
+        guid(nullable:true, maxSize:256)
+        uid(blank:false, maxSize:20)
+        name(blank:false, maxSize:1024)
+        acronym(nullable:true, maxSize:45)
+        pubShortDescription(nullable:true, maxSize:100)
+        pubDescription(nullable:true)
+        techDescription(nullable:true)
+        focus(nullable:true)
+        address(nullable:true)
+        latitude(nullable:true)
+        longitude(nullable:true)
+        altitude(nullable:true)
+        state(nullable:true, maxSize:45)
+        websiteUrl(nullable:true, maxSize:256)
+        logoRef(nullable:true)
+        imageRef(nullable:true)
+        email(nullable:true, maxSize:256)
+        phone(nullable:true, maxSize:200)
+        notes(nullable:true)
+        networkMembership(nullable:true, maxSize:256)
+        attributions(nullable:true, maxSize:256)
+        taxonomyHints(nullable:true)
+        keywords(nullable:true)
+        gbifRegistryKey(nullable:true, maxSize:36)
+
         memberCollections(nullable:true, maxSize:4096)
         memberInstitutions(nullable:true, maxSize:4096)
         memberDataResources(nullable:true, maxSize:4096)
@@ -92,7 +117,7 @@ class DataHub implements ProviderGroup, Serializable {
     def listMemberDataResources() {
         if (!memberDataResources) { return []}
         JSON.parse(memberDataResources).collect {
-            def pg = findByUid(it)
+            def pg = DataHub.findByUid(it)
             if (pg) {
                 [uid: it, name: pg?.name, uri: pg.buildUri()]
             } else {
