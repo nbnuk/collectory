@@ -12,10 +12,20 @@
   <meta name="layout" content="${grailsApplication.config.skin.layout}"/>
   <g:set var="entityName" value="${message(code: 'collection.label', default: 'Collection')}"/>
   <title><g:message code="default.show.label" args="[entityName]"/></title>
+  <asset:stylesheet src="application.css"/>
+
+  <script type="text/javascript">
+    var COLLECTORY_CONF = {
+      contextPath: "${request.contextPath}",
+      locale: "${(org.springframework.web.servlet.support.RequestContextUtils.getLocale(request).toString())?:request.locale}",
+      cartodbPattern: "${grailsApplication.config.cartodb.pattern}"
+    };
+  </script>
   <script async defer
           src="https://maps.googleapis.com/maps/api/js?key=${grailsApplication.config.google?.apikey}"
           type="text/javascript"></script>
-  <asset:stylesheet src="application.css"/>
+
+
   <asset:javascript src="application-pages.js"/>
 </head>
 <body>
@@ -283,7 +293,7 @@
 \************************************************************/
 function onLoadCallback() {
   // summary biocache data
-  var biocacheRecordsUrl = "${grailsApplication.config.grails.context}/public/biocacheRecords.json?uid=${instance.uid}";
+  var biocacheRecordsUrl = "${grailsApplication.config.grails.context}/public/biocacheRecords?uid=${instance.uid}";
   $.get(biocacheRecordsUrl, {}, biocacheRecordsHandler);
 }
 /************************************************************\

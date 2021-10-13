@@ -350,6 +350,9 @@ eml:
     postalCode: 2601
     country: Australia
 
+google:
+    apikey: "TO-BE-ADDED"
+
 dataSource:
     pooled: true
     jmxExport: true
