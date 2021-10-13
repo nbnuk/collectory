@@ -245,18 +245,22 @@ class DataResourceController extends ProviderGroupController {
         // create new links
         newConsumers.each {
             if (!(it in oldConsumers)) {
-                def dl = new DataLink(consumer: it, provider: pg.uid).save()
-                auditLog(pg, 'INSERT', 'consumer', '', it, dl)
-                log.info "created link from ${pg.uid} to ${it}"
+                DataLink.withTransaction {
+                    def dl = new DataLink(consumer: it, provider: pg.uid).save()
+                    auditLog(pg, 'INSERT', 'consumer', '', it, dl)
+                    log.info "created link from ${pg.uid} to ${it}"
+                }
             }
         }
         // remove old links - NOTE only for the variety (collection or institution) that has been returned
         oldConsumers.each {
             if (!(it in newConsumers) && it[0..1] == params.source) {
-                log.info "deleting link from ${pg.uid} to ${it}"
-                def dl = DataLink.findByConsumerAndProvider(it, pg.uid)
-                auditLog(pg, 'DELETE', 'consumer', it, '', dl)
-                dl.delete()
+                DataLink.withTransaction {
+                    log.info "deleting link from ${pg.uid} to ${it}"
+                    def dl = DataLink.findByConsumerAndProvider(it, pg.uid)
+                    auditLog(pg, 'DELETE', 'consumer', it, '', dl)
+                    dl.delete()
+                }
             }
         }
         flash.message =

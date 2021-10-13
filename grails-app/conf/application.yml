@@ -203,6 +203,7 @@ citation.template: "Records provided by @entityName@, accessed through ALA websi
 citation.link.template = For more information: "@link@"
 
 networkTypes:
+    - BCI
     - CHAH
     - CHAEC
     - CHAFC

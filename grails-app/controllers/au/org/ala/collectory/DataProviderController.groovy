@@ -98,7 +98,10 @@ class DataProviderController extends ProviderGroupController {
         DataProvider dp = new DataProvider(uid: idGeneratorService.getNextDataProviderId(), userLastModified: collectoryAuthService?.username())
         gbifRegistryService.populateDataProviderFromOrganization(dp, organizationKey)
 
-        if (!dp.hasErrors() && dp.save(flush: true)) {
+        if (!dp.hasErrors()) {
+            DataProvider.withTransaction {
+                dp.save(flush: true)
+            }
             log.info "Data Provider "+dp.uid+" successfully created from organization = " + organizationKey
             flash.message = "${message(code: 'default.created.message', args: [message(code: "${dp.urlForm()}", default: dp.urlForm()), dp.uid])}"
             redirect(action: "searchForOrganizations", params: [country: params.country, lastCreatedUID: dp.uid])
@@ -129,7 +132,11 @@ class DataProviderController extends ProviderGroupController {
                 dp = new DataProvider(uid: idGeneratorService.getNextDataProviderId(), userLastModified: collectoryAuthService?.username())
                 gbifRegistryService.populateDataProviderFromOrganization(dp, organization.key)
 
-                if (!dp.hasErrors() && dp.save(flush: true)) {
+                if (!dp.hasErrors()) {
+                    DataProvider.withTransaction {
+                        dp.save(flush: true)
+                    }
+
                     log.info "Data Provider "+dp.uid+" successfully created from organization = " + organization.key
                     successCount++
                 } else {
@@ -168,18 +175,22 @@ class DataProviderController extends ProviderGroupController {
         // create new links
         newConsumers.each {
             if (!(it in oldConsumers)) {
-                def dl = new DataLink(consumer: it, provider: pg.uid).save()
-                auditLog(pg, 'INSERT', 'consumer', '', it, dl)
-                log.info "created link from ${pg.uid} to ${it}"
+                DataLink.withTransaction {
+                    def dl = new DataLink(consumer: it, provider: pg.uid).save()
+                    auditLog(pg, 'INSERT', 'consumer', '', it, dl)
+                    log.info "created link from ${pg.uid} to ${it}"
+                }
             }
         }
         // remove old links - NOTE only for the variety (collection or institution) that has been returned
         oldConsumers.each {
             if (!(it in newConsumers) && it[0..1] == params.source) {
-                log.info "deleting link from ${pg.uid} to ${it}"
-                def dl = DataLink.findByConsumerAndProvider(it, pg.uid)
-                auditLog(pg, 'DELETE', 'consumer', it, '', dl)
-                dl.delete()
+                DataLink.withTransaction {
+                    log.info "deleting link from ${pg.uid} to ${it}"
+                    def dl = DataLink.findByConsumerAndProvider(it, pg.uid)
+                    auditLog(pg, 'DELETE', 'consumer', it, '', dl)
+                    dl.delete()
+                }
             }
         }
         flash.message =
@@ -192,26 +203,27 @@ class DataProviderController extends ProviderGroupController {
         if (instance) {
             if (isAdmin()) {
                 /* need to remove it as a parent from all children otherwise they will be deleted */
-                def resources = instance.resources as List
-                resources.each {
-                    instance.removeFromResources it
-                    it.userLastModified = username()
-                    it.save()  // necessary?
-                }
-                // remove contact links (does not remove the contact)
-                ContactFor.findAllByEntityUid(instance.uid).each {
-                    it.delete()
-                }
-                // now delete
-                try {
-                    activityLogService.log username(), isAdmin(), params.id as long, Action.DELETE
-                    instance.delete(flush: true)
-                    flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'dataProvider.label', default: 'dataProvider'), params.id])}"
-                    redirect(action: "list")
-                }
-                catch (org.springframework.dao.DataIntegrityViolationException e) {
-                    flash.message = "${message(code: 'default.not.deleted.message', args: [message(code: 'dataProvider.label', default: 'dataProvider'), params.id])}"
-                    redirect(action: "show", id: params.id)
+                DataProvider.withTransaction {
+                    def resources = instance.resources as List
+                    resources.each {
+                        instance.removeFromResources it
+                        it.userLastModified = username()
+                        it.save()  // necessary?
+                    }
+                    // remove contact links (does not remove the contact)
+                    ContactFor.findAllByEntityUid(instance.uid).each {
+                        it.delete()
+                    }
+                    // now delete
+                    try {
+                        activityLogService.log username(), isAdmin(), params.id as long, Action.DELETE
+                        instance.delete(flush: true)
+                        flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'dataProvider.label', default: 'dataProvider'), params.id])}"
+                        redirect(action: "list")
+                    } catch (org.springframework.dao.DataIntegrityViolationException e) {
+                        flash.message = "${message(code: 'default.not.deleted.message', args: [message(code: 'dataProvider.label', default: 'dataProvider'), params.id])}"
+                        redirect(action: "show", id: params.id)
+                    }
                 }
             } else {
                 render("You are not authorised to access this page.")
@@ -278,7 +290,9 @@ class DataProviderController extends ProviderGroupController {
 
                         gbifRegistryService.register(instance, syncContacts, syncDataResources)
                         flash.message = "${message(code: 'dataProvider.gbif.register.success', default: 'Successfully Registered in GBIF')}"
-                        instance.save()
+                        DataProvider.withTransaction {
+                            instance.save()
+                        }
                     } else {
                         log.info("REGISTERING FAILED for ${instance.uid}, triggered by user: ${collectoryAuthService.username()} - user not in role")
                         flash.message = "You don't have permission to do register this data partner."

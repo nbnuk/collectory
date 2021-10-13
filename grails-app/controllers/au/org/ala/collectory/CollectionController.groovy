@@ -260,7 +260,10 @@ class CollectionController extends ProviderGroupController {
 
             collection.properties = params
             collection.userLastModified = username()
-            if (!collection.hasErrors() && collection.save(flush: true)) {
+            if (!collection.hasErrors()) {
+                Collection.withTransaction {
+                    collection.save(flush: true)
+                }
                 flash.message = "${message(code: 'default.updated.message', args: [message(code: 'collection.label', default: 'Collection'), collection.uid])}"
                 redirect(action: "show", id: collection.id)
             } else {

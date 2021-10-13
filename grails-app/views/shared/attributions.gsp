@@ -24,36 +24,21 @@
     <g:hiddenField name="id" value="${command?.id}"/>
     <g:hiddenField name="uid" value="${command?.uid}" />
     <g:hiddenField name="version" value="${command.version}"/>
-    <!-- BCI -->
-    <div class="form-group">
-      <label for="BCI">
-        <g:checkBox name="BCI" value="${BCI}"/>
-        <g:message code="shared.attributes.label01" /><cl:helpText code="providerGroup.attribution.BCI"/>
-      </label>
-    </div>
 
-    <!-- CHAH -->
-    <div class="form-group">
-      <label for="CHAH">
-        <g:checkBox name="CHAH" value="${CHAH}"/>
-        <g:message code="shared.attributes.label02" /><cl:helpText code="providerGroup.attribution.CHAH"/>
-      </label>
-    </div>
-
-    <!-- CHACM -->
-    <div class="form-group">
-      <label for="CHACM">
-        <g:checkBox name="CHACM" value="${CHACM}"/>
-        <g:message code="shared.attributes.label03" /><cl:helpText code="providerGroup.attribution.CHACM"/>
-      </label>
-    </div>
+    <g:each in="${grailsApplication.config.networkTypes}" var="networkName">
+      <div class="form-group">
+        <label for="${networkName}">
+          <g:checkBox name="${networkName}" value="${networkName}"/>
+          <g:message code="shared.attributes.${networkName}" /><cl:helpText code="providerGroup.attribution.${networkName}"/>
+        </label>
+      </div>
+    </g:each>
 
     <!-- institution -->
     <div class="form-group">
-
       <label for="institution">
         <g:checkBox disabled="true" name="institution" value="${true}"/>
-        <g:message code="shared.attributes.label04" /><cl:helpText code="providerGroup.attribution.institution"/>
+        <g:message code="shared.attributes.institution" /><cl:helpText code="providerGroup.attribution.institution"/>
       </label>
     </div>
 
