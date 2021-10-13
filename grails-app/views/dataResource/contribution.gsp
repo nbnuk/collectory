@@ -5,6 +5,14 @@
     <meta name="layout" content="${grailsApplication.config.skin.layout}" />
     <title><g:message code="dataResource.base.label" default="Edit data resource metadata" /></title>
     <asset:stylesheet src="application.css"/>
+    <script type="text/javascript">
+        var COLLECTORY_CONF = {
+            contextPath: "${request.contextPath}",
+            locale: "${(org.springframework.web.servlet.support.RequestContextUtils.getLocale(request).toString())?:request.locale}",
+            cartodbPattern: "${grailsApplication.config.cartodb.pattern}"
+        };
+    </script>
+    <asset:javascript src="application-pages.js"/>
 </head>
 <body>
 <div class="nav">
@@ -78,13 +86,15 @@
             </div>
 
             <!-- harvest parameters -->
-            <tr><h3><g:message code="dataresource.contribution.table0101" /></h3></div>
-            <cl:connectionParameters bean="command" connectionParameters="${command.connectionParameters}"/>
+            <div class="well">
+                <h3><g:message code="dataresource.contribution.table0101" /></h3>
+                <cl:connectionParameters bean="command" connectionParameters="${command.connectionParameters}"/>
+            </div>
 
             <g:if test="${command.resourceType == 'records'}">
                 <!-- darwin core defaults -->
-                <tr><h3><g:message code="dataresource.contribution.table0201" /></h3></div>
-                <tr><g:message code="dataresource.contribution.table0301" />.</div>
+                <div><h3><g:message code="dataresource.contribution.table0201" /></h3></div>
+                <div><g:message code="dataresource.contribution.table0301" />.</div>
                 <g:set var="dwc" value="${command.defaultDarwinCoreValues ? JSON.parse(command.defaultDarwinCoreValues) : [:]}"/>
                 <!-- add fields for each of the important terms -->
                 <g:each in="${DarwinCoreFields.getImportant()}" var="dwcf">
@@ -111,7 +121,7 @@
                 </g:each>
 
                 <!-- add a blank field so other DwC terms can be added -->
-                <tr id="add-another"><g:message code="dataresource.contribution.table0401" />.</div>
+                <div id="add-another"><g:message code="dataresource.contribution.table0401" />.</div>
                 <div class="form-group">
                         <g:select name="otherKey" class="form-control" from="${DarwinCoreFields.getLessImportant().collect({it.name})}"/>
                         <button id="more-terms" type="button" class="btn btn-default"><g:message code="dataresource.contribution.table.button" /></button>
@@ -138,14 +148,17 @@
             "occurrenceID",
             "recordNumber"
         ];
+
         function split( val ) {
             return val.split( /,\s*/ );
         }
+
         function extractLast( term ) {
             return split( term ).pop();
         }
+
         $( "input#termsForUniqueKey:enabled" )
-            // don't navigate away from the field on tab when selecting an item
+                // don't navigate away from the field on tab when selecting an item
                 .bind( "keydown", function( event ) {
                     if ( event.keyCode === $.ui.keyCode.TAB &&
                             $( this ).data( "autocomplete" ).menu.active ) {
@@ -176,20 +189,26 @@
                     }
                 });
     }
+
     function changeProtocol() {
-        var protocol = $('#protocolSelector').attr('value');
+        var protocol = $('#protocolSelector').val();
         // remove autocomplete binding
         $('input#termsForUniqueKey:enabled').autocomplete('destroy');
         $('input#termsForUniqueKey:enabled').unbind('keydown');
         // clear all
         $('div.labile').css('display','none');
         $('div.labile input,textArea').attr('disabled','true');
+
         // show the selected
-        $('div#'+protocol).removeAttr('style');
-        $('div#'+protocol+' input,textArea').removeAttr('disabled');
+        console.log("Displaying protocol: " + protocol);
+        $('div#' + protocol).css('display','block');
+        $('div#' + protocol).removeAttr('style');
+        $('div#' + protocol + ' input,textArea').removeAttr('disabled');
+
         // re-enable the autocomplete functionality
         instrument();
     }
+
     instrument();
     //$('[name="start_date"]').datepicker({dateFormat: 'yy-mm-dd'});
     /* this expands lists of urls into an array of text inputs */

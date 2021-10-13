@@ -97,11 +97,13 @@ trait ProviderGroup implements Serializable {
         cf.administrator = isAdministrator
         cf.primaryContact = isPrimaryContact
         cf.userLastModified = modifiedBy
-        cf.save(flush: true)
+        ContactFor.withTransaction {
+            cf.save(flush: true)
+        }
         if (cf.hasErrors()) {
             cf.errors.each {println it.toString()}
         }
-        return cf
+        cf
     }
 
     /**
