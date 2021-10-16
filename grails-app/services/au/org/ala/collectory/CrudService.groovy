@@ -434,14 +434,14 @@ class CrudService {
 
         if (obj.has('dataProvider')) {
             // find it
-            DataProvider dp = DataProvider._get(obj.dataProvider.uid) as DataProvider
+            DataProvider dp = DataProvider.findByUid(obj.dataProvider.uid) as DataProvider
             if (dp) {
                 dr.dataProvider = dp
             }
         }
         if (obj.has('institution')) {
             // find it
-            Institution ins = Institution._get(obj.institution.uid) as Institution
+            Institution ins = Institution.findByUid(obj.institution.uid) as Institution
             if (ins) {
                 dr.institution = ins
             }
@@ -757,7 +757,7 @@ class CrudService {
                 co.errors.rejectValue('institution','NO_UID','institution must specify a uid')
             } else {
                 // find it
-                Institution institution = Institution._get(obj.institution.uid) as Institution
+                Institution institution = Institution.findByUid(obj.institution.uid) as Institution
                 if (institution) {
                     co.institution = institution
                 } else {

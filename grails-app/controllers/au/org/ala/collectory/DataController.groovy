@@ -275,7 +275,7 @@ class DataController {
             } else {
                 // doesn't exist insert
                 pg = crudService."insert${clazz}"(obj)
-                if (pg.hasErrors()) {
+                if (!pg || pg.hasErrors()) {
                     badRequest pg.errors
                 } else {
                     created pg.urlForm(), pg.uid
