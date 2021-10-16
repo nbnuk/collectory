@@ -749,7 +749,9 @@ class DataController {
                 Contact.withTransaction {
                     c.save(flush: true)
                 }
-                c.errors.each {  log.error(it.toString()) }
+                if (c.hasErrors()) {
+                    c.errors.each { log.error(it.toString()) }
+                }
                 addContentLocation "/ws/contacts/${c.id}"
                 def cm = buildContactModel(c)
                 cm.id = c.id
@@ -764,7 +766,9 @@ class DataController {
                 Contact.withTransaction {
                     c.save(flush: true)
                 }
-                c.errors.each { log.error(it.toString()) }
+                if (c.hasErrors()) {
+                    c.errors.each { log.error(it.toString()) }
+                }
                 addContentLocation "/ws/contacts/${c.id}"
                 def cm = buildContactModel(c)
                 cm.id = c.id
@@ -962,32 +966,41 @@ class DataController {
      */
     def updateContactFor = {
         def ok = check(params)
-        if (!ok){
+        if (!ok || !params.pg || !params.id || !params.pg.uid){
             return
         }
-        def props = params.json
-        props.userLastModified = session.username
-        //println "body = "  + props
-        def c = Contact.get(params.id)
-        def cf = ContactFor.findByContactAndEntityUid(c, params.pg.uid)
-        if (cf) {
-            // update
-            bindData(cf, props as Map, ['entityUid'])
-            c.save(flush: true)
-            c.errors.each { log.error(it) }
-            success 'updated'
-        } else {
-            // create
-            if (c) {
-                params.pg.addToContacts c,
-                        props.role ?: '',
-                        (props.administrator ?: false) as Boolean,
-                        (props.primaryContact ?: false) as Boolean,
-                        props.userLastModified
-                created 'contactFor', params.pg.uid
+        try {
+            def props = params.json
+            props.userLastModified = session.username
+
+            def c = Contact.get(params.id)
+            def cf = ContactFor.findByContactAndEntityUid(c, params.pg.uid)
+            if (cf) {
+                // update
+                bindData(cf, props as Map, ['entityUid'])
+                Contact.withTransaction {
+                    c.save(flush: true)
+                }
+                if (c.hasErrors()) {
+                    c.errors.each { log.error("Validation error - " + it.toString()) }
+                }
+                success 'updated'
             } else {
-                badRequest "contact doesn't exist"
+                // create
+                if (c) {
+                    params.pg.addToContacts c,
+                            props.role ?: '',
+                            (props.administrator ?: false) as Boolean,
+                            (props.primaryContact ?: false) as Boolean,
+                            props.userLastModified
+                    created 'contactFor', params.pg.uid
+                } else {
+                    badRequest "contact doesn't exist"
+                }
             }
+        } catch (Exception e){
+            log.error(e.getMessage(), e)
+            badRequest "Problem processing this update"
         }
     }
 
