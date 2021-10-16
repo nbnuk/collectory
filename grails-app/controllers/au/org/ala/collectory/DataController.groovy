@@ -66,6 +66,11 @@ class DataController {
             }
 
             String apiKey = getApiKey(params)
+            if (!apiKey){
+                noApiKey()
+                return false
+            }
+
             def keyCheck = collectoryAuthService?.checkApiKey(apiKey)
             if (!keyCheck.valid) {
                 unauthorised()
@@ -81,6 +86,10 @@ class DataController {
         def apiKey = {
             if (params.json && params.json.api_key) {
                 params.json.api_key
+            } else if (params.json && params.json.apiKey) {
+                params.json.apiKey
+            } else if (params.json && params.json.Authorization) {
+                params.json.Authorization
             } else {
                 request.getHeader("Authorization")
             }
@@ -181,6 +190,11 @@ class DataController {
         render(status:403, text: 'You are not authorised to use this service')
     }
 
+    def noApiKey = {
+        // using the 'forbidden' response code here as 401 causes the client to ask for a log in
+        render(status:400, text: 'This service requires API key')
+    }
+
     def checkApiKey = {
         def apiKey = {
             if (params.api_key) {
@@ -237,33 +251,35 @@ class DataController {
      * @param json - the body of the request
      */
     def saveEntity = {
-        check(params)
-        def pg = params.pg
-        def obj = params.json
-        def urlForm = params.entity
-        def clazz = capitalise(urlForm)
+        def ok = check(params)
+        if (ok) {
+            def pg = params.pg
+            def obj = params.json
+            def urlForm = params.entity
+            def clazz = capitalise(urlForm)
 
-        if (pg) {
-            // check type
-            if (pg.getClass().getSimpleName() == clazz) {
-                // update
-                crudService."update${clazz}"(pg, obj)
+            if (pg) {
+                // check type
+                if (pg.getClass().getSimpleName() == clazz) {
+                    // update
+                    crudService."update${clazz}"(pg, obj)
+                    if (pg.hasErrors()) {
+                        badRequest pg.errors
+                    } else {
+                        addContentLocation "/ws/${pg.urlForm()}/${params.uid}"
+                        success "updated ${clazz}"
+                    }
+                } else {
+                    badRequest "entity with uid = ${params.uid} is not ${clazz == 'Institution' ? 'an' : 'a'} ${clazz}"
+                }
+            } else {
+                // doesn't exist insert
+                pg = crudService."insert${clazz}"(obj)
                 if (pg.hasErrors()) {
                     badRequest pg.errors
                 } else {
-                    addContentLocation "/ws/${pg.urlForm()}/${params.uid}"
-                    success "updated ${clazz}"
+                    created pg.urlForm(), pg.uid
                 }
-            } else {
-                badRequest "entity with uid = ${params.uid} is not ${clazz == 'Institution'? 'an' : 'a'} ${clazz}"
-            }
-        } else {
-            // doesn't exist insert
-            pg = crudService."insert${clazz}"(obj)
-            if (pg.hasErrors()) {
-                badRequest pg.errors
-            } else {
-                created pg.urlForm(), pg.uid
             }
         }
     }
@@ -718,6 +734,10 @@ class DataController {
 
     /************* contact update services **********/
     def updateContact = {
+        def ok = check(params)
+        if (!ok){
+            return
+        }
         def props = params.json
         props.userLastModified = session.username
         //println "body = "  + props
@@ -726,8 +746,10 @@ class DataController {
             def c = Contact.get(params.id)
             if (c) {
                 bindData(c, props as Map, ['id'])
-                c.save(flush: true)
-                c.errors.each {  log.error(it) }
+                Contact.withTransaction {
+                    c.save(flush: true)
+                }
+                c.errors.each {  log.error(it.toString()) }
                 addContentLocation "/ws/contacts/${c.id}"
                 def cm = buildContactModel(c)
                 cm.id = c.id
@@ -739,8 +761,10 @@ class DataController {
             // create
             if (props.email) {
                 def c = new Contact(props as Map)
-                c.save(flush: true)
-                c.errors.each { log.error(it) }
+                Contact.withTransaction {
+                    c.save(flush: true)
+                }
+                c.errors.each { log.error(it.toString()) }
                 addContentLocation "/ws/contacts/${c.id}"
                 def cm = buildContactModel(c)
                 cm.id = c.id
@@ -753,8 +777,6 @@ class DataController {
     }
 
     def deleteContact = {
-        def props = params.json
-        //println "body = "  + props
         if (params.id) {
             // update
             def c = Contact.get(params.id)
@@ -903,6 +925,10 @@ class DataController {
      * { event: 'user annotation', id: 'ann03468', uid: 'co13' }
      */
     def notification() {
+        def ok = check(params)
+        if (!ok){
+            return
+        }
         //println "notify"
         if (request.method != 'POST') {
             log.error("not allowed")
@@ -935,6 +961,10 @@ class DataController {
      * @param id the contact id
      */
     def updateContactFor = {
+        def ok = check(params)
+        if (!ok){
+            return
+        }
         def props = params.json
         props.userLastModified = session.username
         //println "body = "  + props
@@ -962,6 +992,10 @@ class DataController {
     }
 
     def deleteContactFor = {
+        def ok = check(params)
+        if (!ok){
+            return
+        }
         def props = params.json
         props.userLastModified = session.username
         log.error("body = "  + props)
