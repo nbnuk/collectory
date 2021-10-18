@@ -161,17 +161,22 @@ class GbifController {
 
         def resources = dataProvider.resources
         def output = []
+        def updates = []
         resources.each { DataResource resource ->
             Date lastUpdated = gbifService.getGbifDatasetLastUpdated(resource.guid)
             //get last updated data
-            output << [uid:resource.uid,
-                       name: resource.name,
-                       lastUpdated: resource.lastUpdated,
-                       guid: resource.guid,
-                       country: resource.repatriationCountry,
-                       pubDate: lastUpdated,
-                       inSync:  !(lastUpdated > resource.lastUpdated)
+            def resourceDescription =  [uid:resource.uid,
+                         name: resource.name,
+                         lastUpdated: resource.lastUpdated,
+                         guid: resource.guid,
+                         country: resource.repatriationCountry,
+                         pubDate: lastUpdated,
+                         inSync:  !(lastUpdated > resource.lastUpdated)
             ]
+            output << resourceDescription
+            if (lastUpdated > resource.lastUpdated) {
+                updates << resourceDescription
+            }
         }
 
         DataSourceConfiguration configuration = new DataSourceConfiguration()
@@ -201,6 +206,7 @@ class GbifController {
         def fullOutput =
                 [loadGuid: loadGuid,
                  trackingUrl: createLink(controller:"manage", action:"externalLoadStatus", params: [loadGuid: loadGuid]),
+                 updates: updates,
                  resources: output
                 ]
         render(fullOutput as JSON)
