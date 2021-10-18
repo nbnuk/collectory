@@ -1,6 +1,4 @@
 import ch.qos.logback.core.util.FileSize
-import grails.util.BuildSettings
-import grails.util.Environment
 import org.springframework.boot.logging.logback.ColorConverter
 import org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter
 
@@ -23,7 +21,7 @@ appender('STDOUT', ConsoleAppender) {
 }
 
 appender('COLLECTORY_LOG', RollingFileAppender) {
-    file = "/tmp/collectory.log"
+    file = "/var/log/tomcat9/collectory.log"
     encoder(PatternLayoutEncoder) {
         pattern =
                 '%d{yyyy-MM-dd HH:mm:ss.SSS} ' + // Date
@@ -33,7 +31,7 @@ appender('COLLECTORY_LOG', RollingFileAppender) {
                         '%m%n%wex' // Message
     }
     rollingPolicy(FixedWindowRollingPolicy) {
-        fileNamePattern = "/tmp/collectory.log.%i.log.gz"
+        fileNamePattern = "/var/log/tomcat9/collectory.log.%i.log.gz"
         minIndex=1
         maxIndex=4
     }

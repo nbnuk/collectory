@@ -74,15 +74,15 @@ class ReportsController {
     }
 
     def providers = {
-        ActivityLog.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), Action.REPORT, 'providers'
+        activityLogService.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), Action.REPORT, 'providers'
     }
 
     def resources = {
-        ActivityLog.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), Action.REPORT, 'resources'
+        activityLogService.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), Action.REPORT, 'resources'
     }
 
     def contacts = {
-        ActivityLog.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), Action.REPORT, 'contacts'
+        activityLogService.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), Action.REPORT, 'contacts'
     }
 
     def codes = {

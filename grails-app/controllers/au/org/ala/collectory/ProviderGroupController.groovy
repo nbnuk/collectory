@@ -16,7 +16,7 @@ abstract class ProviderGroupController {
     static String entityNameLower = "providerGroup"
     static int TRUNCATE_LENGTH = 255
 
-    def idGeneratorService, collectoryAuthService, metadataService, gbifService, dataImportService, providerGroupService
+    def idGeneratorService, collectoryAuthService, metadataService, gbifService, dataImportService, providerGroupService, activityLogService
 
     def auth() {
         if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_EDITOR) && !grailsApplication.config.security.cas.bypass.toBoolean()) {
@@ -650,7 +650,7 @@ abstract class ProviderGroupController {
                     File f = new File(colDir, filename)
                     log.debug "saving ${filename} to ${f.absoluteFile}"
                     file.transferTo(f)
-                    //ActivityLog.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), Action.UPLOAD_IMAGE, filename
+                    activityLogService.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), Action.UPLOAD_IMAGE, filename
                 } else {
                     println "reject file of size ${file.size}"
                     pg.errors.rejectValue('imageRef', 'image.too.big', message(code: "provider.group.controller.13", default: "The image you selected is too large. Images are limited to 200KB."))
@@ -750,7 +750,7 @@ abstract class ProviderGroupController {
             if (collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN) || grailsApplication.config.security.cas.bypass.toBoolean()) {
                 def name = pg.name
                 log.info ">>${collectoryAuthService?.username()} deleting ${entityName} " + name
-                //ActivityLog.log collectoryAuthService?.username(), authService?.userInRole(grailsApplication.config.ROLE_ADMIN), pg.uid, Action.DELETE
+                activityLogService.log collectoryAuthService?.username(), authService?.userInRole(grailsApplication.config.ROLE_ADMIN), pg.uid, Action.DELETE
                 try {
                     // remove contact links (does not remove the contact)
                     ContactFor.findAllByEntityUid(pg.uid).each {

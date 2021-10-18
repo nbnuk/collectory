@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat
 
 class DataController {
 
-    def crudService, emlRenderService, collectoryAuthService, metadataService, providerGroupService, gbifRegistryService
+    def crudService, emlRenderService, collectoryAuthService, metadataService, providerGroupService, gbifRegistryService, activityLogService
 
     def index = { }
 
@@ -786,7 +786,7 @@ class DataController {
             def c = Contact.get(params.id)
             if (c) {
                 // remove its links as well
-                ActivityLog.log session.username as String, true, Action.DELETE, "contact ${c.buildName()}"
+                activityLogService.log session.username as String, true, Action.DELETE, "contact ${c.buildName()}"
                 // need to delete any ContactFor links first
                 ContactFor.findAllByContact(c).each {
                     it.delete(flush: true)
@@ -950,7 +950,7 @@ class DataController {
             } else {
                 //println "OK"
                 // register the event
-                ActivityLog.log([user: 'notify-service', isAdmin: false, action: "${action}d ${id}", entityUid: uid])
+                activityLogService.log([user: 'notify-service', isAdmin: false, action: "${action}d ${id}", entityUid: uid])
                 success "notification accepted"
             }
         }

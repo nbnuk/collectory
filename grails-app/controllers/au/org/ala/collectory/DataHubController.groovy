@@ -47,8 +47,10 @@ class DataHubController extends ProviderGroupController {
                 }
                 // now delete
                 try {
-                    ActivityLog.log username(), isAdmin(), params.id as long, Action.DELETE
-                    instance.delete(flush: true)
+                    activityLogService.log username(), isAdmin(), params.id as long, Action.DELETE
+                    DataHub.withTransaction {
+                        instance.delete(flush: true)
+                    }
                     flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'dataHub.label', default: 'dataHub'), params.id])}"
                     redirect(action: "list")
                 }
