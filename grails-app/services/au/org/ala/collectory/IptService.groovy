@@ -172,7 +172,7 @@ class IptService {
         def base = new URL(url)
         def rsspath = new URL(base, RSS_PATH)
         log.info("Scanning ${rsspath} from ${base}")
-        def rss = new URL(rsspath).get([:])
+        def rss = rsspath.get([:])
         rss.declareNamespace(NAMESPACES)
         def items = rss.channel.item
 

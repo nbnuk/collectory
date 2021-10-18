@@ -77,6 +77,8 @@ class IptController {
             }
         } catch (Exception e){
             log.error("Problem scanning IPT endpoint: " + e.getMessage(), e)
+            render (status: 500, text: "Problem scanning data provider " + params.uid)
+            return
         }
     }
 

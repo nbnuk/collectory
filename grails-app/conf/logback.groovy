@@ -7,6 +7,12 @@ import java.nio.charset.StandardCharsets
 conversionRule 'clr', ColorConverter
 conversionRule 'wex', WhitespaceThrowableProxyConverter
 
+logDir = "/tmp/"
+
+if (new File("/var/log/tomcat9/").exists()){
+    logDir = "/var/log/tomcat9/"
+}
+
 // See http://logback.qos.ch/manual/groovy.html for details on configuration
 appender('STDOUT', ConsoleAppender) {
     encoder(PatternLayoutEncoder) {
@@ -21,7 +27,7 @@ appender('STDOUT', ConsoleAppender) {
 }
 
 appender('COLLECTORY_LOG', RollingFileAppender) {
-    file = "/var/log/tomcat9/collectory.log"
+    file = logDir + "collectory.log"
     encoder(PatternLayoutEncoder) {
         pattern =
                 '%d{yyyy-MM-dd HH:mm:ss.SSS} ' + // Date
@@ -31,7 +37,7 @@ appender('COLLECTORY_LOG', RollingFileAppender) {
                         '%m%n%wex' // Message
     }
     rollingPolicy(FixedWindowRollingPolicy) {
-        fileNamePattern = "/var/log/tomcat9/collectory.log.%i.log.gz"
+        fileNamePattern = logDir + "collectory.log.%i.log.gz"
         minIndex=1
         maxIndex=4
     }
