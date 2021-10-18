@@ -21,14 +21,23 @@ class EmlImportService {
         email: { eml ->  eml.dataset.contact?.electronicMailAddress?.text() },
         rights: { eml ->  this.collectParas(eml.dataset.intellectualRights?.para) },
         citation: { eml ->  eml.additionalMetadata?.metadata?.gbif?.citation?.text() },
-
         state: { eml ->
-            def state = eml.dataset.contact?.address?.administrativeArea?.text()
 
-            if (state)
-                state = this.dataLoaderService.massageState(state)
+            def state = ""
+            def administrativeAreas = eml.dataset.contact?.address?.administrativeArea
+            if (administrativeAreas){
+
+                if (administrativeAreas.size() > 1){
+                    state = administrativeAreas.first().text()
+                } else {
+                    state = administrativeAreas.text()
+                }
+                if (state) {
+                    state = this.dataLoaderService.massageState(state)
+                }
+            }
+            state
         },
-
         phone: { eml ->  eml.dataset.contact?.phone?.text() },
 
         //geographic coverage
@@ -70,7 +79,7 @@ class EmlImportService {
         def rights = this.collectParas(eml.dataset.intellectualRights?.para)
 
         def matchedLicence = Licence.findByAcronym(rights)
-        if(!matchedLicence) {
+        if (!matchedLicence) {
             //attempt to match the licence
             def licenceUrl = eml.dataset.intellectualRights?.para?.ulink?.@url.text()
             def licence = Licence.findByUrl(licenceUrl)
@@ -102,32 +111,33 @@ class EmlImportService {
      * @param connParams
      * @return
      */
-    def extractFromEml(eml, dataResource){
+    def extractContactsFromEml(eml, dataResource){
 
         def contacts = []
 
         emlFields.each { name, accessor ->
             def val = accessor(eml)
-            if (val != null)
+            if (val != null) {
                 dataResource.setProperty(name, val)
+            }
         }
 
         //add a contacts...
-        if(eml.dataset.creator){
+        if (eml.dataset.creator){
             eml.dataset.creator.each {
                 def contact = addContact(it)
-                if(contact){
+                if (contact){
                     contacts << contact
                 }
             }
         }
 
-        if( eml.dataset.metadataProvider
+        if (eml.dataset.metadataProvider
                 && eml.dataset.metadataProvider.electronicMailAddress != eml.dataset.creator.electronicMailAddress){
 
             eml.dataset.metadataProvider.each {
                 def contact = addContact(it)
-                if(contact){
+                if (contact){
                     contacts << contact
                 }
             }
@@ -138,20 +148,22 @@ class EmlImportService {
 
     private def addContact(emlElement){
         def contact = Contact.findByEmail(emlElement.electronicMailAddress)
-        if(!contact){
+        if (!contact){
             contact = new Contact()
             contact.firstName = emlElement.individualName.givenName
             contact.lastName = emlElement.individualName.surName
             contact.email = emlElement.electronicMailAddress
             contact.setUserLastModified(collectoryAuthService.username())
-            if(contact.validate()){
-                contact.save(flush:true, failOnError: true)
-                return contact
-            } else {
-                contact.errors.each {
-                    log.error("Problem creating contact: " + it)
+            Contact.withTransaction {
+                if (contact.validate()) {
+                    contact.save(flush: true, failOnError: true)
+                    return contact
+                } else {
+                    contact.errors.each {
+                        log.error("Problem creating contact: " + it)
+                    }
+                    return null
                 }
-                return null
             }
         }
         contact

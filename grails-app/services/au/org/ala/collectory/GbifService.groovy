@@ -120,7 +120,9 @@ class GbifService {
         if (!dr){
             dr = crudService.insertDataResource(json)
         } else {
-            crudService.updateDataResource(dr, json)
+            DataResource.withTransaction {
+                crudService.updateDataResource(dr, json)
+            }
         }
         dr.lastChecked = (new Date()).toTimestamp()
 

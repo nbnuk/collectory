@@ -150,7 +150,7 @@ class DataImportService {
                 if (file.getName().startsWith(EML_FILE)) {
                     //open the XML file that contains the EML details for the GBIF resource
                     def xml = new XmlSlurper().parseText(zipFile.getInputStream(file).getText("UTF-8"))
-                    contacts = emlImportService.extractFromEml(xml, dataResource)
+                    contacts = emlImportService.extractContactsFromEml(xml, dataResource)
                 }
             }
         }

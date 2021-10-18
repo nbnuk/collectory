@@ -211,7 +211,7 @@ class Institution implements ProviderGroup, Serializable {
         def uids = [uid]
         if (childInstitutions) {
             childInstitutions.tokenize(' ').each {
-                def child = _get(it as String)
+                def child = au.org.ala.collectory.Institution.findByUid(it as String)
                 if (child) {
                     uids += child.descendantUids()
                 }

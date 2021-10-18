@@ -1,7 +1,5 @@
 package au.org.ala.collectory
 
-import groovy.util.slurpersupport.GPathResult
-import java.nio.charset.StandardCharsets
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -113,17 +111,21 @@ class IptService {
                     }
                     old.userLastModified = username
                     if (create) {
-                        old.save(flush: true)
-                        old.errors.each {
-                            log.debug it
-                        }
+                        DataResource.withTransaction {
+                            old.save(flush: true)
+                            if (old.hasErrors()) {
+                                old.errors.each {
+                                    log.debug it.toString()
+                                }
+                            }
 
-                        def emails = old.getContacts().collect { it.contact.email }
+                            def emails = old.getContacts().collect { it.contact.email }
 
-                        //sync contacts
-                        update.contacts.each { contact ->
-                            if(!emails.contains(contact.email)){
-                                old.addToContacts(contact, null, false, true, collectoryAuthService.username())
+                            //sync contacts
+                            update.contacts.each { contact ->
+                                if (!emails.contains(contact.email)) {
+                                    old.addToContacts(contact, null, false, true, collectoryAuthService.username())
+                                }
                             }
                         }
 
@@ -137,9 +139,11 @@ class IptService {
                     update.resource.uid = idGeneratorService.getNextDataResourceId()
                     update.resource.userLastModified = username
                     try {
-                        update.resource.save(flush: true, failOnError: true)
-                        update.contacts.each { contact ->
-                            update.resource.addToContacts(contact, null, false, true, collectoryAuthService.username())
+                        DataResource.withTransaction {
+                            update.resource.save(flush: true, failOnError: true)
+                            update.contacts.each { contact ->
+                                update.resource.addToContacts(contact, null, false, true, collectoryAuthService.username())
+                            }
                         }
                         activityLogService.log username, admin, Action.CREATE, "Created new IPT data resource for provider " + provider.uid  + " with uid " + update.resource.uid + " for dataset " + update.resource.websiteUrl
                     } catch (Exception e){
@@ -149,7 +153,7 @@ class IptService {
                 merged << update.resource
             }
         }
-        return merged
+        merged
     }
 
     /**
@@ -169,14 +173,13 @@ class IptService {
             url = url + "/"
         }
 
-        def base = new URL(url)
-        def rsspath = new URL(base, RSS_PATH)
+        URL base = new URL(url)
+        URL rsspath = new URL(base, RSS_PATH)
         log.info("Scanning ${rsspath} from ${base}")
-        def rss = rsspath.get([:])
+        def rss = new XmlSlurper().parse(rsspath.openStream())
         rss.declareNamespace(NAMESPACES)
         def items = rss.channel.item
-
-        return items.collect { item -> this.createDataResource(provider, item, keyName, isShareableWithGBIF) }
+        items.collect { item -> this.createDataResource(provider, item, keyName, isShareableWithGBIF) }
     }
 
     /**
@@ -188,7 +191,7 @@ class IptService {
      *
      * @return A created resource matching the information provided
      */
-    def createDataResource(DataProvider provider, GPathResult rssItem, String keyName, Boolean isShareableWithGBIF) {
+    def createDataResource(DataProvider provider, rssItem, String keyName, Boolean isShareableWithGBIF) {
         def resource = new DataResource()
         def eml = rssItem."ipt:eml"?.text()
         def dwca = rssItem."ipt:dwca"?.text()
@@ -196,7 +199,7 @@ class IptService {
         resource.dataProvider = provider
         rssFields.each { name, accessor -> resource.setProperty(name, accessor(rssItem))}
 
-        resource.connectionParameters =  dwca == null || dwca.isEmpty() ? null : "{ \"protocol\": \"DwCA\", \"url\": \"${dwca}\", \"automation\": true, \"termsForUniqueKey\": [ \"${keyName}\" ] }";
+        resource.connectionParameters =  dwca == null || dwca.isEmpty() ? null : """{ "protocol": "DwCA", "url": "${dwca}", "automation": true, "termsForUniqueKey": [ "${keyName}" ] }"""
         resource.isShareableWithGBIF = isShareableWithGBIF
 
         def contacts = []
@@ -215,10 +218,16 @@ class IptService {
      *
      */
     def retrieveEml(DataResource resource, String url) {
-        log.debug("Retrieving EML from " + url)
-        def http = new URL(url)
-        http.encoders.charset = StandardCharsets.UTF_8.name()
-        def eml = http.get([:]).declareNamespace(NAMESPACES)
-        emlImportService.extractFromEml(eml, resource)
+        try {
+            log.info("Retrieving EML from " + url)
+            def http = new URL(url)
+            XmlSlurper xmlSlurper = new XmlSlurper()
+            xmlSlurper.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false)
+            def eml = xmlSlurper.parse(http.openStream()).declareNamespace(NAMESPACES)
+            emlImportService.extractContactsFromEml(eml, resource)
+        } catch (Exception e){
+            log.error("Problem retrieving EML from: " + url, e)
+            []
+        }
     }
 }

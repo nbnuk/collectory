@@ -408,12 +408,14 @@ class CrudService {
         }
     }
 
-    @Transactional
     def updateDataResource(dr, obj) {
         updateBaseProperties(dr, obj)
         updateDataResourceProperties(dr, obj)
         dr.userLastModified = obj.user ?: 'Data services'
         if (!dr.hasErrors()) {
+            if (!dr.attached){
+                dr.attach()
+            }
             dr.save(flush: true)
         }
         dr
@@ -487,7 +489,9 @@ class CrudService {
         updateTempDataResourceProperties(drt, obj)
         //drt.userLastModified = obj.user ?: 'Data services'
         if (!drt.hasErrors()) {
-             drt.save(flush: true)
+            DataResource.withTransaction {
+                drt.save(flush: true)
+            }
         }
         return drt
     }
@@ -497,7 +501,9 @@ class CrudService {
         updateTempDataResourceProperties(drt, obj)
         //drt.userLastModified = obj.user ?: 'Data services'
         if (!drt.hasErrors()) {
-             drt.save(flush: true)
+            DataResource.withTransaction {
+                drt.save(flush: true)
+            }
         }
         return drt
     }
@@ -610,17 +616,6 @@ class CrudService {
         updateExternalIdentifiers(inst, obj)
     }
 
-    /* collection */
-
-    /*def basics = { c ->
-        { it ->
-            name = c.name
-            acronym = c.acronym
-            uid = c.uid
-            guid = c.guid
-        }
-    }*/
-
     def readCollection(Collection p) {
         def builder = new JSONBuilder()
 
@@ -729,7 +724,9 @@ class CrudService {
         updateCollectionProperties(inst, obj)
         inst.userLastModified = obj.user ?: 'Data services'
         if (!inst.hasErrors()) {
-             inst.save(flush: true)
+            Collection.withTransaction {
+                inst.save(flush: true)
+            }
         }
         return inst
     }
@@ -742,7 +739,9 @@ class CrudService {
             inst.errors.each { log.error it }
         }
         else {
-             inst.save(flush: true)
+            Collection.withTransaction {
+                inst.save(flush: true)
+            }
         }
         return inst
     }
