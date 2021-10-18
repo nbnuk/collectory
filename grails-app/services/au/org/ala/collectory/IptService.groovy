@@ -18,7 +18,7 @@ class IptService {
 
     static transactional = true
     def grailsApplication
-    def idGeneratorService, emlImportService, collectoryAuthService
+    def idGeneratorService, emlImportService, collectoryAuthService, activityLogService
 
     /** The standard IPT service namespace for XML documents */
     static final NAMESPACES = [
@@ -78,7 +78,7 @@ class IptService {
      */
     @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRED)
     def scan(DataProvider provider, boolean create, boolean check, String keyName, String username, boolean admin, boolean shareWithGbif) {
-        ActivityLog.log username, admin, provider.uid, Action.SCAN
+        activityLogService.log username, admin, provider.uid, Action.SCAN
         def updates = this.rss(provider, keyName, shareWithGbif)
 
         return merge(provider, updates, create, check, username, admin)
@@ -127,7 +127,7 @@ class IptService {
                             }
                         }
 
-                        ActivityLog.log username, admin, Action.EDIT_SAVE, "Updated IPT data resource " + old.uid + " from scan"
+                        activityLogService.log username, admin, Action.EDIT_SAVE, "Updated IPT data resource " + old.uid + " from scan"
                     }
 
                     merged << old
@@ -141,7 +141,7 @@ class IptService {
                         update.contacts.each { contact ->
                             update.resource.addToContacts(contact, null, false, true, collectoryAuthService.username())
                         }
-                        ActivityLog.log username, admin, Action.CREATE, "Created new IPT data resource for provider " + provider.uid  + " with uid " + update.resource.uid + " for dataset " + update.resource.websiteUrl
+                        activityLogService.log username, admin, Action.CREATE, "Created new IPT data resource for provider " + provider.uid  + " with uid " + update.resource.uid + " for dataset " + update.resource.websiteUrl
                     } catch (Exception e){
                         log.error("Unable to persist resource " + update.resource, e)
                     }
