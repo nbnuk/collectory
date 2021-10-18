@@ -135,10 +135,21 @@ class GbifController {
             // look in the standard place - http apiKey param
             apiKey = params.apiKey
         }
+
+        if (!apiKey || !apiKey.value){
+            response.sendError(401)
+            return
+        }
+
         def keyCheck =  collectoryAuthService.checkApiKey(apiKey.value)
 
         if (!keyCheck || !keyCheck.valid){
-            response.sendError(401)
+            response.sendError(401, "Invalid key suppliied")
+            return
+        }
+
+        if (!params.uid || !params.uid.startsWith('dp')){
+            response.sendError(400, "No valid UID supplied")
             return
         }
 
