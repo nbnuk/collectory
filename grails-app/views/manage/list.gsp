@@ -82,7 +82,6 @@
                         <cl:ifNotGranted role="ROLE_COLLECTION_ADMIN">
                             <p style="font-style: italic;margin: 10px;color: black;"><g:message code="manage.list.des06" />.</p>
                         </cl:ifNotGranted>
-
                         <cl:ifGranted role="ROLE_COLLECTION_EDITOR">
                             <p><g:message code="manage.list.des07" />.</p>
                         </cl:ifGranted>
@@ -230,12 +229,6 @@
                         <g:link class="mainLink" controller="admin" action="export"><g:message code="manage.list.addtools.eadaj" /></g:link>
                         <p class="mainText hide"><g:message code="manage.list.addtools.des13" />.</p>
                     </div>
-
-%{--                    <div class="homeCell btn btn-default">--}%
-%{--                        <g:link class="mainLink" controller="auditLogEvent" action="list" params="[max:1000]"><g:message code="manage.list.addtools.vae" /></g:link>--}%
-%{--                        <p class="mainText hide"><g:message code="manage.list.addtools.des14" /></p>--}%
-%{--                    </div>--}%
-
                   </div>
                   <div>
                       <h4>Data sync with GBIF</h4>

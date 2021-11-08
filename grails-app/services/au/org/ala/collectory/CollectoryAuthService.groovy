@@ -2,6 +2,9 @@ package au.org.ala.collectory
 import grails.converters.JSON
 import org.springframework.web.context.request.RequestContextHolder
 
+import javax.servlet.http.HttpServletRequest
+import java.security.Principal
+
 class CollectoryAuthService{
 
     static transactional = false
@@ -12,8 +15,8 @@ class CollectoryAuthService{
 
     def username() {
         def username = 'not available'
-        if(RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()?.attributes?.email)
-            username = RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()?.attributes?.email
+        if (RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()?.principal?.attributes?.email)
+            username = RequestContextHolder.currentRequestAttributes()?.getUserPrincipal().principal?.attributes?.email
         else {
             if(authService)
                 username = authService.email
@@ -34,9 +37,10 @@ class CollectoryAuthService{
         return adminFlag
     }
 
+
     protected boolean userInRole(role) {
         def roleFlag = false
-        if(grailsApplication.config.security.cas.bypass?:''.toBoolean())
+        if (grailsApplication.config.security.cas.bypass?:''.toBoolean())
             roleFlag = true
         else {
             if (authService != null) {
@@ -55,7 +59,7 @@ class CollectoryAuthService{
             if(email) {
                 return providerGroupService._get(uid)?.isAuthorised(email)
             } else {
-                if(authService) {
+                if (authService) {
                     email = authService.email
                     if(email)
                         return providerGroupService._get(uid)?.isAuthorised(email)

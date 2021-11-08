@@ -5,6 +5,8 @@ import grails.converters.JSON
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.multipart.MultipartFile
 
+import java.security.Principal
+
 /**
  * This is a base class for all provider group entities types.
  *
@@ -32,8 +34,18 @@ abstract class ProviderGroupController {
     }
 
     protected isAdmin = {
-        collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN) ?: false
+        if (request.isUserInRole(grailsApplication.config.ROLE_ADMIN)) {
+            return true
+        }
+        Principal principal = request.getUserPrincipal()
+        if (principal && principal.principal?.attributes?.role){
+            if (principal.principal.attributes.role.contains(grailsApplication.config.ROLE_ADMIN)){
+                return true
+            }
+        }
+        false
     }
+
     /*
      End access control
      */
@@ -841,9 +853,12 @@ abstract class ProviderGroupController {
         if (grailsApplication.config.security.cas.bypass.toBoolean() || isAdmin()) {
             return true
         } else {
-            def email = RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()?.attributes?.email
+            def email = RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()?.principal?.attributes?.email
             if (email) {
-                return providerGroupService._get(uid)?.isAuthorised(email)
+                ProviderGroup pg = providerGroupService._get(uid)
+                if (pg) {
+                    pg.isAuthorised(email)
+                }
             }
         }
         return false

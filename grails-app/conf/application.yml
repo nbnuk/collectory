@@ -23,6 +23,15 @@ info:
         version: '@info.app.version@'
         grailsVersion: '@info.app.grailsVersion@'
 spring:
+    security:
+        oauth2:
+            client:
+                registration:
+                    ala:
+                        scope: openid,profile,email,ala,roles
+                provider:
+                    ala:
+                        issuer-uri: https://nectar-auth-dev.ala.org.au/cas/oidc
     jmx:
         unique-names: true
     main:
@@ -145,36 +154,39 @@ headerAndFooter:
     baseURL: https://www.ala.org.au/commonui-bs3-2019
     version: 2
 
+
+
+
 security:
     apikey:
         checkEnabled: true
         serviceUrl: https://auth-test.ala.org.au/apikey/ws/check?apikey=
     cas:
-        casServerName: https://auth-test.ala.org.au
-        uriFilterPattern:
-            - /admin.*
-            - /collection.*
-            - /institution.*
-            - /contact.*
-            - /reports.*
-            - /providerCode.*
-            - /providerMap.*
-            - /dataProvider.*
-            - /dataResource.*
-            - /dataHub.*
-            - /manage/.*
-            - /alaAdmin.*
-        authenticateOnlyIfCookieFilterPattern:
-            - /public/show.*
-        uriExclusionFilterPattern:
-            - /images.*
-            - /css.*
-            - /js.*
-            - /static.*
-        appServerName: http://dev.ala.org.au:8080
-        casServerUrlPrefix: https://auth-test.ala.org.au/cas
-        loginUrl: https://auth-test.ala.org.au/cas/login
-        logoutUrl: https://auth-test.ala.org.au/cas/logout
+#        casServerName: https://auth-test.ala.org.au
+#        uriFilterPattern:
+#            - /admin.*
+#            - /collection.*
+#            - /institution.*
+#            - /contact.*
+#            - /reports.*
+#            - /providerCode.*
+#            - /providerMap.*
+#            - /dataProvider.*
+#            - /dataResource.*
+#            - /dataHub.*
+#            - /manage/.*
+#            - /alaAdmin.*
+#        authenticateOnlyIfCookieFilterPattern:
+#            - /public/show.*
+#        uriExclusionFilterPattern:
+#            - /images.*
+#            - /css.*
+#            - /js.*
+#            - /static.*
+#        appServerName: http://dev.ala.org.au:8080
+#        casServerUrlPrefix: https://auth-test.ala.org.au/cas
+#        loginUrl: https://auth-test.ala.org.au/cas/login
+#        logoutUrl: https://auth-test.ala.org.au/cas/logout
         bypass: false
         authCookieName: ALA-Auth-Test
 
@@ -195,6 +207,23 @@ ROLE_ADMIN: 'ROLE_ADMIN'
 
 rifcs:
     excludeBounds: true
+
+api:
+    whitelist:
+        enabled: false
+    legacy:
+        enabled: false
+    jwt:
+        enabled: true
+
+jwk:
+    url: https://nectar-auth-dev.ala.org.au/cas/oidc/jwks
+
+# As every authenticated request is associated with a user
+legacy_whitelist:
+    userId: '1'
+    roles:
+        - 'ROLE_ADMIN'
 
 # URL paths for archives
 resource.publicArchive.url.template: "https://biocache.ala.org.au/archives/gbif/@UID@/@UID@.zip"

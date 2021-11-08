@@ -8,6 +8,10 @@ import groovy.xml.MarkupBuilder
 import org.grails.web.converters.exceptions.ConverterException
 import org.grails.web.json.JSONArray
 
+import javax.servlet.http.HttpServlet
+import javax.servlet.http.HttpServletRequest
+import java.nio.file.attribute.UserPrincipal
+import java.security.Principal
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -17,14 +21,6 @@ class CollectoryTagLib {
     def collectoryAuthService, metadataService, providerGroupService
 
     static namespace = 'cl'
-
-    def loggedInName = {
-        if (AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
-            out << "logged in as ${AuthenticationCookieUtils.getUserName(request, grailsApplication.config.security.cas.authCookieName)}"
-        } else {
-            out << "no cookie found"
-        }
-    }
 
     def getFacetForEntity(entity){
         if(entity.ENTITY_TYPE == 'DataResource')
@@ -140,7 +136,7 @@ class CollectoryTagLib {
         } else {
             def roles = attrs.role.toString().tokenize(',')
             roles.each {
-                if (!request.isUserInRole(it)) {
+                if (!isUserInRole(request, it)) {
                     granted = false
                 }
             }
@@ -157,7 +153,7 @@ class CollectoryTagLib {
      * @attr role the role to check
      */
     def ifGranted = { attrs, body ->
-        if (grailsApplication.config.security.cas.bypass.toBoolean() || request.isUserInRole(attrs.role)) {
+        if (grailsApplication.config.security?.cas?.bypass?:''.toBoolean() || isUserInRole(request, attrs.role)) {
             out << body()
         }
     }
@@ -169,23 +165,11 @@ class CollectoryTagLib {
      * @attr role the role to check
      */
     def ifNotGranted = { attrs, body ->
-        if (!grailsApplication.config.security.cas.bypass.toBoolean() && !request.isUserInRole(attrs.role)) {
+        if (!grailsApplication.config.security?.cas?.bypass?:'' .toBoolean() && !isUserInRole(request, attrs.role)) {
             out << body()
         }
     }
 
-    /**
-     * List interesting roles.
-     */
-    def roles = {
-        def roles = []
-        ['ROLE_ADMIN','ROLE_COLLECTION_EDITOR','ROLE_COLLECTION_ADMIN'].each {
-            if (collectoryAuthService.userInRole(it)) {
-                roles << it
-            }
-        }
-        out << roles.join(', ')
-    }
 
     def isLoggedIn = { attrs, body ->
         if (AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
@@ -200,7 +184,7 @@ class CollectoryTagLib {
     }
 
     def loggedInUsername = {
-        if (grailsApplication.config.security.cas.bypass.toBoolean()) {
+        if (grailsApplication.config.security?.cas?.bypass?:''.toBoolean()) {
             out << 'cas bypassed'
         }
         else if (request.getUserPrincipal()) {
@@ -212,7 +196,21 @@ class CollectoryTagLib {
     }
 
     private boolean isAdmin() {
-        return grailsApplication.config.security.cas.bypass?:''.toBoolean() || request?.isUserInRole(grailsApplication.config.ROLE_ADMIN)
+        return grailsApplication.config.security.cas.bypass?:''.toBoolean() || isUserInRole(request, grailsApplication.config.ROLE_ADMIN)
+    }
+
+
+    boolean isUserInRole(HttpServletRequest request, String role){
+        if (request.isUserInRole(role)) {
+            return true
+        }
+        Principal principal = request.getUserPrincipal()
+        if (principal && principal.principal?.attributes?.role){
+            if (principal.principal.attributes.role.contains(role)){
+                return true
+            }
+        }
+        false
     }
 
     /**
@@ -245,7 +243,7 @@ class CollectoryTagLib {
      * @attrs uid - the uid of the entity
      */
     def isAuth = { attrs, body ->
-            if (isAuthorisedToEdit(attrs.uid, request.getUserPrincipal()?.attributes?.email)) {
+        if (isAuthorisedToEdit(attrs.uid, request.getUserPrincipal()?.principal?.attributes?.email)) {
             out << body()
         } else {
             out << ' You are not authorised to change this record '// + debugString
@@ -1563,7 +1561,7 @@ class CollectoryTagLib {
      * @body the label for the button - defaults to 'Edit' if not specified
      */
     def editButton = { attrs, body ->
-        if (isAuthorisedToEdit(attrs.uid, request.getUserPrincipal()?.attributes?.email)) {
+        if (isAuthorisedToEdit(attrs.uid, request.getUserPrincipal()?.principal?.attributes?.email)) {
             def paramsMap
             // anchor class
             paramsMap = [class:'edit btn btn-default']
