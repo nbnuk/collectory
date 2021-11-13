@@ -46,7 +46,7 @@ appender('COLLECTORY_LOG', RollingFileAppender) {
     }
 }
 
-root(INFO, ['STDOUT'])
+root(DEBUG, ['STDOUT'])
 
 
 final error = [

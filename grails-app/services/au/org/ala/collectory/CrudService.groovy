@@ -7,7 +7,7 @@ import grails.converters.JSON
 import grails.web.JSONBuilder
 import org.grails.web.converters.exceptions.ConverterException
 
-import javax.transaction.Transactional
+import java.security.Principal
 import java.text.SimpleDateFormat
 import org.grails.web.json.JSONObject
 
@@ -71,8 +71,6 @@ class CrudService {
     def has = {map, key ->
         return map.keySet().contains(key)
     }
-
-    /* data provider */
 
     def readDataProvider(DataProvider p) {
         def builder = new JSONBuilder()
@@ -147,21 +145,21 @@ class CrudService {
         return result
     }
 
-    def insertDataProvider(obj) {
+    def insertDataProvider(obj, Principal userPrincipal) {
         DataProvider dp = new DataProvider(uid: idGeneratorService.getNextDataProviderId())
         updateBaseProperties(dp, obj)
         updateDataProviderProperties(dp, obj)
-        dp.userLastModified = obj.user ?: 'Data services'
+        dp.userLastModified = userPrincipal?.getName() ?: 'Data services'
         if (!dp.hasErrors()) {
              dp.save(flush: true)
         }
         return dp
     }
     
-    def updateDataProvider(dp, obj) {
+    def updateDataProvider(dp, obj,  Principal userPrincipal) {
         updateBaseProperties(dp, obj)
         updateDataProviderProperties(dp, obj)
-        dp.userLastModified = obj.user ?: 'Data services'
+        dp.userLastModified =  userPrincipal?.getName() ?: 'Data services'
         if (!dp.hasErrors()) {
              dp.save(flush: true)
         }
@@ -391,12 +389,12 @@ class CrudService {
         return result
     }
 
-    def insertDataResource(obj) {
+    def insertDataResource(obj, Principal userPrincipal) {
         try {
             DataResource dr = new DataResource(uid: idGeneratorService.getNextDataResourceId())
             updateBaseProperties(dr, obj)
             updateDataResourceProperties(dr, obj)
-            dr.userLastModified = obj.user ?: 'Data services'
+            dr.userLastModified = userPrincipal?.getName() ?: 'Data services'
             if (!dr.hasErrors()) {
                 DataResource.withTransaction {
                     dr.save(flush: true)
@@ -408,10 +406,10 @@ class CrudService {
         }
     }
 
-    def updateDataResource(dr, obj) {
+    def updateDataResource(dr, obj, Principal userPrincipal) {
         updateBaseProperties(dr, obj)
         updateDataResourceProperties(dr, obj)
-        dr.userLastModified = obj.user ?: 'Data services'
+        dr.userLastModified = userPrincipal?.getName() ?: 'Data services'
         if (!dr.hasErrors()) {
             if (!dr.attached){
                 dr.attach()

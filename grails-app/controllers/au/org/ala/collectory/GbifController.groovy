@@ -1,5 +1,6 @@
 package au.org.ala.collectory
 
+import au.ala.org.ws.security.RequireAuth
 import au.org.ala.collectory.resources.gbif.GbifRepatDataSourceAdapter
 import grails.converters.JSON
 import groovy.json.JsonSlurper
@@ -128,6 +129,7 @@ class GbifController {
         [results:results, errorMessage:errorMessage]
     }
 
+    @RequireAuth(requiredRoles = ["ROLE_ADMIN", "ROLE_GBIF"])
     def scan(){
 
         def apiKey = request.cookies.find { cookie -> cookie.name == API_KEY_COOKIE }
@@ -138,13 +140,6 @@ class GbifController {
 
         if (!apiKey || !apiKey.value){
             response.sendError(401)
-            return
-        }
-
-        def keyCheck =  collectoryAuthService.checkApiKey(apiKey.value)
-
-        if (!keyCheck || !keyCheck.valid){
-            response.sendError(401, "Invalid key suppliied")
             return
         }
 

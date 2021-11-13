@@ -169,7 +169,7 @@ class UrlMappings {
         // download limits
         "/ws/downloadLimits"(controller: 'lookup', action: 'downloadLimits')
 
-        // eml
+        // Eml
         "/eml/$id?"(controller: 'data', action: 'eml')
         // preferred
         "/ws/eml/$id?"(controller: 'data', action: 'eml')
@@ -194,7 +194,8 @@ class UrlMappings {
         "/ws/dataResource/contacts/$uid(.$format)?"(controller: 'data', action: 'contactsForDataResources')
         "/ws/dataHub/contacts/$uid(.$format)?"(controller: 'data', action: 'contactsForDataHubs')
         "/ws/syncGBIF"(controller: 'data', action: 'syncGBIF')
-        "/ws"(controller: 'data', action: 'catalogue')
+        "/ws/old"(controller: 'data', action: 'catalogue')
+        "/ws"(controller: 'data', action: 'openapi')
         "/showConsumers/$id(.$format)?"(controller: 'entity', action: 'showConsumers')
         "/showProviders/$id(.$format)?"(controller: 'entity', action: 'showProviders')
 
@@ -210,9 +211,9 @@ class UrlMappings {
         "/"(controller: 'public', action: 'map')
 
         "/error"(view: '/error')
-        "401"(view: '/error')
-        "403"(view: '/error')
-        "404"(view: '/error')
+        "401"(view: '/notAuthorized')
+        "403"(view: '/forbidden')
+        "404"(view: '/notFound')
         "400"(view: '/error')
         "500"(view: '/error')
     }

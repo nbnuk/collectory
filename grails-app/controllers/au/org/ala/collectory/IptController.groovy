@@ -1,5 +1,6 @@
 package au.org.ala.collectory
 
+import au.ala.org.ws.security.RequireAuth
 import com.opencsv.CSVWriter
 import grails.converters.JSON
 import grails.converters.XML
@@ -36,23 +37,15 @@ class IptController {
      * Output formats are JSON, XML or plain text (the default). Plain text is a list of updatable data resource ids
      * suitable for feeding into a shell script.
      */
+    @RequireAuth(requiredRoles = ["ROLE_ADMIN", "ROLE_IPT_SCAN"])
     def scan() {
         def create = params.create != null && params.create.equalsIgnoreCase("true")
         def check = params.check == null || !params.check.equalsIgnoreCase("false")
         def keyName = params.key ?: 'catalogNumber'
         def isShareableWithGBIF = params.isShareableWithGBIF ? params.isShareableWithGBIF.toBoolean(): true
         def provider = providerGroupService._get(params.uid)
-        def apiKey = request.cookies.find { cookie -> cookie.name == API_KEY_COOKIE }
-        if (!apiKey){
-            // look in the standard place - http apiKey param
-            apiKey = params.apiKey
-        }
-        def keyCheck = apiKey ? collectoryAuthService.checkApiKey(apiKey.value) : null
-        def username = keyCheck?.userEmail ?: collectoryAuthService.username()
-        def admin = keyCheck?.valid || collectoryAuthService.userInRole(grailsApplication.config.ROLE_ADMIN)
-
-        log.debug "Access via apikey: ${keyCheck}, user ${username}, admin ${admin}"
-        if (create && !admin) {
+        def username = request.getUserPrincipal().getName()
+        if (create) {
             render (status: 403, text: "Unable to create resources for " + params.uid)
             return
         }

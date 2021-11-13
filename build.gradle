@@ -118,13 +118,11 @@ dependencies {
     compile "commons-io:commons-io:2.11.0"
 
     compile "mysql:mysql-connector-java:8.0.25"
-    compile "org.grails.plugins:ala-bootstrap3:3.2.4"
+    compile "org.grails.plugins:ala-bootstrap3:3.3.0-SNAPSHOT"
     compile "au.org.ala.plugins.grails:ala-charts-plugin:2.1.1"
 
-
     compile 'org.springframework.boot:spring-boot-starter-oauth2-client'
-//    compile "org.grails.plugins:ala-auth:3.2.3"
-
+    compile 'org.webjars:swagger-ui:4.1.0'
 
     compile "org.grails.plugins:audit-logging:4.0.3"
     compile "org.grails.plugins:external-config:2.0.0"

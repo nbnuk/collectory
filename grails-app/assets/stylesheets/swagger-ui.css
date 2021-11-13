@@ -1,0 +1,11 @@
+/*
+* Include webjar swagger
+*= require /webjars/swagger-ui/4.1.0/swagger-ui
+*/
+.swagger-ui .info {
+    margin: 0;
+}
+.swagger-ui .info .title .version {
+    background: transparent;
+    border: none;
+}

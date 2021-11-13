@@ -1,4 +1,6 @@
 package au.org.ala.collectory
+
+import au.ala.org.ws.security.RequireAuth
 import grails.converters.JSON
 import grails.util.Holders
 import groovy.xml.MarkupBuilder
@@ -59,47 +61,16 @@ class DataController {
                     return false
                 }
             }
-            // all data modifications (except deletes) by ws require a valid api key in the body
-            if (!params.json && request.method != 'DELETE') {
-                unauthorised()
-                return false
-            }
 
-            String apiKey = getApiKey(params)
-            if (!apiKey){
-                noApiKey()
-                return false
-            }
-
-            def keyCheck = collectoryAuthService?.checkApiKey(apiKey)
-            if (!keyCheck.valid) {
-                unauthorised()
-                return false
-            }
-            // inject the user name into the session so it can be used by audit logging if changes are made
-            session.username = keyCheck.app ?: (keyCheck.userEmail ?: params.json.user)
+            session.username = request.getUserPrincipal().getName()
         }
         return true
     }
 
-    private String getApiKey(params) {
-        def apiKey = {
-            if (params.json && params.json.api_key) {
-                params.json.api_key
-            } else if (params.json && params.json.apiKey) {
-                params.json.apiKey
-            } else if (params.json && params.json.Authorization) {
-                params.json.Authorization
-            } else {
-                request.getHeader("Authorization")
-            }
-        }.call()
-        apiKey
-    }
-
     /******* Web Services Catalogue *******/
 
-    def catalogue = { }
+    def catalogue = {}
+    def openapi = {}
 
     /***** CRUD RESTful services ********/
 
@@ -195,26 +166,6 @@ class DataController {
         render(status:400, text: 'This service requires API key')
     }
 
-    def checkApiKey = {
-        def apiKey = {
-            if (params.api_key) {
-                params.api_key
-            } else if (params.apiKey){
-                params.apiKey
-            } else {
-                request.getHeader("Authorization")
-            }
-        }.call()
-        def keyCheck
-        if (apiKey) {
-            keyCheck = collectoryAuthService?.checkApiKey(apiKey)
-        }
-        if (!keyCheck?.valid) {
-            return false
-        }
-        return true
-    }
-
     /**
      * Should be added for any uri that returns multiple formats based on content negotiation.
      * (So the content can be correctly cached by proxies.)
@@ -250,7 +201,11 @@ class DataController {
      * @param pg - optional instance specified by uid (added in beforeInterceptor)
      * @param json - the body of the request
      */
-    def saveEntity = {
+    @RequireAuth
+    def saveEntity(){
+
+
+
         def ok = check(params)
         if (ok) {
             def pg = params.pg
@@ -262,7 +217,7 @@ class DataController {
                 // check type
                 if (pg.getClass().getSimpleName() == clazz) {
                     // update
-                    crudService."update${clazz}"(pg, obj)
+                    crudService."update${clazz}"(pg, obj, request.getUserPrincipal())
                     if (pg.hasErrors()) {
                         badRequest pg.errors
                     } else {
@@ -363,8 +318,8 @@ class DataController {
                 def eTag = (params.pg.uid + ":" + params.pg.lastUpdated).encodeAsMD5()
                 def entityInJson
                 if (clazz == 'DataResource') {
-                    def keyCheck = checkApiKey()
-                    entityInJson = crudService."read${clazz}"(params.pg, keyCheck)
+                    def isAdmin = request.isUserInRole("ROLE_ADMIN")
+                    entityInJson = crudService."read${clazz}"(params.pg, isAdmin)
                 } else {
                     entityInJson = crudService."read${clazz}"(params.pg)
                 }
@@ -432,13 +387,8 @@ class DataController {
         renderAsJson results, last, ""
     }
 
-    def syncGBIF = {
-        String apiKey = getApiKey(params)
-        def keyCheck = collectoryAuthService?.checkApiKey(apiKey)
-        if (!keyCheck.valid) {
-            unauthorised()
-            return false
-        }
+    @RequireAuth(requiredRoles = ["ROLE_ADMIN","ROLE_GBIF"])
+    def syncGBIF(){
         def results = gbifRegistryService.syncAllResources()
         renderAsJson results
     }
@@ -539,7 +489,8 @@ class DataController {
     /********* delete **************************
      *
      */
-    def delete = {
+    @RequireAuth
+    def delete () {
         if (grailsApplication.config.deletesForbidden) {
             render(status:405, text:'delete is currently unavailable')
             return
@@ -666,12 +617,8 @@ class DataController {
      * URI form: /contacts/{id}
      * @param id the database id of the contact
      */
-    def contacts = {
-
-        if (!checkApiKey()) {
-            unauthorised()
-            return
-        }
+    @RequireAuth(requiredRoles="ROLE_ADMIN")
+    def contacts() {
         if (params.id) {
             def c = Contact.get(params.id)
             if (c) {

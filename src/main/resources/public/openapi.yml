@@ -1,0 +1,253 @@
+openapi: "3.0.0"
+info:
+  title: "Registry service"
+  description: "Web services for the Registry"
+  version: "1.0"
+  contact:
+    name: "ALA Support"
+    url: "http://www.ala.org.au/"
+    email: "support@ala.org.au"
+  license:
+    name: "ALA licence"
+    url: "http://www.ala.org.au/"
+servers:
+  - url: /ws
+    description: Registry Base URL
+paths:
+  /dataResource:
+    post:
+      summary: Create Data Resource
+      description: Create a new Data Resource
+      requestBody:
+        description: Optional description
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataResource'
+      tags:
+        - Data resource
+      responses:
+        200:
+          description: 'Search results'
+  /dataResource/{uid}:
+    get:
+      summary: Get Data Resource
+      description: Create a new Data Resource
+      parameters:
+        - in: path
+          name: uid
+          schema:
+            type: string
+          required: true
+          description: UID for the data resource
+      tags:
+        - Data resource
+      responses:
+        200:
+          description: 'Search results'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataResource'
+    post:
+      summary: Update Data Resource
+      description: Update a new Data Resource
+      requestBody:
+        description: Optional description
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataResource'
+      tags:
+        - Data resource
+      responses:
+        200:
+          description: 'Search results'
+    delete:
+      summary: Delete Data Resource
+      description: Create a new Data Resource
+      parameters:
+        - in: path
+          name: uid
+          schema:
+            type: string
+          required: true
+          description: UID for the data resource
+      tags:
+        - Data resource
+      responses:
+        200:
+          description: 'Search results'
+  /dataProvider:
+    post:
+      summary: Create Data Resource
+      description: Create a new Data Resource
+      requestBody:
+        description: Optional description
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataProvider'
+      tags:
+        - Data provider
+      responses:
+        200:
+          description: 'Search results'
+  /dataProvider/{uid}:
+    get:
+      summary: Get Data Provider
+      description: Create a new Data Provider
+      parameters:
+        - in: path
+          name: uid
+          schema:
+            type: string
+          required: true
+          description: UID for the data provider
+      tags:
+        - Data provider
+      responses:
+        200:
+          description: 'Search results'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataProvider'
+    delete:
+      summary: Delete Data Provider
+      description: Create a new Data provider
+      parameters:
+        - in: path
+          name: uid
+          schema:
+            type: string
+          required: true
+          description: UID for the data resource
+      tags:
+        - Data provider
+      responses:
+        200:
+          description: 'Search results'
+  /institution:
+    post:
+      summary: Create Institution
+      description: Create a new Institution
+      requestBody:
+        description: Optional description
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Institution'
+      tags:
+        - Institution
+      responses:
+        200:
+          description: 'Search results'
+  /institution/{uid}:
+    get:
+      summary: Get institution
+      description: Create a new institution
+      parameters:
+        - in: path
+          name: uid
+          schema:
+            type: string
+          required: true
+          description: UID for the Institution
+      tags:
+        - Institution
+      responses:
+        200:
+          description: 'Search results'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Institution'
+    delete:
+      summary: Delete Institution
+      description: Create a new Institution
+      parameters:
+        - in: path
+          name: uid
+          schema:
+            type: string
+          required: true
+          description: UID for the Institution
+      tags:
+        - Institution
+      responses:
+        200:
+          description: 'Search results'
+  /collection:
+    post:
+      summary: Create Collection
+      description: Create a new Collection
+      requestBody:
+        description: Optional description
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Collection'
+      tags:
+        - Collection
+      responses:
+        200:
+          description: 'Search results'
+  /collection/{uid}:
+    get:
+      summary: Get collection
+      description: Create a new collection
+      parameters:
+        - in: path
+          name: uid
+          schema:
+            type: string
+          required: true
+          description: UID for the collection
+      tags:
+        - Collection
+      responses:
+        200:
+          description: 'Search results'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+    delete:
+      summary: Delete Collection
+      description: Delete Collection
+      parameters:
+        - in: path
+          name: uid
+          schema:
+            type: string
+          required: true
+          description: UID for the Collection
+      tags:
+        - Collection
+      responses:
+        200:
+          description: 'Search results'
+components:
+  schemas:
+    DataResource:
+      type: string
+      description: Data Resource metadata in JSON
+    DataProvider:
+      type: string
+      description: Data Provider metadata in JSON
+    Institution:
+      type: string
+      description: Institution metadata in JSON
+    Collection:
+      type: string
+      description: Collection metadata in JSON
+tags:
+  - name: Data resource
+    description: Services for Data resources
+

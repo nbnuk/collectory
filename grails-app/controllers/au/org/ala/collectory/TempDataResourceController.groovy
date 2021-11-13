@@ -15,6 +15,7 @@
 
 package au.org.ala.collectory
 
+import au.ala.org.ws.security.RequireAuth
 import grails.converters.JSON
 import grails.web.http.HttpHeaders
 import org.grails.datastore.mapping.query.api.Criteria
@@ -105,39 +106,31 @@ class TempDataResourceController {
         renderJson(json as JSON)
     }
 
-    def saveEntity = {
-        def uid = params.uid
+    @RequireAuth(requiredRoles=["ROLE_ADMIN", "ROLE_SANDBOX"])
+    def saveEntity(){
         def drt = params.drt
         def obj = params.json
 
         // inject the user name into the session so it can be used by audit logging if changes are made
         if (obj.user) {
-            session.username = obj.user
+            session.username = request.getUserPrincipal().getName()
         }
-
-        def keyCheck = collectoryAuthService?.checkApiKey(obj.api_key)
-        if (!keyCheck.valid) {
-            unauthorised()
-        }
-        else {
-            if (drt) {
-                // update
-                crudService.updateTempDataResource(drt, obj)
-                if (drt.hasErrors()) {
-                    badRequest drt.errors
-                } else {
-                    addContentLocation "/ws/tempDataResource/${params.uid}"
-                    success "updated entity"
-                }
+        if (drt) {
+            // update
+            crudService.updateTempDataResource(drt, obj)
+            if (drt.hasErrors()) {
+                badRequest drt.errors
+            } else {
+                addContentLocation "/ws/tempDataResource/${params.uid}"
+                success "updated entity"
             }
-            else {
-                // create
-                drt = crudService.insertTempDataResource(obj)
-                if (drt.hasErrors()) {
-                    badRequest drt.errors
-                } else {
-                    created drt.uid
-                }
+        } else {
+            // create
+            drt = crudService.insertTempDataResource(obj)
+            if (drt.hasErrors()) {
+                badRequest drt.errors
+            } else {
+                created drt.uid
             }
         }
     }

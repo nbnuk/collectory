@@ -7,18 +7,13 @@ import groovy.json.JsonSlurper
 import groovy.xml.MarkupBuilder
 import org.grails.web.converters.exceptions.ConverterException
 import org.grails.web.json.JSONArray
-
-import javax.servlet.http.HttpServlet
-import javax.servlet.http.HttpServletRequest
-import java.nio.file.attribute.UserPrincipal
-import java.security.Principal
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 
 class CollectoryTagLib {
 
-    def collectoryAuthService, metadataService, providerGroupService
+    def metadataService, providerGroupService
 
     static namespace = 'cl'
 
@@ -66,47 +61,6 @@ class CollectoryTagLib {
     }
 
     /**
-     * Generate the link the login link for the banner.
-     *
-     * Will be to log in or out based on current auth status.
-     */
-    def loginoutLink = {
-        def requestUri = grailsApplication.config.security.cas.serverName + request.forwardURI
-        if (AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
-            // currently logged in
-            out << "<li class='nav-logout nav-right'><a id='${AuthenticationCookieUtils.getUserName(request)}' href='${grailsApplication.config.security.cas.logoutUrl}?url=${requestUri}'><span>Log out</span></a></li>"
-        } else {
-            // currently logged out
-            out << "<li class='nav-login nav-right'><a href='${grailsApplication.config.security.cas.loginUrl}?service=${requestUri}'><span>Log in</span></a></li>"
-        }
-    }
-
-    /**
-     * Generate the login link for the banner.
-     *
-     * Will be to log in or out based on current auth status.
-     * TODO: also check for user principal in request in case cookies are disabled
-     *
-     * @attr showUser if supplied, the username will be shown before the logout link
-     * @attr fixedAppUrl if supplied will be used for logout instead of the current page
-     */
-    def loginoutLink2011 = { attrs ->
-        def requestUri = grailsApplication.config.security.cas.serverName + request.forwardURI
-        if (AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
-            // currently logged in
-            if (attrs.showUser) {
-                out << "<span id='logged-in'>Logged in as ${loggedInUsername()}</span>"
-            }
-            out << link(controller: 'public', action: 'logout',
-                    params: [casUrl: grailsApplication.config.security.cas.logoutUrl,
-                             appUrl: attrs.fixedAppUrl ?: requestUri]) {'Logout'}
-        } else {
-            // currently logged out
-            out << "<a href='${grailsApplication.config.security.cas.loginUrl}?service=${requestUri}'><span>Log in</span></a>"
-        }
-    }
-
-    /**
      * Decorates the role if present
      *
      * @attrs role the role to display
@@ -125,35 +79,13 @@ class CollectoryTagLib {
     }
 
     /**
-     * <g:ifAllGranted role="ROLE_COLLECTION_EDITOR,ROLE_COLLECTION_ADMIN">
-     *  All the listed roles must be granted for the tag to output its body.
-     * </g:ifAllGranted>
-     */
-    def ifAllGranted = { attrs, body ->
-        def granted = true
-        if (grailsApplication.config.security.cas.bypass.toBoolean()) {
-            granted = true
-        } else {
-            def roles = attrs.role.toString().tokenize(',')
-            roles.each {
-                if (!isUserInRole(request, it)) {
-                    granted = false
-                }
-            }
-        }
-        if (granted) {
-            out << body()
-        }
-    }
-
-    /**
      * <cl:ifGranted role="ROLE_COLLECTION_ADMIN">
      *  The specified role must be granted for the tag to output its body.
      * </g:ifGranted>
      * @attr role the role to check
      */
     def ifGranted = { attrs, body ->
-        if (grailsApplication.config.security?.cas?.bypass?:''.toBoolean() || isUserInRole(request, attrs.role)) {
+        if (grailsApplication.config.security.bypass?:''.toBoolean() || request.isUserInRole(attrs.role)) {
             out << body()
         }
     }
@@ -165,52 +97,19 @@ class CollectoryTagLib {
      * @attr role the role to check
      */
     def ifNotGranted = { attrs, body ->
-        if (!grailsApplication.config.security?.cas?.bypass?:'' .toBoolean() && !isUserInRole(request, attrs.role)) {
-            out << body()
-        }
-    }
-
-
-    def isLoggedIn = { attrs, body ->
-        if (AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
-            out << body()
-        }
-    }
-
-    def isNotLoggedIn = {attrs, body ->
-        if (!grailsApplication.config.security.cas.bypass.toBoolean() && !AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
+        if (!request.isUserInRole(attrs.role)) {
             out << body()
         }
     }
 
     def loggedInUsername = {
-        if (grailsApplication.config.security?.cas?.bypass?:''.toBoolean()) {
-            out << 'cas bypassed'
-        }
-        else if (request.getUserPrincipal()) {
+         if (request.getUserPrincipal()) {
             out << request.getUserPrincipal().name
-        }
-        else if (AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
-            out << AuthenticationCookieUtils.getUserName(request, grailsApplication.config.security.cas.authCookieName) + '*'
         }
     }
 
     private boolean isAdmin() {
-        return grailsApplication.config.security.cas.bypass?:''.toBoolean() || isUserInRole(request, grailsApplication.config.ROLE_ADMIN)
-    }
-
-
-    boolean isUserInRole(HttpServletRequest request, String role){
-        if (request.isUserInRole(role)) {
-            return true
-        }
-        Principal principal = request.getUserPrincipal()
-        if (principal && principal.principal?.attributes?.role){
-            if (principal.principal.attributes.role.contains(role)){
-                return true
-            }
-        }
-        false
+        return grailsApplication.config.security.bypass?:''.toBoolean() || request.isUserInRole(grailsApplication.config.ROLE_ADMIN)
     }
 
     /**
@@ -227,8 +126,7 @@ class CollectoryTagLib {
     private boolean isAuthorisedToEdit(uid, email) {
         if (isAdmin()) {
             return true
-        }
-        else if (email) {
+        } else if (email) {
             ProviderGroup pg = providerGroupService._get(uid)
             if (pg) {
                 return pg.isAuthorised(email)
@@ -245,8 +143,6 @@ class CollectoryTagLib {
     def isAuth = { attrs, body ->
         if (isAuthorisedToEdit(attrs.uid, request.getUserPrincipal()?.principal?.attributes?.email)) {
             out << body()
-        } else {
-            out << ' You are not authorised to change this record '// + debugString
         }
     }
 
@@ -643,15 +539,6 @@ class CollectoryTagLib {
          <td>${cl.percentIfKnown(dividend:count, divisor:attrs.total)}</td>"""
     }
 
-//    /**
-//     * Inserts a hidden div holding the specified help text.
-//     */
-//    def helpText = { attrs ->
-//        def _default = attrs.default ? attrs.default : ""
-//        def id = attrs.id ? "id='${attrs.id}' " : ""
-//        out << '<div ' + id + 'class="fieldHelp" style="display:none">' + message(code:attrs.code, default: _default) + '</div>'
-//    }
-
     /**
      * @attr title
      * @attr printable Is this being printed?
@@ -938,20 +825,6 @@ class CollectoryTagLib {
         }
     }
 
-    /**
-     * Builds a link to the publicly available archive of all records.
-     *
-     * @attr uid of the instance (assumed to be a data resource)
-     * @attr allowed if the archive is available
-     */
-    def downloadRecordsLink = {attrs, body ->
-        if (attrs.uid && attrs.allowed) {
-            def url = grailsApplication.config.biocache.baseURL +
-                    "/occurrences/download?q=*.*&fq=collection_uid=${attrs.uid}#download"
-            out << "<a href='${url}'>Download all records</a>"
-        }
-    }
-
     def downloadPublicArchive = { attrs ->
         if (attrs.uid && attrs.available) {
             def url = grailsApplication.config.resource.publicArchive.url.template.replaceAll('@UID@',attrs.uid)
@@ -1002,74 +875,6 @@ class CollectoryTagLib {
         }
     }
 
-    def numberOf = {attrs->
-        if (attrs.number) {
-            NumberFormat formatter = new DecimalFormat(",###")
-            out << formatter.format(attrs.number)
-        } else {
-            out << attrs.none ?: "no"
-        }
-        out << " "
-        out << (attrs.number == 1 ? attrs.noun : attrs.noun + "s")
-    }
-
-    def permalink = {attrs, body ->
-        def context
-        switch (attrs.type) {
-            case 'institution': context = '/public/showInstitution/'; break
-            case 'collection': context = '/public/show/'; break
-            default: context = '/public/show/'; break
-        }
-        if (context) {
-            def url = grailsApplication.config.grails.serverURL + context + attrs.id
-            out << "<a href='${url}'>"
-            out << ((body() != "") ? body() : context + attrs.id)
-            out << "</a>"
-        }
-    }
-
-    /**
-     * Show map of records based on UID
-     *
-     * - content is loaded by ajax calls
-     */
-    def recordsMap = {
-        out <<
-                "<div class='recordsMap'>" +
-                " <img id='recordsMap' class='no-radius' src='${resource(dir:'images/map',file:'map-loader.gif')}' width='340' />" +
-                " <img id='mapLegend' src='${resource(dir:'images/ala', file:'legend-not-available.png')}' width='128' />" +
-                "</div>" +
-                "<div class='learnMaps'><span class='asterisk-container'><a href='${grailsApplication.config.ala.baseURL}/about/progress/map-ranges/'>Learn more about Atlas maps</a>&nbsp;</span></div>"
-    }
-
-    /**
-     * Show map of records based on UID
-     *
-     * - content is loaded directly by constructing the image url
-     *
-     * @attr uid of the instance
-     */
-    def recordsMapDirect = { attrs ->
-        if (attrs.uid) {
-            def urlBase = grailsApplication.config.biocacheServicesUrl + "/density/"
-            def query = "?q=" + fieldNameForSearch(attrs.uid) + ":" + attrs.uid
-            out <<
-                    "<div class='recordsMap'>" +
-                    " <img id='recordsMap' class='no-radius' src='${urlBase}map${query}' width='340' />" +
-                    " <img id='mapLegend' src='${urlBase}legend${query}' width='128' />" +
-                    "</div>" +
-                    "<div class='learnMaps'><span class='asterisk-container'><a href='${grailsApplication.config.ala.baseURL}/faq/species-data/errors-in-maps/'>Learn more about Atlas maps</a>&nbsp;</span></div>"
-        }
-        else {
-            out <<
-                    "<div class='recordsMap'>" +
-                    " <img id='recordsMap' class='no-radius' src='${resource(dir:'images/map',file:'mapping-data-not-available.png')}' width='340' />" +
-                    " <img id='mapLegend' src='${resource(dir:'images/ala', file:'legend-not-available.png')}' width='128' />" +
-                    "</div>" +
-                    "<div class='learnMaps'><span class='asterisk-container'><a href='${grailsApplication.config.ala.baseURL}/faq/species-data/errors-in-maps/'>Learn more about Atlas maps</a>&nbsp;</span></div>"
-        }
-    }
-
     /**
      * Show map of records based on UID
      *
@@ -1103,48 +908,6 @@ class CollectoryTagLib {
             out << "</ul>"
             out << "<img src='https://chart.apis.google.com/chart?chxl=1:|1870|1880|1890|1900|1910|1920|1930&chxt=y,x&chbh=a&chs=300x225&cht=bvg&chco=A2C180&chd=t:${values}&chtt=Vertical+bar+chart' width='300' height='225' alt='Vertical bar chart' />"
         }
-    }
-
-    /**
-     * Draw elements for taxa breakdown chart
-     */
-    def taxonChart = { attrs ->
-        //println "taxonChart records link"
-        //println buildRecordsUrl(attrs.uid)
-        out <<
-                "<div id='taxonRecordsLink' style='visibility:hidden;'>" +
-                " <span id='viewRecordsLink' class='taxonChartCaption'><a class='recordsLink' href='${buildRecordsUrl(attrs.uid)}'>View all records</a></span><br/>" +
-                "</div>" +
-                "<div id='taxonChart'>" +
-                " <img class='taxon-loading' alt='loading...' src='${resource(dir:'images/ala',file:'ajax-loader.gif')}'/>" +
-                "</div>" +
-                "<div id='taxonChartCaption' style='visibility:hidden;'>" +
-                " <span class='taxonChartCaption'>Click a slice or legend to drill into a group.</span><br/>" +
-                " <span id='resetTaxonChart' onclick='resetTaxonChart()'></span>&nbsp;" +
-                " <div class='taxonCaveat'><span class='asterisk-container'><a href='${grailsApplication.config.ala.baseURL}/about/progress/wrong-classification/'>Learn more about classification errors</a>&nbsp;</span></div>" +
-                "</div>"
-
-        /*out << '<div id="taxonChart">\n' +
-                '<img class="taxon-loading" alt="loading..." src="' + resource(dir:'images/ala',file:'ajax-loader.gif') + '"/>\n' +
-                '</div>\n' +
-                '<div id="taxonChartCaption" style="visibility:hidden;">\n' +
-                '<span class="taxonChartCaption">Click a slice to drill into a group.<br/>Click a legend colour patch<br/>to view records for a group.</span><br/>\n' +
-                '<span id="resetTaxonChart" onclick="resetTaxonChart()"></span>&nbsp;\n' +
-                '<div class="taxonCaveat"><span class="asterisk-container"><a href="https://www.ala.org.au/about/progress/wrong-classification/">Learn more about classification errors</a>&nbsp;</span></div>\n' +
-                '</div>\n'*/
-    }
-
-    /**
-     * Draw elements for decade breakdown chart
-     */
-    def decadeChart = {
-        out << """                <div id="decadeChart">
-                  <img class="decade-loading alt="loading..." src='""" + resource(dir:'images/ala',file:'decade-loader.gif') + """'/>
-                </div>
-                <div id="decadeChartCaption">
-                  <span style="visibility:hidden;" class="decadeChartCaption">Click a column to view records for that decade.</span>
-                </div>
-        """
     }
 
     def homeLink = {

@@ -6,10 +6,10 @@ import grails.web.JSONBuilder
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 class AdminController {
 
-    def dataLoaderService, idGeneratorService, collectoryAuthService, metadataService, activityLogService, providerGroupService
+    def dataLoaderService, idGeneratorService, metadataService
 
     def auth() {
-        if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN) && !grailsApplication.config.security.cas.bypass.toBoolean()) {
+        if (!request.isUserInRole(grailsApplication.config.ROLE_ADMIN) && !grailsApplication.config.security.bypass.toBoolean()) {
             render "You are not authorised to access this page."
             return false
         }

@@ -1,72 +1,66 @@
 package au.org.ala.collectory
-import grails.converters.JSON
 import org.springframework.web.context.request.RequestContextHolder
-
-import javax.servlet.http.HttpServletRequest
-import java.security.Principal
 
 class CollectoryAuthService{
 
     static transactional = false
 
     def grailsApplication
-    def authService
     def providerGroupService
 
     def username() {
         def username = 'not available'
-        if (RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()?.principal?.attributes?.email)
-            username = RequestContextHolder.currentRequestAttributes()?.getUserPrincipal().principal?.attributes?.email
-        else {
-            if(authService)
-                username = authService.email
+        if (RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()){
+            username = RequestContextHolder.currentRequestAttributes()?.getUserPrincipal().getName()
         }
-
-        return (username) ? username : 'not available'
+        username
     }
 
     def isAdmin() {
         def adminFlag = false
-        if (grailsApplication.config.security.cas.bypass?:''.toBoolean())
-            adminFlag = true
-        else {
-            if(authService) {
-                adminFlag = authService.userInRole(grailsApplication.config.ROLE_ADMIN)
+        if (grailsApplication.config.security.bypass ?: ''.toBoolean()){
+            return true
+        } else {
+            def request = RequestContextHolder.currentRequestAttributes().getRequest()
+            if (request && request.isUserInRole(grailsApplication.config.ROLE_ADMIN)){
+                return true
             }
         }
-        return adminFlag
+        false
     }
-
 
     protected boolean userInRole(role) {
         def roleFlag = false
-        if (grailsApplication.config.security.cas.bypass?:''.toBoolean())
+        if (grailsApplication.config.security.bypass?:''.toBoolean()) {
             roleFlag = true
-        else {
-            if (authService != null) {
-                roleFlag = authService.userInRole(role)
+        } else {
+            def request = RequestContextHolder.currentRequestAttributes().getRequest()
+            if (request) {
+                roleFlag = request.isUserInRole(role)
             }
         }
 
-        return roleFlag || isAdmin()
+        roleFlag || isAdmin()
     }
 
-    protected boolean isAuthorisedToEdit(uid) {
-        if (grailsApplication.config.security.cas.bypass.toBoolean() || isAdmin()) {
+    /**
+     * A user can edit if they are a registered contain for the entity or they have the required permissions
+     *
+     * @param uid
+     * @return
+     */
+    boolean isAuthorisedToEdit(uid) {
+        if (grailsApplication.config.security.bypass.toBoolean() || isAdmin()) {
             return true
         } else {
-            def email = RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()?.attributes?.email
-            if(email) {
-                return providerGroupService._get(uid)?.isAuthorised(email)
-            } else {
-                if (authService) {
-                    email = authService.email
-                    if(email)
-                        return providerGroupService._get(uid)?.isAuthorised(email)
+            def email = RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()?.principal?.attributes?.email
+            if (email) {
+                ProviderGroup pg = providerGroupService._get(uid)
+                if (pg) {
+                    pg.isAuthorised(email)
                 }
             }
         }
-
         return false
     }
 
@@ -127,21 +121,5 @@ class CollectoryAuthService{
             }
         }
         return [sorted: entities.values().sort { it.name }, keys:entities.keySet().sort(), latestMod: latestMod]
-    }
-
-    def checkApiKey(key) {
-        // try the preferred api key store first
-        if(grailsApplication.config.security.apikey.checkEnabled.toBoolean()){
-            def url = grailsApplication.config.security.apikey.serviceUrl + key
-            def conn = new URL(url).openConnection()
-            if (conn.getResponseCode() == 200) {
-                return JSON.parse(conn.content.text as String)
-            } else {
-                log.info "Rejected change using key ${key}"
-                return [valid:false]
-            }
-        } else {
-            return [valid:true]
-        }
     }
 }

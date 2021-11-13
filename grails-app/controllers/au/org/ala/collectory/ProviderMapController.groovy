@@ -5,16 +5,9 @@ class ProviderMapController {
     static allowedMethods = [save: "POST", update: "POST", delete: "POST"]
 
     def collectoryAuthService
-/*
- * Access control
- *
- * All methods require EDITOR role.
- * Edit methods require ADMIN or the user to be an administrator for the entity.
- */
-    def beforeInterceptor = [action:this.&auth]
 
     def auth() {
-        if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_EDITOR) && !grailsApplication.config.security.cas.bypass.toBoolean()) {
+        if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_EDITOR) && !grailsApplication.config.security.bypass.toBoolean()) {
             render "You are not authorised to access this page."
             return false
         }

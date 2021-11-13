@@ -15,7 +15,7 @@ class ContactController {
     def providerGroupService
 
     def auth() {
-        if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_EDITOR) && !grailsApplication.config.security.cas.bypass.toBoolean()) {
+        if (!request.isUserInRole(grailsApplication.config.ROLE_EDITOR) && !grailsApplication.config.security.bypass.toBoolean()) {
             render "You are not authorised to access this page."
             return false
         }

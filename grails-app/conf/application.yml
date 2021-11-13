@@ -24,6 +24,7 @@ info:
         grailsVersion: '@info.app.grailsVersion@'
 spring:
     security:
+        logoutUrl: http://dev.ala.org.au:8080
         oauth2:
             client:
                 registration:
@@ -154,41 +155,19 @@ headerAndFooter:
     baseURL: https://www.ala.org.au/commonui-bs3-2019
     version: 2
 
-
-
-
+userDetails:
+    url: https://nectar-auth-dev.ala.org.au/userdetails
 security:
+    logoutUrl: http://dev.ala.org.au:8080/logout
+    cas:
+        logoutUrl: http://dev.ala.org.au:8080/logout
+        loginUrl: http://dev.ala.org.au:8080/oauth2/authorization/ala
+    bypass: false
     apikey:
         checkEnabled: true
-        serviceUrl: https://auth-test.ala.org.au/apikey/ws/check?apikey=
-    cas:
-#        casServerName: https://auth-test.ala.org.au
-#        uriFilterPattern:
-#            - /admin.*
-#            - /collection.*
-#            - /institution.*
-#            - /contact.*
-#            - /reports.*
-#            - /providerCode.*
-#            - /providerMap.*
-#            - /dataProvider.*
-#            - /dataResource.*
-#            - /dataHub.*
-#            - /manage/.*
-#            - /alaAdmin.*
-#        authenticateOnlyIfCookieFilterPattern:
-#            - /public/show.*
-#        uriExclusionFilterPattern:
-#            - /images.*
-#            - /css.*
-#            - /js.*
-#            - /static.*
-#        appServerName: http://dev.ala.org.au:8080
-#        casServerUrlPrefix: https://auth-test.ala.org.au/cas
-#        loginUrl: https://auth-test.ala.org.au/cas/login
-#        logoutUrl: https://auth-test.ala.org.au/cas/logout
+        serviceUrl: https://nectar-auth-dev.ala.org.au/apikey/ws/check?apikey=
         bypass: false
-        authCookieName: ALA-Auth-Test
+    # we need to keep the 'cas' bit while we update the ala-bootstrap3 plugin
 
 repository:
     location:

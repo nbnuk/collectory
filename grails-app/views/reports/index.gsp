@@ -17,17 +17,7 @@
         <p><g:message code="reports.index.des01" />.</p>
       </div>
 
-      <cl:isNotLoggedIn>
-        <div class="homeCell">
-          <h4 class="inline"><g:message code="reports.index.title02" /></h4>
-            <span class="buttons" style="float: right;">
-              <g:link controller="login">&nbsp;<g:message code="reports.index.link.login" />&nbsp;</g:link>
-            </span>
-          <p><g:message code="reports.index.des02" /></p>
-        </div>
-      </cl:isNotLoggedIn>
-
-        <cl:ifGranted role="${grailsApplication.config.ROLE_ADMIN}">
+    <cl:ifGranted role="${grailsApplication.config.ROLE_ADMIN}">
     <div class="dashboard">
 
 
