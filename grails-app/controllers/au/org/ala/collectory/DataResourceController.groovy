@@ -1,7 +1,6 @@
 package au.org.ala.collectory
 
 import grails.converters.JSON
-import grails.gorm.transactions.Transactional
 
 import java.text.SimpleDateFormat
 import au.org.ala.collectory.resources.PP

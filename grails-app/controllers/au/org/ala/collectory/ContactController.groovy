@@ -1,7 +1,5 @@
 package au.org.ala.collectory
 
-import au.org.ala.collectory.AuditLogEvent
-
 class ContactController {
 
     static allowedMethods = [save: "POST", update: "POST", delete: "POST"]

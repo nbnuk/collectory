@@ -218,10 +218,10 @@ class DataProviderController extends ProviderGroupController {
                     try {
                         activityLogService.log username(), isAdmin(), params.id as long, Action.DELETE
                         instance.delete(flush: true)
-                        flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'dataProvider.label', default: 'dataProvider'), params.id])}"
+                        flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'dataProvider.label', default: 'Data Provider'), params.id])}"
                         redirect(action: "list")
                     } catch (org.springframework.dao.DataIntegrityViolationException e) {
-                        flash.message = "${message(code: 'default.not.deleted.message', args: [message(code: 'dataProvider.label', default: 'dataProvider'), params.id])}"
+                        flash.message = "${message(code: 'default.not.deleted.message', args: [message(code: 'dataProvider.label', default: 'Data Provider'), params.id])}"
                         redirect(action: "show", id: params.id)
                     }
                 }
@@ -229,7 +229,7 @@ class DataProviderController extends ProviderGroupController {
                 render("You are not authorised to access this page.")
             }
         } else {
-            flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'dataProvider.label', default: 'dataProvider'), params.id])}"
+            flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'dataProvider.label', default: 'Data Provider'), params.id])}"
             redirect(action: "list")
         }
     }
