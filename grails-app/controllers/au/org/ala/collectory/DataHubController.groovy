@@ -51,11 +51,11 @@ class DataHubController extends ProviderGroupController {
                     DataHub.withTransaction {
                         instance.delete(flush: true)
                     }
-                    flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'dataHub.label', default: 'dataHub'), params.id])}"
+                    flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'dataHub.label', default: 'Data Hub'), params.id])}"
                     redirect(action: "list")
                 }
                 catch (org.springframework.dao.DataIntegrityViolationException e) {
-                    flash.message = "${message(code: 'default.not.deleted.message', args: [message(code: 'dataHub.label', default: 'dataHub'), params.id])}"
+                    flash.message = "${message(code: 'default.not.deleted.message', args: [message(code: 'dataHub.label', default: 'Data Hub'), params.id])}"
                     redirect(action: "show", id: params.id)
                 }
             } else {
@@ -63,7 +63,7 @@ class DataHubController extends ProviderGroupController {
             }
         }
         else {
-            flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'dataHub.label', default: 'dataHub'), params.id])}"
+            flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'dataHub.label', default: 'Data Hub'), params.id])}"
             redirect(action: "list")
         }
     }
