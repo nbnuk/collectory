@@ -16,6 +16,8 @@ servers:
 paths:
   /dataResource:
     post:
+      security:
+        - bearerAuth: []
       summary: Create Data Resource
       description: Create a new Data Resource
       requestBody:
@@ -51,8 +53,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/DataResource'
     post:
+      security:
+        - bearerAuth: []
       summary: Update Data Resource
       description: Update a new Data Resource
+      parameters:
+        - in: path
+          name: uid
+          schema:
+            type: string
+          required: true
+          description: UID for the data resource
       requestBody:
         description: Optional description
         required: true
@@ -66,6 +77,8 @@ paths:
         200:
           description: 'Search results'
     delete:
+      security:
+        - bearerAuth: []
       summary: Delete Data Resource
       description: Create a new Data Resource
       parameters:
@@ -82,6 +95,8 @@ paths:
           description: 'Search results'
   /dataProvider:
     post:
+      security:
+        - bearerAuth: []
       summary: Create Data Resource
       description: Create a new Data Resource
       requestBody:
@@ -117,6 +132,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/DataProvider'
     delete:
+      security:
+        - bearerAuth: []
       summary: Delete Data Provider
       description: Create a new Data provider
       parameters:
@@ -133,6 +150,8 @@ paths:
           description: 'Search results'
   /institution:
     post:
+      security:
+        - bearerAuth: []
       summary: Create Institution
       description: Create a new Institution
       requestBody:
@@ -168,6 +187,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Institution'
     delete:
+      security:
+        - bearerAuth: []
       summary: Delete Institution
       description: Create a new Institution
       parameters:
@@ -184,6 +205,8 @@ paths:
           description: 'Search results'
   /collection:
     post:
+      security:
+        - bearerAuth: []
       summary: Create Collection
       description: Create a new Collection
       requestBody:
@@ -219,6 +242,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Collection'
     delete:
+      security:
+        - bearerAuth: []
       summary: Delete Collection
       description: Delete Collection
       parameters:
@@ -233,7 +258,13 @@ paths:
       responses:
         200:
           description: 'Search results'
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT  # optional, for documentation purposes only
   schemas:
     DataResource:
       type: string
@@ -250,4 +281,3 @@ components:
 tags:
   - name: Data resource
     description: Services for Data resources
-

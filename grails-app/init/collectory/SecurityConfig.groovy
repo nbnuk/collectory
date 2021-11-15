@@ -12,7 +12,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 /**
  * WebSecurityConfigurerAdapter implementation that overrides the default Oauth2
  * configuration which makes all resource non-public by default.
- *
  */
 @Configuration
 @EnableWebSecurity
@@ -20,9 +19,9 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    protected AlaOAuth2UserService alaOAuth2UserService;
+    AlaOAuth2UserService alaOAuth2UserService
 
-    @Value('${spring.security.logoutUrl')
+    @org.springframework.beans.factory.annotation.Value('${spring.security.logoutUrl:"http://dev.ala.org.au:8080"}')
     String logoutUrl
 
     @Override
@@ -38,8 +37,7 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/static/**",
                         "/images/**",
                         "/js/**",
-                        "/ws/**",
-                        "/ws/dataResource/*"
+                        "/ws/**"
                 ).permitAll()
                 .anyRequest()
                 .authenticated()
@@ -54,7 +52,6 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
                 .deleteCookies("JSESSIONID").permitAll()
-                .and().csrf().disable();
-
+                .and().csrf().disable()
     }
 }
