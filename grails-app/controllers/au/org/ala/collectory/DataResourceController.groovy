@@ -64,9 +64,10 @@ class DataResourceController extends ProviderGroupController {
         }
         else {
             log.debug "Ala partner = " + instance.isALAPartner
+            def suitableFor = providerGroupService.getSuitableFor()
             activityLogService.log username(), isAdmin(), instance.uid, Action.VIEW
 
-            [instance: instance, contacts: instance.getContacts(), changes: getChanges(instance.uid)]
+            [instance: instance, contacts: instance.getContacts(), changes: getChanges(instance.uid), suitableFor: suitableFor]
         }
     }
 
@@ -304,4 +305,9 @@ class DataResourceController extends ProviderGroupController {
         return DataResource.get(dbId)
     }
 
+    static def entitySpecificDescriptionProcessing(params) {
+        if (params?.suitableFor != 'other' && params?.suitableForOtherDetail) {
+            params.suitableForOtherDetail = ''
+        }
+    }
 }

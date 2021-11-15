@@ -89,7 +89,8 @@ abstract class ProviderGroupController {
             // are they allowed to edit
             if (isAuthorisedToEdit(pg.uid)) {
                 params.page = params.page ?: '/shared/base'
-                render(view:params.page, model:[command: pg, target: params.target])
+                def suitableFor = providerGroupService.getSuitableFor()
+                render(view:params.page, model:[command: pg, target: params.target, suitableFor: suitableFor])
             } else {
                 response.setHeader("Content-type", "text/plain; charset=UTF-8")
                 render(message(code: "provider.group.controller.04", default: "You are not authorised to access this page."))

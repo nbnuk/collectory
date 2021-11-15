@@ -297,6 +297,10 @@ class CrudService {
             pubShortDescription = p.pubShortDescription
             pubDescription = p.pubDescription
             techDescription = p.techDescription
+            dataCollectionProtocolName = p.dataCollectionProtocolName
+            dataCollectionProtocolDoc = p.dataCollectionProtocolDoc
+            suitableFor = p.suitableFor
+            suitableForOtherDetail = p.suitableForOtherDetail
             focus = p.focus
             if (p.latitude != -1) latitude = p.latitude
             if (p.longitude != -1) longitude = p.longitude

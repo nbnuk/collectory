@@ -2,6 +2,9 @@ package au.org.ala.collectory
 
 import grails.converters.JSON
 import grails.gorm.transactions.Transactional
+import grails.util.Holders
+import org.grails.web.json.JSONArray
+import org.grails.web.json.JSONElement
 import org.springframework.web.context.request.RequestContextHolder
 
 @Transactional
@@ -9,6 +12,8 @@ class ProviderGroupService {
 
     def collectoryAuthService
     def grailsApplication
+    def messageSource
+    def siteLocale = new Locale.Builder().setLanguageTag(Holders.config.siteDefaultLanguage as String).build()
 
     def serviceMethod() {}
 
@@ -163,6 +168,8 @@ class ProviderGroupService {
         // FIXME
         if (entity instanceof Collection){
             CollectionController.entitySpecificDescriptionProcessing(entity, params)
+        } else if (entity instanceof DataResource) {
+            DataResourceController.entitySpecificDescriptionProcessing(params)
         }
     }
 
@@ -480,4 +487,13 @@ class ProviderGroupService {
         return result
     }
 
+    Map getSuitableFor() {
+        // the settings in config is an array so that after JSON.parse the original order can be kept.
+        def settings = grailsApplication.config.getProperty('suitableFor', String, '[]')
+        return JSON.parse(settings).collectEntries{
+            def key = it.keySet().first()
+            def val = messageSource.getMessage("dataresource.suitablefor." + key, null, it.values().first(), siteLocale)
+            [key, val]
+        }
+    }
 }

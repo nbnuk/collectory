@@ -166,7 +166,17 @@
                 <p><span class="category"><g:message code="dataresource.show.iw" />: </span> ${fieldValue(bean: instance, field: "informationWithheld")}</p>
 
                 <!-- content types -->
-                 <p><span class="category"><g:message code="dataResource.contentTypes.label" />: </span> <cl:formatJsonList value="${instance.contentTypes}"/></p>
+                <p><span class="category"><g:message code="dataResource.contentTypes.label" />: </span> <cl:formatJsonList value="${instance.contentTypes}"/></p>
+
+                <!-- data collection protocol name -->
+                <p><span class="category"><g:message code="dataResource.datacollectionprotocolname.label" />: </span>${instance.dataCollectionProtocolName}</p>
+
+                <!-- data collection protocol documentation -->
+                <p><span class="category"><g:message code="dataResource.datacollectionprotocoldoc.label" />: </span>${instance.dataCollectionProtocolDoc}</p>
+
+                <!-- suitable for -->
+                <g:set var="suitable" value="${instance.suitableFor != 'other' ? suitableFor.getOrDefault(instance.suitableFor, "") : (instance.suitableForOtherDetail ?: suitableFor.getOrDefault('other', message(code: "dataresource.suitablefor.other", default: "Other")))}"/>
+                <p><span class="category"><g:message code="dataResource.suitablefor.label" />: </span> ${suitable}</p>
 
                 <cl:editButton uid="${instance.uid}" page="description"/>
               </div>
