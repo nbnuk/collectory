@@ -29,7 +29,7 @@
 				<span class="property-value" aria-labelledby="code-label"><g:fieldValue bean="${licenceInstance}" field="acronym"/></span>
 				</p>
 				<p>
-				<label id="versionlabel" class="property-label category"><g:message code="licence.acronym.label" default="Version" /></label>
+				<label id="versionlabel" class="property-label category"><g:message code="licence.version.label" default="Version" /></label>
 				<span class="property-value" aria-labelledby="code-label"><g:fieldValue bean="${licenceInstance}" field="licenceVersion"/></span>
 				</p>
 				<p>
