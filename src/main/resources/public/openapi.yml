@@ -315,6 +315,26 @@ paths:
       responses:
         200:
           description: 'Search results'
+  /eml/{uid}:
+    get:
+      summary: Ecological Markup Language description for a data resource
+      description: Ecological Markup Language
+      parameters:
+        - in: path
+          name: uid
+          schema:
+            type: string
+          required: true
+          description: UID for the collection
+      tags:
+        - Ecological Markup Language
+      responses:
+        200:
+          description: 'EML for a dataset'
+          content:
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/Collection'
 components:
   securitySchemes:
     bearerAuth:
@@ -835,3 +855,11 @@ components:
 tags:
   - name: Data resource
     description: Services for Data resources
+  - name: Data provider
+    description: Services for Data providers
+  - name: Institution
+    description: Services for Institutions
+  - name: Collection
+    description: Services for Collections
+  - name: Ecological Markup Language
+    description: Services for retrieving EML documents
