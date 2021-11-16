@@ -22,6 +22,10 @@ info:
         name: '@info.app.name@'
         version: '@info.app.version@'
         grailsVersion: '@info.app.grailsVersion@'
+
+security:
+    bypass: false
+
 spring:
     security:
         logoutUrl: http://dev.ala.org.au:8080
@@ -32,7 +36,7 @@ spring:
                         scope: openid,profile,email,ala,roles
                 provider:
                     ala:
-                        issuer-uri: https://nectar-auth-dev.ala.org.au/cas/oidc
+                        issuer-uri: https://auth-test.ala.org.au/cas/oidc
     jmx:
         unique-names: true
     main:
@@ -155,19 +159,12 @@ headerAndFooter:
     baseURL: https://www.ala.org.au/commonui-bs3-2019
     version: 2
 
+
+logoutUrl: http://dev.ala.org.au:8080/logout
+loginUrl: http://dev.ala.org.au:8080/oauth2/authorization/ala
+
 userDetails:
-    url: https://nectar-auth-dev.ala.org.au/userdetails
-security:
-    logoutUrl: http://dev.ala.org.au:8080/logout
-    cas:
-        logoutUrl: http://dev.ala.org.au:8080/logout
-        loginUrl: http://dev.ala.org.au:8080/oauth2/authorization/ala
-    bypass: false
-    apikey:
-        checkEnabled: true
-        serviceUrl: https://nectar-auth-dev.ala.org.au/apikey/ws/check?apikey=
-        bypass: false
-    # we need to keep the 'cas' bit while we update the ala-bootstrap3 plugin
+    url: https://auth-test.ala.org.au/userdetails
 
 repository:
     location:
@@ -196,7 +193,7 @@ api:
         enabled: true
 
 jwk:
-    url: https://nectar-auth-dev.ala.org.au/cas/oidc/jwks
+    url: https://auth-test.ala.org.au/cas/oidc/jwks
 
 # As every authenticated request is associated with a user
 legacy_whitelist:

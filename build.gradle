@@ -16,7 +16,7 @@ plugins {
     id "com.gorylenko.gradle-git-properties" version "2.3.1"
 }
 
-version "3.0.1-SNAPSHOT"
+version "3.1.0-SNAPSHOT"
 
 group "au.org.ala"
 
@@ -118,7 +118,7 @@ dependencies {
     compile "commons-io:commons-io:2.11.0"
 
     compile "mysql:mysql-connector-java:8.0.25"
-    compile "org.grails.plugins:ala-bootstrap3:3.3.0-SNAPSHOT"
+    compile "org.grails.plugins:ala-bootstrap3:3.4.0-SNAPSHOT"
     compile "au.org.ala.plugins.grails:ala-charts-plugin:2.1.1"
 
     compile 'org.springframework.boot:spring-boot-starter-oauth2-client'

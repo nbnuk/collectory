@@ -850,7 +850,7 @@ abstract class ProviderGroupController {
     }
 
     protected boolean isAuthorisedToEdit(uid) {
-        if (grailsApplication.config.security.bypass.toBoolean() || isAdmin()) {
+        if (grailsApplication.config.security.bypass?:''.toBoolean() || isAdmin()) {
             return true
         } else {
             def email = RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()?.principal?.attributes?.email

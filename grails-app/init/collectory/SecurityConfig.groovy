@@ -8,6 +8,7 @@ import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler
 
 /**
  * WebSecurityConfigurerAdapter implementation that overrides the default Oauth2
@@ -43,6 +44,7 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticated()
                 .and()
                 .oauth2Login()
+                .successHandler(new SavedRequestAwareAuthenticationSuccessHandler())
                 .userInfoEndpoint()
                 .oidcUserService(alaOAuth2UserService)
                 .and()
