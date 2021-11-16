@@ -21,7 +21,7 @@ paths:
       summary: Create Data Resource
       description: Create a new Data Resource
       requestBody:
-        description: Optional description
+        description: JSON map of properties
         required: true
         content:
           application/json:
@@ -65,7 +65,6 @@ paths:
           required: true
           description: UID for the data resource
       requestBody:
-        description: Optional description
         required: true
         content:
           application/json:
@@ -100,7 +99,6 @@ paths:
       summary: Create Data Resource
       description: Create a new Data Resource
       requestBody:
-        description: Optional description
         required: true
         content:
           application/json:
@@ -131,6 +129,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DataProvider'
+    post:
+      security:
+        - bearerAuth: []
+      summary: Update Data provider
+      description: Create a new Data provider
+      parameters:
+        - in: path
+          name: uid
+          schema:
+            type: string
+          required: true
+          description: UID for the data provider
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataProvider'
+      tags:
+        - Data provider
+      responses:
+        200:
+          description: 'Search results'
     delete:
       security:
         - bearerAuth: []
@@ -155,7 +176,6 @@ paths:
       summary: Create Institution
       description: Create a new Institution
       requestBody:
-        description: Optional description
         required: true
         content:
           application/json:
@@ -169,6 +189,25 @@ paths:
   /institution/{uid}:
     get:
       summary: Get institution
+      description: Create a new institution
+      parameters:
+        - in: path
+          name: uid
+          schema:
+            type: string
+          required: true
+          description: UID for the Institution
+      tags:
+        - Institution
+      responses:
+        200:
+          description: 'Search results'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Institution'
+    post:
+      summary: Update institution
       description: Create a new institution
       parameters:
         - in: path
@@ -210,7 +249,6 @@ paths:
       summary: Create Collection
       description: Create a new Collection
       requestBody:
-        description: Optional description
         required: true
         content:
           application/json:
@@ -224,6 +262,25 @@ paths:
   /collection/{uid}:
     get:
       summary: Get collection
+      description: Create a new collection
+      parameters:
+        - in: path
+          name: uid
+          schema:
+            type: string
+          required: true
+          description: UID for the collection
+      tags:
+        - Collection
+      responses:
+        200:
+          description: 'Search results'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+    post:
+      summary: Update collection
       description: Create a new collection
       parameters:
         - in: path
@@ -264,20 +321,123 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT  # optional, for documentation purposes only
+      bearerFormat: JWT
   schemas:
     DataResource:
-      type: string
       description: Data Resource metadata in JSON
+      type: object
+      properties:
+        name:
+          type: string
+        acronym:
+          type: string
+        uid:
+          type: string
+        guid:
+          type: string
+        address:
+          type: object
+          properties:
+            street:
+              type: string
+            city:
+              type: string
+            state:
+              type: string
+            postcode:
+              type: string
+            country:
+              type: string
+            postBox:
+              type: string
+        phone:
+          type: string
+        email:
+          type: string
+        pubShortDescription:
+          type: string
+        pubDescription:
+          type: string
+        techDescription:
+          type: string
+        focus:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        state:
+          type: string
+        websiteUrl:
+          type: string
+        dateCreated:
+          type: string
+        lastUpdated:
+          type: string
+        userLastModified:
+          type: string
+        rights:
+          type: string
+        licenseType:
+          type: string
+        licenseVersion:
+          type: string
+        citation:
+          type: string
+        resourceType:
+          type: string
+        dataGeneralizations:
+          type: string
+        informationWithheld:
+          type: string
+        permissionsDocument:
+          type: string
+        permissionsDocumentType:
+          type: string
+        status:
+          type: string
+        provenance:
+          type: string
+        harvestFrequency:
+          type: string
+        lastChecked:
+          type: string
+        dataCurrency:
+          type: string
+        harvestingNotes:
+          type: string
+        gbifDataset:
+          type: boolean
+        isShareableWithGBIF:
+          type: boolean
+        verified:
+          type: boolean
+        gbifRegistryKey:
+          type: string
+        doi:
+          type: string
     DataProvider:
-      type: string
       description: Data Provider metadata in JSON
+      type: object
+      properties:
+        uid:
+          type: string
+        name:
+          type: string
     Institution:
-      type: string
       description: Institution metadata in JSON
+      properties:
+        uid:
+          type: string
+        name:
+          type: string
     Collection:
-      type: string
       description: Collection metadata in JSON
+      properties:
+        uid:
+          type: string
+        name:
+          type: string
 tags:
   - name: Data resource
     description: Services for Data resources
