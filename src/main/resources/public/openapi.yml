@@ -315,7 +315,6 @@ paths:
       responses:
         200:
           description: 'Search results'
-
 components:
   securitySchemes:
     bearerAuth:
@@ -420,24 +419,419 @@ components:
       description: Data Provider metadata in JSON
       type: object
       properties:
-        uid:
-          type: string
         name:
           type: string
+        acronym:
+          type: string
+        uid:
+          type: string
+        guid:
+          type: string
+          format: nullable
+        address:
+          type: string
+          format: nullable
+        phone:
+          type: string
+          format: nullable
+        email:
+          type: string
+          format: nullable
+        pubShortDescription:
+          type: string
+          format: nullable
+        pubDescription:
+          type: string
+          format: nullable
+        techDescription:
+          type: string
+          format: nullable
+        focus:
+          type: string
+          format: nullable
+        state:
+          type: string
+          format: nullable
+        websiteUrl:
+          type: string
+          format: nullable
+        alaPublicUrl:
+          type: string
+        logoRef:
+          type: object
+          properties:
+            filename:
+              type: string
+            caption:
+              type: string
+              format: nullable
+            copyright:
+              type: string
+              format: nullable
+            attribution:
+              type: string
+              format: nullable
+            uri:
+              type: string
+        networkMembership:
+          type: string
+          format: nullable
+        attributions:
+          type: array
+          items:
+            type: object
+        dateCreated:
+          type: string
+          format: date-time
+        lastUpdated:
+          type: string
+          format: date-time
+        userLastModified:
+          type: string
+        dataResources:
+          type: array
+          items:
+            type: object
+        gbifRegistryKey:
+          type: string
+
     Institution:
       description: Institution metadata in JSON
       properties:
+        name:
+          type: string
+        acronym:
+          type: string
         uid:
           type: string
-        name:
+        guid:
+          type: string
+        address:
+          type: string
+          format: nullable
+        phone:
+          type: string
+          format: nullable
+        email:
+          type: string
+          format: nullable
+        pubShortDescription:
+          type: string
+          format: nullable
+        pubDescription:
+          type: string
+        techDescription:
+          type: string
+        focus:
+          type: string
+          format: nullable
+        state:
+          type: string
+          format: nullable
+        websiteUrl:
+          type: string
+        alaPublicUrl:
+          type: string
+        imageRef:
+          type: object
+          properties:
+            filename:
+              type: string
+            caption:
+              type: string
+            copyright:
+              type: string
+            attribution:
+              type: string
+              format: nullable
+            uri:
+              type: string
+        logoRef:
+          type: object
+          properties:
+            filename:
+              type: string
+            caption:
+              type: string
+              format: nullable
+            copyright:
+              type: string
+            attribution:
+              type: string
+              format: nullable
+            uri:
+              type: string
+        networkMembership:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              acronym:
+                type: string
+              logo:
+                type: string
+        hubMembership:
+          type: array
+          items:
+            type: object
+            properties:
+              uid:
+                type: string
+              name:
+                type: string
+              uri:
+                type: string
+        dateCreated:
+          type: string
+          format: date-time
+        lastUpdated:
+          type: string
+          format: date-time
+        userLastModified:
+          type: string
+        institutionType:
+          type: string
+        collections:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              uri:
+                type: string
+              uid:
+                type: string
+              id:
+                type: integer
+                format: int32
+        parentInstitutions:
+          type: array
+        childInstitutions:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              uri:
+                type: string
+              uid:
+                type: string
+              id:
+                type: integer
+                format: int32
+        linkedRecordProviders:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              uri:
+                type: string
+              uid:
+                type: string
+        gbifRegistryKey:
           type: string
     Collection:
       description: Collection metadata in JSON
       properties:
-        uid:
-          type: string
         name:
           type: string
+        acronym:
+          type: string
+        uid:
+          type: string
+        guid:
+          type: string
+        address:
+          type: object
+          properties:
+            street:
+              type: string
+            city:
+              type: string
+            state:
+              type: string
+            postcode:
+              type: string
+            country:
+              type: string
+            postBox:
+              type: string
+        phone:
+          type: string
+          format: nullable
+        email:
+          type: string
+          format: nullable
+        pubShortDescription:
+          type: string
+          format: nullable
+        pubDescription:
+          type: string
+        techDescription:
+          type: string
+        focus:
+          type: string
+          format: nullable
+        latitude:
+          type: number
+        longitude:
+          type: number
+        state:
+          type: string
+          format: nullable
+        websiteUrl:
+          type: string
+        alaPublicUrl:
+          type: string
+        imageRef:
+          type: object
+          properties:
+            filename:
+              type: string
+            caption:
+              type: string
+            copyright:
+              type: string
+            attribution:
+              type: string
+              format: nullable
+            uri:
+              type: string
+        networkMembership:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              acronym:
+                type: string
+              logo:
+                type: string
+        hubMembership:
+          type: array
+          items:
+            type: object
+            properties:
+              uid:
+                type: string
+              name:
+                type: string
+              uri:
+                type: string
+        taxonomyCoverageHints:
+          type: array
+          items:
+            type: object
+            properties:
+              phylum:
+                type: string
+        attributions:
+          type: array
+        dateCreated:
+          type: string
+          format: date-time
+        lastUpdated:
+          type: string
+          format: date-time
+        userLastModified:
+          type: string
+        collectionType:
+          type: array
+          items:
+            type: string
+        keywords:
+          type: array
+          items:
+            type: string
+        active:
+          type: string
+        numRecords:
+          type: integer
+          format: int32
+        numRecordsDigitised:
+          type: integer
+          format: int32
+        states:
+          type: string
+        geographicDescription:
+          type: string
+          format: nullable
+        startDate:
+          type: string
+        endDate:
+          type: string
+          format: nullable
+        kingdomCoverage:
+          type: array
+          items:
+            type: string
+        scientificNames:
+          type: array
+          items:
+            type: string
+        subCollections:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+        institution:
+          type: object
+          properties:
+            name:
+              type: string
+            uri:
+              type: string
+            uid:
+              type: string
+        recordsProviderMapping:
+          type: object
+          properties:
+            collectionCodes:
+              type: array
+              items:
+                type: string
+            institutionCodes:
+              type: array
+              items:
+                type: string
+            matchAnyCollectionCode:
+              type: boolean
+            exact:
+              type: boolean
+            warning:
+              type: string
+              format: nullable
+            dateCreated:
+              type: string
+              format: date-time
+            lastUpdated:
+              type: string
+              format: date-time
+        linkedRecordProviders:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              uri:
+                type: string
+              uid:
+                type: string
+        gbifRegistryKey:
+          type: string
+          format: nullable
 tags:
   - name: Data resource
     description: Services for Data resources
