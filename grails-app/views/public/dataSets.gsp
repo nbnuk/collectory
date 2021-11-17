@@ -3,6 +3,9 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <meta name="layout" content="${grailsApplication.config.skin.layout}"/>
+      <meta name="breadcrumbParent"
+            content="${createLink(action: 'map', controller: 'public')},${message(code: 'breadcrumb.collections')}"
+      />
     <title><g:message code="public.datasets.title" /></title>
       <script type="text/javascript">
           var COLLECTORY_CONF = {

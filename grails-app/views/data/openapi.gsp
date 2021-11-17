@@ -2,7 +2,10 @@
 <html>
 <head>
     <meta name="layout" content="${grailsApplication.config.skin.layout}"/>
-    <title>Registry - Open API</title>
+    <meta name="breadcrumbParent"
+          content="${createLink(action: 'map', controller: 'public')},${message(code: 'breadcrumb.collections')}"
+    />
+    <title>Open API</title>
     <asset:javascript src="swagger-ui.js"/>
     <asset:stylesheet src="swagger-ui.css"/>
 </head>
