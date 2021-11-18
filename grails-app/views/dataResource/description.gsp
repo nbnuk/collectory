@@ -197,8 +197,13 @@
                 removeFromList($(obj).html());
             }
             function getSelectedList() {
-                var list = $.parseJSON($('input#contentTypes').val());
-                return list == undefined ? [] : list
+                var list
+                // initial value is empty so parseJSON throws an exception
+                try {
+                    list = $.parseJSON($('input#contentTypes').val());
+                } catch (error) {
+                }
+                return list === undefined ? [] : list
             }
             function addToList(ct) {
                 var list = getSelectedList();
