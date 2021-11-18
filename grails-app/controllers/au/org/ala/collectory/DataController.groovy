@@ -119,11 +119,14 @@ class DataController {
     }
 
     def addLocation(relativeUri) {
+        // lower case version kept for backwards compatibility
         response.addHeader 'location', grailsApplication.config.grails.serverURL + relativeUri
+        response.addHeader HttpHeaders.LOCATION, grailsApplication.config.grails.serverURL + relativeUri
     }
 
     def addContentLocation(relativeUri) {
         response.addHeader 'content-location', grailsApplication.config.grails.serverURL + relativeUri
+        response.addHeader HttpHeaders.CONTENT_LOCATION, grailsApplication.config.grails.serverURL + relativeUri
     }
 
     def created = {clazz, uid ->
@@ -203,9 +206,6 @@ class DataController {
      */
     @RequireAuth
     def saveEntity(){
-
-
-
         def ok = check(params)
         if (ok) {
             def pg = params.pg
@@ -229,7 +229,7 @@ class DataController {
                 }
             } else {
                 // doesn't exist insert
-                pg = crudService."insert${clazz}"(obj)
+                pg = crudService."insert${clazz}"(obj, request.getUserPrincipal())
                 if (!pg || pg.hasErrors()) {
                     badRequest pg.errors
                 } else {
