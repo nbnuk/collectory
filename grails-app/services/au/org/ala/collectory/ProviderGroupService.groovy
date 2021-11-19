@@ -2,9 +2,7 @@ package au.org.ala.collectory
 
 import grails.converters.JSON
 import grails.gorm.transactions.Transactional
-import grails.util.Holders
-import org.grails.web.json.JSONArray
-import org.grails.web.json.JSONElement
+import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.web.context.request.RequestContextHolder
 
 @Transactional
@@ -13,7 +11,6 @@ class ProviderGroupService {
     def collectoryAuthService
     def grailsApplication
     def messageSource
-    def siteLocale = new Locale.Builder().setLanguageTag(Holders.config.defaultLocale as String).build()
 
     def serviceMethod() {}
 
@@ -492,7 +489,7 @@ class ProviderGroupService {
         def settings = grailsApplication.config.getProperty('suitableFor', String, '[]')
         return JSON.parse(settings).collectEntries{
             def key = it.keySet().first()
-            def val = messageSource.getMessage("dataresource.suitablefor." + key, null, it.values().first(), siteLocale)
+            def val = messageSource.getMessage("dataresource.suitablefor." + key, null, it.values().first(), LocaleContextHolder.getLocale())
             [key, val]
         }
     }
