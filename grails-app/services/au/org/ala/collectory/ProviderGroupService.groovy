@@ -13,7 +13,7 @@ class ProviderGroupService {
     def collectoryAuthService
     def grailsApplication
     def messageSource
-    def siteLocale = new Locale.Builder().setLanguageTag(Holders.config.siteDefaultLanguage as String).build()
+    def siteLocale = new Locale.Builder().setLanguageTag(Holders.config.defaultLocale as String).build()
 
     def serviceMethod() {}
 
