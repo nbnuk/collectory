@@ -353,6 +353,8 @@ eml:
 google:
     apikey: "TO-BE-ADDED"
 
+siteDefaultLanguage: "en"
+
 dataSource:
     pooled: true
     jmxExport: true
