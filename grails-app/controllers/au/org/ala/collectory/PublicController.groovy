@@ -465,8 +465,9 @@ class PublicController {
             render "This resource has decided to not contribute to the Atlas."
         }
         else {
+            def suitableFor = providerGroupService.getSuitableFor()
             activityLogService.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), instance.uid, Action.VIEW
-            [instance: instance]
+            [instance: instance, suitableFor: suitableFor]
         }
     }
 

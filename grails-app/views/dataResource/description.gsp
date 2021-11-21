@@ -125,6 +125,34 @@
                             <g:textArea name="informationWithheld" class="form-control" rows="${cl.textAreaHeight(text:command.informationWithheld)}" value="${command?.informationWithheld}" />
                         </div>
 
+                        <!-- data collection protocol name -->
+                        <div class="form-group">
+                            <label for="dataCollectionProtocolName"><g:message code="dataResource.datacollectionprotocolname.label" default="Data collection protocol name" /></label>
+                            <g:textField name="dataCollectionProtocolName" class="form-control" value="${command?.dataCollectionProtocolName}" />
+                        </div>
+
+                        <!-- data collection protocol documentation -->
+                        <div class="form-group">
+                            <label for="dataCollectionProtocolDoc"><g:message code="dataResource.datacollectionprotocoldoc.label" default="Data collection protocol documentation" /></label>
+                            <g:textField name="dataCollectionProtocolDoc" class="form-control" value="${command?.dataCollectionProtocolDoc}" />
+                        </div>
+
+                        <!-- suitable -->
+                        <div class="form-group">
+                            <div><label for="suitableFor"><g:message code="dataResource.suitablefor.label" default="This data set is likely to be suitable for"/></label></div>
+                            <select id="suitableFor" name="suitableFor">
+                                <option value=""><g:message code="dataResource.suitablefor.option.empty.label" default="-- Select a primary area this data collection could be used for --" /></option>
+                                <g:each in="${suitableFor.keySet()}" var="reason">
+                                    <option value="${reason}" <g:if test="${reason == command.suitableFor}">selected</g:if>>${suitableFor.get(reason)}</option>
+                                </g:each>
+                            </select>
+                        </div>
+
+                        <div class="form-group" >
+                            <g:textField name="suitableForOtherDetail" id="otherdetail" class="form-control" value="${command?.suitableForOtherDetail}" placeholder="${message(code:"dataresource.suitablefor.otherdetail.placeholder", default:'Type something…')}"/>
+                        </div>
+
+                        <br/>
                         <!-- content types -->
                         <div class="container">
                             
@@ -185,7 +213,17 @@
                         }
                     });
                 })
+
+                setOtherVisibility($('#suitableFor').find(":selected").val());
+                $('#suitableFor').on('change', function(e) {
+                    setOtherVisibility($('#suitableFor').find(":selected").val());
+                });
             });
+
+            function setOtherVisibility(currentSelection) {
+                $('#otherdetail').css('visibility', (currentSelection === 'other') ? 'visible' : 'hidden');
+            }
+
             function add(obj) {
                 // clear instructions if present
                 $('.sink-box li.msg').remove();
