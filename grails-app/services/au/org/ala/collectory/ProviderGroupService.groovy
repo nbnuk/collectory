@@ -487,10 +487,18 @@ class ProviderGroupService {
     Map getSuitableFor() {
         // the settings in config is an array so that after JSON.parse the original order can be kept.
         def settings = grailsApplication.config.getProperty('suitableFor', String, '[]')
-        return JSON.parse(settings).collectEntries{
-            def key = it.keySet().first()
-            def val = messageSource.getMessage("dataresource.suitablefor." + key, null, it.values().first(), LocaleContextHolder.getLocale())
-            [key, val]
+        def suitableForMap = [:]
+
+        try {
+            suitableForMap = JSON.parse(settings).collectEntries {
+                def key = it.keySet().first()
+                def val = messageSource.getMessage("dataresource.suitablefor." + key, null, it.values().first(), LocaleContextHolder.getLocale())
+                [key, val]
+            }
+        } catch (e) {
+            log.error('Failed to parse suitableFor settings in config, config value is = ' + settings + ', exception is ' + e)
         }
+
+        return suitableForMap
     }
 }
