@@ -202,15 +202,12 @@ class CollectionController extends ProviderGroupController {
      */
     static def entitySpecificDescriptionProcessing(collection, params) {
         // special handling for collection type
-        if (params.collectionType) {
-            List collectionTypes = params.list('collectionType')
-            collection.collectionType = (collectionTypes as JSON).toString()
-            params.remove('collectionType')
-        }
+        collection.collectionType = (params.collectionType as JSON).toString()
+        params.remove('collectionType')
 
         // special handling for keywords
         def keywords = params.keywords.tokenize(',')
-        def trimmedKeywords = keywords.collect { return it.trim() }
+        def trimmedKeywords = keywords.collect {return it.trim()}
         collection.keywords = (trimmedKeywords  as JSON).toString()
         params.remove('keywords')
 

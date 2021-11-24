@@ -91,12 +91,13 @@
 
                     <g:if test="${instance.dataCollectionProtocolDoc}">
                         <h3><g:message code="public.sdr.content.label.datacollectionprotocoldoc" /></h3>
-                        <cl:externalLink href="${instance.dataCollectionProtocolDoc}"/>
+                        <cl:formattedText>${instance.dataCollectionProtocolDoc}</cl:formattedText>
                     </g:if>
 
                     <g:if test="${instance.suitableFor}">
                         <h3><g:message code="public.sdr.content.label.suitablefor" /></h3>
-                        <cl:suitableFor types="${instance.suitableFor}" map="${suitableFor}"/>
+                        <g:set var="suitable" value="${instance.suitableFor != 'other' ? suitableFor.getOrDefault(instance.suitableFor, "") : (instance.suitableForOtherDetail ?: suitableFor.getOrDefault('other', message(code: "dataresource.suitablefor.other", default: "Other")))}"/>
+                        <cl:formattedText>${suitable}</cl:formattedText>
                     </g:if>
 
                     <h2><g:message code="public.sdr.content.label03" /></h2>

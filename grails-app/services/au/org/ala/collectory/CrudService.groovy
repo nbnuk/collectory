@@ -299,6 +299,8 @@ class CrudService {
             techDescription = p.techDescription
             dataCollectionProtocolName = p.dataCollectionProtocolName
             dataCollectionProtocolDoc = p.dataCollectionProtocolDoc
+            suitableFor = p.suitableFor
+            suitableForOtherDetail = p.suitableForOtherDetail
             focus = p.focus
             if (p.latitude != -1) latitude = p.latitude
             if (p.longitude != -1) longitude = p.longitude
@@ -353,7 +355,6 @@ class CrudService {
                     riskAssessment = p.riskAssessment
                 }
                 contentTypes = p.contentTypes ? p.contentTypes.formatJSON() : []
-                suitableFor = p.suitableFor ? p.suitableFor.formatJSON() : []
                 if (p.listConsumers()) {
                     linkedRecordConsumers = formatEntitiesFromUids(p.listConsumers())
                 }

@@ -50,6 +50,7 @@ class DataResource implements ProviderGroup, Serializable {
         dataCollectionProtocolName type: "text"
         dataCollectionProtocolDoc type: "text"
         suitableFor type: "text"
+        suitableForOtherDetail type: "text"
     }
 
     String rights
@@ -86,6 +87,7 @@ class DataResource implements ProviderGroup, Serializable {
     String dataCollectionProtocolName
     String dataCollectionProtocolDoc
     String suitableFor
+    String suitableForOtherDetail
 
     //Additional EML fields
     String purpose
@@ -167,6 +169,7 @@ class DataResource implements ProviderGroup, Serializable {
         dataCollectionProtocolName(nullable:true)
         dataCollectionProtocolDoc(nullable:true)
         suitableFor(nullable:true)
+        suitableForOtherDetail(nullable:true)
     }
 
     static transients =  ['creativeCommons']

@@ -749,9 +749,7 @@ class DataController {
                 Contact.withTransaction {
                     c.save(flush: true)
                 }
-                if (c.hasErrors()) {
-                    c.errors.each { log.error(it.toString()) }
-                }
+                c.errors.each {  log.error(it.toString()) }
                 addContentLocation "/ws/contacts/${c.id}"
                 def cm = buildContactModel(c)
                 cm.id = c.id
@@ -766,9 +764,7 @@ class DataController {
                 Contact.withTransaction {
                     c.save(flush: true)
                 }
-                if (c.hasErrors()) {
-                    c.errors.each { log.error(it.toString()) }
-                }
+                c.errors.each { log.error(it.toString()) }
                 addContentLocation "/ws/contacts/${c.id}"
                 def cm = buildContactModel(c)
                 cm.id = c.id
@@ -808,7 +804,6 @@ class DataController {
      * @param uid the entity instance
      */
     def contactsForEntity = {
-        check(params)
         def contactList = params.pg.getContacts().collect { buildContactForModel(it, params.pg.urlForm()) }
         addContentLocation "/ws/${params.entity}/${params.pg.uid}/contacts"
         addVaryAcceptHeader()
@@ -835,7 +830,6 @@ class DataController {
      * @param id the database id of the contact relationship (contactFor)
      */
     def contactForEntity = {
-        check(params)
         if (params.id) {
             def cm = buildContactForModel(ContactFor.get(params.id as Long), params.pg.urlForm())
             addContentLocation "/ws/${params.entity}/${params.pg.uid}/contacts/${params.id}"
@@ -888,7 +882,7 @@ class DataController {
             map.contactName = it.primaryContact?.contact?.buildName() ?: ""
             map.contactEmail = it.primaryContact?.contact?.email ?: ""
             map.contactPhone = it.primaryContact?.contact?.phone ?: ""
-            map.uri = it.primaryContact ? "${Holders.grailsApplication.config.grails.serverURL}/ws/${providerGroupService.urlFormFromUid(it.uid)}/${it.uid}/contacts/${it.primaryContact?.id}" : ''
+            map.uri = it.primaryContact ? "${Holders.grailsApplication.config.grails.serverURL}/ws/${ProviderGroup.urlFormFromUid(it.uid)}/${it.uid}/contacts/${it.primaryContact?.id}" : ''
 
             return map
         }
@@ -916,7 +910,7 @@ class DataController {
     def notifyList = {
         if (params.uid) {
             def contactFors = ContactFor.findAllByEntityUidAndNotify(params.uid, true).collect {
-                buildContactForModel(it, providerGroupService.urlFormFromUid(params.uid))
+                buildContactForModel(it, ProviderGroup.urlFormFromUid(params.uid))
             }
             render contactFors as JSON
         } else {
@@ -968,41 +962,32 @@ class DataController {
      */
     def updateContactFor = {
         def ok = check(params)
-        if (!ok || !params.pg || !params.id || !params.pg.uid){
+        if (!ok){
             return
         }
-        try {
-            def props = params.json
-            props.userLastModified = session.username
-
-            def c = Contact.get(params.id)
-            def cf = ContactFor.findByContactAndEntityUid(c, params.pg.uid)
-            if (cf) {
-                // update
-                bindData(cf, props as Map, ['entityUid'])
-                Contact.withTransaction {
-                    c.save(flush: true)
-                }
-                if (c.hasErrors()) {
-                    c.errors.each { log.error("Validation error - " + it.toString()) }
-                }
-                success 'updated'
+        def props = params.json
+        props.userLastModified = session.username
+        //println "body = "  + props
+        def c = Contact.get(params.id)
+        def cf = ContactFor.findByContactAndEntityUid(c, params.pg.uid)
+        if (cf) {
+            // update
+            bindData(cf, props as Map, ['entityUid'])
+            c.save(flush: true)
+            c.errors.each { log.error(it) }
+            success 'updated'
+        } else {
+            // create
+            if (c) {
+                params.pg.addToContacts c,
+                        props.role ?: '',
+                        (props.administrator ?: false) as Boolean,
+                        (props.primaryContact ?: false) as Boolean,
+                        props.userLastModified
+                created 'contactFor', params.pg.uid
             } else {
-                // create
-                if (c) {
-                    params.pg.addToContacts c,
-                            props.role ?: '',
-                            (props.administrator ?: false) as Boolean,
-                            (props.primaryContact ?: false) as Boolean,
-                            props.userLastModified
-                    created 'contactFor', params.pg.uid
-                } else {
-                    badRequest "contact doesn't exist"
-                }
+                badRequest "contact doesn't exist"
             }
-        } catch (Exception e){
-            log.error(e.getMessage(), e)
-            badRequest "Problem processing this update"
         }
     }
 

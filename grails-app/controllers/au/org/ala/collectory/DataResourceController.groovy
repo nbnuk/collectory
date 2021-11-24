@@ -304,4 +304,10 @@ class DataResourceController extends ProviderGroupController {
         }
         return DataResource.get(dbId)
     }
+
+    static def entitySpecificDescriptionProcessing(params) {
+        if (params?.suitableFor != 'other' && params?.suitableForOtherDetail) {
+            params.suitableForOtherDetail = ''
+        }
+    }
 }
