@@ -1,6 +1,5 @@
 package au.org.ala.collectory
 
-import au.org.ala.collectory.AuditLogEvent
 import au.org.ala.collectory.resources.DataSourceLoad
 import au.org.ala.collectory.resources.gbif.GbifDataSourceAdapter
 import au.org.ala.collectory.resources.gbif.GbifRepatDataSourceAdapter

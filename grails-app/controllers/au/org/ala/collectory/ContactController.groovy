@@ -1,7 +1,5 @@
 package au.org.ala.collectory
 
-import au.org.ala.collectory.AuditLogEvent
-
 class ContactController {
 
     static allowedMethods = [save: "POST", update: "POST", delete: "POST"]
@@ -60,8 +58,11 @@ class ContactController {
         def contactInstance = new Contact(params)
         contactInstance.userLastModified = collectoryAuthService?.username()?:'not available'
         contactInstance.validate()
-        contactInstance.errors.each {log.error(it) }
-        if (contactInstance.save(flush: true)) {
+
+        if (!contactInstance.hasErrors()) {
+            Contact.withTransaction {
+                contactInstance.save(flush: true)
+            }
             flash.message = "${message(code: 'default.created.message', args: [message(code: 'contact.label', default: 'Contact'), contactInstance.id])}"
             if (params.returnTo) {
                 redirect(uri: params.returnTo + "?contactId=${contactInstance.id}")
@@ -104,7 +105,6 @@ class ContactController {
             if (params.version) {
                 def version = params.version.toLong()
                 if (contactInstance.version > version) {
-                    
                     contactInstance.errors.rejectValue("version", "default.optimistic.locking.failure", [message(code: 'contact.label', default: 'Contact')] as Object[], "Another user has updated this Contact while you were editing")
                     render(view: "edit", model: [contactInstance: contactInstance, returnTo: params.returnTo])
                     return
@@ -112,7 +112,10 @@ class ContactController {
             }
             contactInstance.properties = params
             contactInstance.userLastModified = collectoryAuthService?.username()
-            if (!contactInstance.hasErrors() && contactInstance.save(flush: true)) {
+            if (!contactInstance.hasErrors()) {
+                Contact.withTransaction {
+                    contactInstance.save(flush: true)
+                }
                 activityLogService.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), Action.EDIT_SAVE, "contact ${params.id}"
                 flash.message = "${message(code: 'default.updated.message', args: [message(code: 'contact.label', default: 'Contact'), contactInstance.id])}"
                 if (params.returnTo) {
@@ -120,9 +123,7 @@ class ContactController {
                 } else {
                     redirect(action: "show", id: contactInstance.id)
                 }
-            }
-            else {
-
+            } else {
                 render(view: "edit", model: [contactInstance: contactInstance, returnTo: params.returnTo])
             }
         }
@@ -138,14 +139,18 @@ class ContactController {
     def delete() {
         def contactInstance = Contact.get(params.id)
         if (contactInstance) {
-            if (collectoryAuthService?.userInRole(grailsApplication.config.auth.admin_role)) {
+            if (collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN)) {
                 try {
                     activityLogService.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), Action.DELETE, "contact ${contactInstance.buildName()}"
                     // need to delete any ContactFor links first
-                    ContactFor.findAllByContact(contactInstance).each {
-                        it.delete(flush: true)
+                    ContactFor.withTransaction {
+                        ContactFor.findAllByContact(contactInstance).each {
+                            it.delete(flush: true)
+                        }
                     }
-                    contactInstance.delete(flush: true)
+                    Contact.withTransaction {
+                        contactInstance.delete(flush: true)
+                    }
                     flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'contact.label', default: 'Contact'), params.id])}"
                     redirect(action: "list")
                 } catch (org.springframework.dao.DataIntegrityViolationException e) {
@@ -188,7 +193,7 @@ class ContactController {
             contactInstance.properties = params
             contactInstance.userLastModified = collectoryAuthService?.username()
             if (!contactInstance.hasErrors() && contactInstance.save(flush: true)) {
-                ActivityLog.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), Action.EDIT_SAVE, "contact ${params.id}"
+                activityLogService.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), Action.EDIT_SAVE, "contact ${params.id}"
                 flash.message = "Your profile was updated."
                 redirect(uri: "/admin")
             }

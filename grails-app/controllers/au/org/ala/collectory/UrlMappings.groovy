@@ -53,18 +53,12 @@ class UrlMappings {
         "/ws/lookup/$action"(controller: 'lookup')
 
         "/admin"(controller: 'manage', action: 'list')
-
         "/admin/export/$table"(controller: 'admin', action: 'export')
-
         "/admin/gbif/healthcheck"(controller: 'gbif', action: 'healthCheck')
-
         "/admin/gbif/sync"(controller: 'gbif', action: 'syncAllResources')
 
         // data sets
         "/datasets"(controller: 'public', action: 'dataSets')
-
-        // self-service
-        //"/manage" (controller: 'manage', action: 'index')
 
         // data services
         "/ws/$entity/count/$groupBy?"(controller: 'data', action: 'count') {
@@ -181,18 +175,25 @@ class UrlMappings {
         "/ws/eml/$id?"(controller: 'data', action: 'eml')
 
         // GBIF IPT
+        "/ws/ipt/scan/"(controller: 'ipt', action: 'scan')
         "/ws/ipt/scan/$uid(.$format)?"(controller: 'ipt', action: 'scan')
+
+        // GBIF Repatriation
+        "/ws/gbif/scan/"(controller: 'gbif', action: 'scan')
+        "/ws/gbif/scan/$uid(.$format)?"(controller: 'gbif', action: 'scan')
 
         // high-performance name lookup from uid list
         "/ws/resolveNames/$uids"(controller: 'data', action: 'resolveNames')
 
         "/lookup/summary/$id(.$format)?"(controller: 'lookup', action: 'summary')
+        "/ws/lookup/summary/$id(.$format)?"(controller: 'lookup', action: 'summary')
 
         "/ws/collection/contacts/$uid(.$format)?"(controller: 'data', action: 'contactsForCollections')
         "/ws/institution/contacts/$uid(.$format)?"(controller: 'data', action: 'contactsForInstitutions')
         "/ws/dataProvider/contacts/$uid(.$format)?"(controller: 'data', action: 'contactsForDataProviders')
         "/ws/dataResource/contacts/$uid(.$format)?"(controller: 'data', action: 'contactsForDataResources')
         "/ws/dataHub/contacts/$uid(.$format)?"(controller: 'data', action: 'contactsForDataHubs')
+        "/ws/syncGBIF"(controller: 'data', action: 'syncGBIF')
         "/ws"(controller: 'data', action: 'catalogue')
         "/showConsumers/$id(.$format)?"(controller: 'entity', action: 'showConsumers')
         "/showProviders/$id(.$format)?"(controller: 'entity', action: 'showProviders')
@@ -208,6 +209,11 @@ class UrlMappings {
 
         "/"(controller: 'public', action: 'map')
 
+        "/error"(view: '/error')
+        "401"(view: '/error')
+        "403"(view: '/error')
+        "404"(view: '/error')
+        "400"(view: '/error')
         "500"(view: '/error')
     }
 }

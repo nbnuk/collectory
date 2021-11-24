@@ -27,18 +27,21 @@
                 <g:hiddenField name="returnTo" value="${returnTo}"/>
                 <div class="form-group">
                     <label for="title"><g:message code="contact.title.label" default="Title" /></label>
-                    <g:select name="title" class="form-control" from="${contactInstance.constraints.title.inList}" value="${contactInstance?.title}" valueMessagePrefix="contact.title" noSelection="['': '']" />
+                    <g:select name="title" class="form-control"
+                              from="${grailsApplication.config.contacts.titles}"
+                              value="${contactInstance?.title}" valueMessagePrefix="contact.title"
+                              noSelection="['': '']" />
                 </div>
 
                 <div class="form-group">
                     <label for="firstName"><g:message code="contact.firstName.label" default="First Name" /></label>
-                    <g:textArea name="firstName" class="form-control" cols="40" rows="5" value="${contactInstance?.firstName}" />
+                    <g:textField name="firstName" class="form-control" cols="40" rows="5" value="${contactInstance?.firstName}" />
 
                 </div>
 
                 <div class="form-group">
                     <label for="lastName"><g:message code="contact.lastName.label" default="Last Name" /></label>
-                    <g:textArea name="lastName" class="form-control" cols="40" rows="5" value="${contactInstance?.lastName}" />
+                    <g:textField name="lastName" class="form-control" cols="40" rows="5" value="${contactInstance?.lastName}" />
 
                 </div>
 

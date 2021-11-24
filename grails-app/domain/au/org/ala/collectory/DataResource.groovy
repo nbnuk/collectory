@@ -47,6 +47,10 @@ class DataResource implements ProviderGroup, Serializable {
         qualityControlDescription type: "text"
         geographicDescription type: "text"
         purpose type: "text"
+        dataCollectionProtocolName type: "text"
+        dataCollectionProtocolDoc type: "text"
+        suitableFor type: "text"
+        suitableForOtherDetail type: "text"
     }
 
     String rights
@@ -80,6 +84,10 @@ class DataResource implements ProviderGroup, Serializable {
     Boolean makeContactPublic = true
     Boolean isPrivate = false
     String repatriationCountry
+    String dataCollectionProtocolName
+    String dataCollectionProtocolDoc
+    String suitableFor
+    String suitableForOtherDetail
 
     //Additional EML fields
     String purpose
@@ -158,6 +166,10 @@ class DataResource implements ProviderGroup, Serializable {
         gbifDoi(nullable:true)
         isPrivate(nullable:true)
         repatriationCountry(nullable:true)
+        dataCollectionProtocolName(nullable:true)
+        dataCollectionProtocolDoc(nullable:true)
+        suitableFor(nullable:true)
+        suitableForOtherDetail(nullable:true)
     }
 
     static transients =  ['creativeCommons']
@@ -187,7 +199,7 @@ class DataResource implements ProviderGroup, Serializable {
         drs.hubMembership = listHubMembership().collect { [uid: it.uid, name: it.name] }
         def consumers = listConsumers()
         consumers.each {
-            def pg = findByUid(it)
+            def pg = DataResource.findByUid(it)
             if (pg) {
                 if (it[0..1] == 'co') {
                     drs.relatedCollections << [uid: pg.uid, name: pg.name]

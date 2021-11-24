@@ -297,6 +297,10 @@ class CrudService {
             pubShortDescription = p.pubShortDescription
             pubDescription = p.pubDescription
             techDescription = p.techDescription
+            dataCollectionProtocolName = p.dataCollectionProtocolName
+            dataCollectionProtocolDoc = p.dataCollectionProtocolDoc
+            suitableFor = p.suitableFor
+            suitableForOtherDetail = p.suitableForOtherDetail
             focus = p.focus
             if (p.latitude != -1) latitude = p.latitude
             if (p.longitude != -1) longitude = p.longitude
@@ -408,12 +412,14 @@ class CrudService {
         }
     }
 
-    @Transactional
     def updateDataResource(dr, obj) {
         updateBaseProperties(dr, obj)
         updateDataResourceProperties(dr, obj)
         dr.userLastModified = obj.user ?: 'Data services'
         if (!dr.hasErrors()) {
+            if (!dr.attached){
+                dr.attach()
+            }
             dr.save(flush: true)
         }
         dr
@@ -434,14 +440,14 @@ class CrudService {
 
         if (obj.has('dataProvider')) {
             // find it
-            DataProvider dp = DataProvider._get(obj.dataProvider.uid) as DataProvider
+            DataProvider dp = DataProvider.findByUid(obj.dataProvider.uid) as DataProvider
             if (dp) {
                 dr.dataProvider = dp
             }
         }
         if (obj.has('institution')) {
             // find it
-            Institution ins = Institution._get(obj.institution.uid) as Institution
+            Institution ins = Institution.findByUid(obj.institution.uid) as Institution
             if (ins) {
                 dr.institution = ins
             }
@@ -487,7 +493,9 @@ class CrudService {
         updateTempDataResourceProperties(drt, obj)
         //drt.userLastModified = obj.user ?: 'Data services'
         if (!drt.hasErrors()) {
-             drt.save(flush: true)
+            DataResource.withTransaction {
+                drt.save(flush: true)
+            }
         }
         return drt
     }
@@ -497,7 +505,9 @@ class CrudService {
         updateTempDataResourceProperties(drt, obj)
         //drt.userLastModified = obj.user ?: 'Data services'
         if (!drt.hasErrors()) {
-             drt.save(flush: true)
+            DataResource.withTransaction {
+                drt.save(flush: true)
+            }
         }
         return drt
     }
@@ -610,17 +620,6 @@ class CrudService {
         updateExternalIdentifiers(inst, obj)
     }
 
-    /* collection */
-
-    /*def basics = { c ->
-        { it ->
-            name = c.name
-            acronym = c.acronym
-            uid = c.uid
-            guid = c.guid
-        }
-    }*/
-
     def readCollection(Collection p) {
         def builder = new JSONBuilder()
 
@@ -729,7 +728,9 @@ class CrudService {
         updateCollectionProperties(inst, obj)
         inst.userLastModified = obj.user ?: 'Data services'
         if (!inst.hasErrors()) {
-             inst.save(flush: true)
+            Collection.withTransaction {
+                inst.save(flush: true)
+            }
         }
         return inst
     }
@@ -742,7 +743,9 @@ class CrudService {
             inst.errors.each { log.error it }
         }
         else {
-             inst.save(flush: true)
+            Collection.withTransaction {
+                inst.save(flush: true)
+            }
         }
         return inst
     }
@@ -757,7 +760,7 @@ class CrudService {
                 co.errors.rejectValue('institution','NO_UID','institution must specify a uid')
             } else {
                 // find it
-                Institution institution = Institution._get(obj.institution.uid) as Institution
+                Institution institution = Institution.findByUid(obj.institution.uid) as Institution
                 if (institution) {
                     co.institution = institution
                 } else {

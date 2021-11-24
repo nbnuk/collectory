@@ -59,7 +59,7 @@ class CollectionController extends ProviderGroupController {
                 return (aClass <=> bClass) * sortOrder
             }
         }
-//        ActivityLog.log username(), isAdmin(), Action.LIST
+        activityLogService.log username(), isAdmin(), Action.LIST
         [collInstanceList: colls, collInstanceTotal: Collection.count()]
     }
 
@@ -82,7 +82,7 @@ class CollectionController extends ProviderGroupController {
                     }
                 }
             }
-            ActivityLog.log username(), isAdmin(), Action.MYLIST
+            activityLogService.log username(), isAdmin(), Action.MYLIST
             log.info ">>${user} listing my collections and institution"
             render(view: 'myList', model: [collections: collectionList, institutions: institutionList])
         }
@@ -161,7 +161,7 @@ class CollectionController extends ProviderGroupController {
         if (!params.order) params.order = "asc"
 
         log.info ">>${username()} searching for ${params.term}"
-        ActivityLog.log username(), isAdmin(), Action.SEARCH, params.term
+        activityLogService.log username(), isAdmin(), Action.SEARCH, params.term
 
         def results = Collection.createCriteria().list(max: params.max, offset: params.offset) {
             order(params.sort, params.order)
@@ -202,13 +202,16 @@ class CollectionController extends ProviderGroupController {
      */
     static def entitySpecificDescriptionProcessing(collection, params) {
         // special handling for collection type
-        collection.collectionType = toJson(params.collectionType)
-        params.remove('collectionType')
+        if (params.collectionType) {
+            List collectionTypes = params.list('collectionType')
+            collection.collectionType = (collectionTypes as JSON).toString()
+            params.remove('collectionType')
+        }
 
         // special handling for keywords
         def keywords = params.keywords.tokenize(',')
-        def trimmedKeywords = keywords.collect {return it.trim()}
-        collection.keywords = toJson(trimmedKeywords)
+        def trimmedKeywords = keywords.collect { return it.trim() }
+        collection.keywords = (trimmedKeywords  as JSON).toString()
         params.remove('keywords')
 
         // special handling for sub-collections
@@ -257,7 +260,10 @@ class CollectionController extends ProviderGroupController {
 
             collection.properties = params
             collection.userLastModified = username()
-            if (!collection.hasErrors() && collection.save(flush: true)) {
+            if (!collection.hasErrors()) {
+                Collection.withTransaction {
+                    collection.save(flush: true)
+                }
                 flash.message = "${message(code: 'default.updated.message', args: [message(code: 'collection.label', default: 'Collection'), collection.uid])}"
                 redirect(action: "show", id: collection.id)
             } else {
@@ -279,7 +285,10 @@ class CollectionController extends ProviderGroupController {
                 collection.keywords = (keywords as JSON).toString()
             }
             collection.userLastModified = username()
-            if (!collection.hasErrors() && collection.save(flush: true)) {
+            if (!collection.hasErrors())  {
+                Collection.withTransaction {
+                    collection.save(flush: true)
+                }
                 flash.message = "${message(code: 'default.updated.message', args: [message(code: 'collection.label', default: 'Collection'), collection.uid])}"
                 redirect(action: "show", id: collection.id)
             } else {

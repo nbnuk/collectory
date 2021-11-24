@@ -39,7 +39,7 @@ class CollectoryAuthService{
         if(grailsApplication.config.security.cas.bypass?:''.toBoolean())
             roleFlag = true
         else {
-            if(authService != null) {
+            if (authService != null) {
                 roleFlag = authService.userInRole(role)
             }
         }

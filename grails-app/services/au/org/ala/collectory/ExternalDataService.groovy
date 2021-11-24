@@ -149,7 +149,9 @@ class ExternalDataService {
 
             update = convertToJSON(update)
             if (dr && update && resource.updateMetadata) {
-                dr = crudService.updateDataResource(dr, update)
+                DataResource.withTransaction {
+                    dr = crudService.updateDataResource(dr, update)
+                }
             }
             if (!dr && resource.addResource) {
                 dr = crudService.insertDataResource(update)

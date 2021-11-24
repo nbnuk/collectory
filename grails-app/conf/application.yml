@@ -146,6 +146,9 @@ headerAndFooter:
     version: 2
 
 security:
+    apikey:
+        checkEnabled: true
+        serviceUrl: https://auth-test.ala.org.au/apikey/ws/check?apikey=
     cas:
         casServerName: https://auth-test.ala.org.au
         uriFilterPattern:
@@ -200,6 +203,7 @@ citation.template: "Records provided by @entityName@, accessed through ALA websi
 citation.link.template = For more information: "@link@"
 
 networkTypes:
+    - BCI
     - CHAH
     - CHAEC
     - CHAFC
@@ -260,6 +264,70 @@ dataResource:
         - "Individual sightings"
         - "Published dataset"
         - "Draft"
+collection:
+    collectionTypes:
+        - "archival"
+        - "art"
+        - "audio"
+        - "cellcultures"
+        - "electronic"
+        - "facsimiles"
+        - "fossils"
+        - "genetic"
+        - "living"
+        - "observations"
+        - "preserved"
+        - "products"
+        - "seedbank"
+        - "taxonomic"
+        - "texts"
+        - "tissue"
+        - "visual"
+    kingdoms:
+        - "Animalia"
+        - "Archaebacteria"
+        - "Eubacteria"
+        - "Fungi"
+        - "Plantae"
+        - "Protista"
+    developmentStatuses:
+        - "Active growth"
+        - "Closed"
+        - "Consumable"
+        - "Decreasing"
+        - "Lost"
+        - "Missing"
+        - "Passive growth"
+        - "Static"
+institution:
+    institutionTypes:
+        - "aquarium"
+        - "archive"
+        - "botanicGarden"
+        - "conservation"
+        - "fieldStation"
+        - "government"
+        - "governmentDepartment"
+        - "herbarium"
+        - "historicalSociety"
+        - "horticulturalInstitution"
+        - "independentExpert"
+        - "industry"
+        - "laboratory"
+        - "library"
+        - "management"
+        - "museum"
+        - "natureEducationCenter"
+        - "nonUniversityCollege"
+        - "park"
+        - "repository"
+        - "researchInstitute"
+        - "school"
+        - "scienceCenter"
+        - "society"
+        - "university"
+        - "voluntaryObserver"
+        - "zoo"
 contacts:
     titles:
         - "Dr"
@@ -269,6 +337,7 @@ contacts:
         - "Mrs"
         - "Assoc Prof"
         - "Assist Prof"
+
 
 cartodb:
     pattern: "https://cartodb-basemaps-${s}.global.ssl.fastly.net/light_nolabels/${z}/${x}/${y}.png"
@@ -280,6 +349,9 @@ eml:
     administrativeArea: ACT
     postalCode: 2601
     country: Australia
+
+google:
+    apikey: "TO-BE-ADDED"
 
 dataSource:
     pooled: true

@@ -27,7 +27,12 @@ class LicenceController {
 
     def save() {
         def licenceInstance = new Licence(params)
-        if (!licenceInstance.save(flush: true)) {
+        def savedInstance = null
+        Licence.withTransaction {
+            savedInstance = licenceInstance.save(flush: true)
+        }
+
+        if (!savedInstance) {
             render(view: "create", model: [licenceInstance: licenceInstance])
             return
         }
@@ -78,7 +83,12 @@ class LicenceController {
 
         licenceInstance.properties = params
 
-        if (!licenceInstance.save(flush: true)) {
+        def savedInstance = null
+        Licence.withTransaction {
+            savedInstance = licenceInstance.save(flush: true)
+        }
+
+        if (!savedInstance) {
             render(view: "edit", model: [licenceInstance: licenceInstance])
             return
         }
@@ -96,7 +106,9 @@ class LicenceController {
         }
 
         try {
-            licenceInstance.delete(flush: true)
+            Licence.withTransaction {
+                licenceInstance.delete(flush: true)
+            }
             flash.message = message(code: 'default.deleted.message', args: [message(code: 'licence.label', default: 'Licence'), id])
             redirect(action: "list")
         }

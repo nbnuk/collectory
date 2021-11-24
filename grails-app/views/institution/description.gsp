@@ -44,7 +44,7 @@
                 <!-- type -->
                 <div class="form-group">
                     <label for="institutionType"><g:message code="providerGroup.institutionType.label" default="Institution Type" /><cl:helpText code="collection.collectionType"/></label>
-                    <g:select name="institutionType" class="form-control" from="${Institution.constraints.institutionType.inList}" value="${command.institutionType}"/>
+                    <g:select name="institutionType" class="form-control" from="${grailsApplication.config.institution.institutionTypes}" value="${command.institutionType}"/>
                 </div>
 
                 <div class="buttons">

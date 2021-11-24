@@ -166,7 +166,17 @@
                 <p><span class="category"><g:message code="dataresource.show.iw" />: </span> ${fieldValue(bean: instance, field: "informationWithheld")}</p>
 
                 <!-- content types -->
-                 <p><span class="category"><g:message code="dataResource.contentTypes.label" />: </span> <cl:formatJsonList value="${instance.contentTypes}"/></p>
+                <p><span class="category"><g:message code="dataResource.contentTypes.label" />: </span> <cl:formatJsonList value="${instance.contentTypes}"/></p>
+
+                <!-- data collection protocol name -->
+                <p><span class="category"><g:message code="dataResource.datacollectionprotocolname.label" />: </span>${instance.dataCollectionProtocolName}</p>
+
+                <!-- data collection protocol documentation -->
+                <p><span class="category"><g:message code="dataResource.datacollectionprotocoldoc.label" />: </span><g:if test="${instance.dataCollectionProtocolDoc}"><cl:externalLink href="${instance.dataCollectionProtocolDoc}"/></g:if></p>
+
+                <!-- suitable for -->
+                <g:set var="suitable" value="${instance.suitableFor != 'other' ? suitableFor.getOrDefault(instance.suitableFor, "") : (instance.suitableForOtherDetail ?: suitableFor.getOrDefault('other', message(code: "dataresource.suitablefor.other", default: "Other")))}"/>
+                <p><span class="category"><g:message code="dataResource.suitablefor.label" />: </span> ${suitable}</p>
 
                 <cl:editButton uid="${instance.uid}" page="description"/>
               </div>
@@ -193,7 +203,8 @@
               <div class="show-section well">
                 <g:if test="${instance.gbifDataset}">
                     <cl:ifGranted role="${grailsApplication.config.ROLE_ADMIN}">
-                        <div class="pull-right"><span class="buttons"><g:link class="edit btn btn-default" controller="manage" action="gbifDatasetDownload" id="${instance.uid}">
+                        <div class="pull-right"><span class="buttons">
+                            <g:link class="edit btn btn-default" controller="manage" action="gbifDatasetDownload" id="${instance.uid}">
                             <i class="glyphicon-refresh"> </i>
                             ${message(code: 'datasource.button.update', default: 'Reload from GBIF')}</g:link></span></div>
                     </cl:ifGranted>
@@ -249,12 +260,8 @@
                         </table>
 
                 </g:if>
-
-                <cl:ifGranted role="${grailsApplication.config.ROLE_ADMIN}">
-                  <div><span class="buttons"><g:link class="edit btn btn-default" action='edit' params="[page:'contribution']" id="${instance.uid}">${message(code: 'default.button.edit.label', default: 'Edit')}</g:link></span></div>
-                </cl:ifGranted>
-
-
+                <cl:editButton uid="${instance.uid}" page="/dataResource/contribution"
+                               notAuthorisedMessage="You are not authorised to edit this resource."/>
               </div>
 
               <div class="well">

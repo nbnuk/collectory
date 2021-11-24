@@ -135,10 +135,21 @@ class GbifController {
             // look in the standard place - http apiKey param
             apiKey = params.apiKey
         }
+
+        if (!apiKey || !apiKey.value){
+            response.sendError(401)
+            return
+        }
+
         def keyCheck =  collectoryAuthService.checkApiKey(apiKey.value)
 
         if (!keyCheck || !keyCheck.valid){
-            response.sendError(401)
+            response.sendError(401, "Invalid key suppliied")
+            return
+        }
+
+        if (!params.uid || !params.uid.startsWith('dp')){
+            response.sendError(400, "No valid UID supplied")
             return
         }
 
@@ -150,17 +161,22 @@ class GbifController {
 
         def resources = dataProvider.resources
         def output = []
+        def updates = []
         resources.each { DataResource resource ->
             Date lastUpdated = gbifService.getGbifDatasetLastUpdated(resource.guid)
             //get last updated data
-            output << [uid:resource.uid,
-                       name: resource.name,
-                       lastUpdated: resource.lastUpdated,
-                       guid: resource.guid,
-                       country: resource.repatriationCountry,
-                       pubDate: lastUpdated,
-                       inSync:  !(lastUpdated > resource.lastUpdated)
+            def resourceDescription =  [uid:resource.uid,
+                         name: resource.name,
+                         lastUpdated: resource.lastUpdated,
+                         guid: resource.guid,
+                         country: resource.repatriationCountry,
+                         pubDate: lastUpdated,
+                         inSync:  !(lastUpdated > resource.lastUpdated)
             ]
+            output << resourceDescription
+            if (lastUpdated > resource.lastUpdated) {
+                updates << resourceDescription
+            }
         }
 
         DataSourceConfiguration configuration = new DataSourceConfiguration()
@@ -190,6 +206,7 @@ class GbifController {
         def fullOutput =
                 [loadGuid: loadGuid,
                  trackingUrl: createLink(controller:"manage", action:"externalLoadStatus", params: [loadGuid: loadGuid]),
+                 updates: updates,
                  resources: output
                 ]
         render(fullOutput as JSON)

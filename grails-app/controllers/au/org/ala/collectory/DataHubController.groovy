@@ -31,7 +31,7 @@ class DataHubController extends ProviderGroupController {
         }
         else {
             log.debug "Ala partner = " + instance.isALAPartner
-            ActivityLog.log username(), isAdmin(), instance.uid, Action.VIEW
+            activityLogService.log username(), isAdmin(), instance.uid, Action.VIEW
 
             [instance: instance, contacts: instance.getContacts(), changes: getChanges(instance.uid)]
         }
@@ -47,13 +47,15 @@ class DataHubController extends ProviderGroupController {
                 }
                 // now delete
                 try {
-                    ActivityLog.log username(), isAdmin(), params.id as long, Action.DELETE
-                    instance.delete(flush: true)
-                    flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'dataHub.label', default: 'dataHub'), params.id])}"
+                    activityLogService.log username(), isAdmin(), params.id as long, Action.DELETE
+                    DataHub.withTransaction {
+                        instance.delete(flush: true)
+                    }
+                    flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'dataHub.label', default: 'Data Hub'), params.id])}"
                     redirect(action: "list")
                 }
                 catch (org.springframework.dao.DataIntegrityViolationException e) {
-                    flash.message = "${message(code: 'default.not.deleted.message', args: [message(code: 'dataHub.label', default: 'dataHub'), params.id])}"
+                    flash.message = "${message(code: 'default.not.deleted.message', args: [message(code: 'dataHub.label', default: 'Data Hub'), params.id])}"
                     redirect(action: "show", id: params.id)
                 }
             } else {
@@ -61,7 +63,7 @@ class DataHubController extends ProviderGroupController {
             }
         }
         else {
-            flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'dataHub.label', default: 'dataHub'), params.id])}"
+            flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'dataHub.label', default: 'Data Hub'), params.id])}"
             redirect(action: "list")
         }
     }

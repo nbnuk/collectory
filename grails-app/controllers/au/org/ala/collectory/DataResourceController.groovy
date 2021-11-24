@@ -1,7 +1,6 @@
 package au.org.ala.collectory
 
 import grails.converters.JSON
-import grails.gorm.transactions.Transactional
 
 import java.text.SimpleDateFormat
 import au.org.ala.collectory.resources.PP
@@ -65,9 +64,10 @@ class DataResourceController extends ProviderGroupController {
         }
         else {
             log.debug "Ala partner = " + instance.isALAPartner
+            def suitableFor = providerGroupService.getSuitableFor()
             activityLogService.log username(), isAdmin(), instance.uid, Action.VIEW
 
-            [instance: instance, contacts: instance.getContacts(), changes: getChanges(instance.uid)]
+            [instance: instance, contacts: instance.getContacts(), changes: getChanges(instance.uid), suitableFor: suitableFor]
         }
     }
 
@@ -245,18 +245,22 @@ class DataResourceController extends ProviderGroupController {
         // create new links
         newConsumers.each {
             if (!(it in oldConsumers)) {
-                def dl = new DataLink(consumer: it, provider: pg.uid).save()
-                auditLog(pg, 'INSERT', 'consumer', '', it, dl)
-                log.info "created link from ${pg.uid} to ${it}"
+                DataLink.withTransaction {
+                    def dl = new DataLink(consumer: it, provider: pg.uid).save()
+                    auditLog(pg, 'INSERT', 'consumer', '', it, dl)
+                    log.info "created link from ${pg.uid} to ${it}"
+                }
             }
         }
         // remove old links - NOTE only for the variety (collection or institution) that has been returned
         oldConsumers.each {
             if (!(it in newConsumers) && it[0..1] == params.source) {
-                log.info "deleting link from ${pg.uid} to ${it}"
-                def dl = DataLink.findByConsumerAndProvider(it, pg.uid)
-                auditLog(pg, 'DELETE', 'consumer', it, '', dl)
-                dl.delete()
+                DataLink.withTransaction {
+                    log.info "deleting link from ${pg.uid} to ${it}"
+                    def dl = DataLink.findByConsumerAndProvider(it, pg.uid)
+                    auditLog(pg, 'DELETE', 'consumer', it, '', dl)
+                    dl.delete()
+                }
             }
         }
         flash.message =
@@ -301,4 +305,9 @@ class DataResourceController extends ProviderGroupController {
         return DataResource.get(dbId)
     }
 
+    static def entitySpecificDescriptionProcessing(params) {
+        if (params?.suitableFor != 'other' && params?.suitableForOtherDetail) {
+            params.suitableForOtherDetail = ''
+        }
+    }
 }

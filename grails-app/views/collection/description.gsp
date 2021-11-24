@@ -59,7 +59,7 @@
                     <label for="collectionType"><g:message code="collection.collectionType.label"
                                                            default="Collection Type"/><cl:helpText
                             code="collection.collectionType"/></label>
-                    <cl:checkboxSelect name="collectionType" from="${command.collectionTypes}"
+                    <cl:checkboxSelect name="collectionType" from="${grailsApplication.config.collection.collectionTypes}"
                                        value="${command.listCollectionTypes()}" multiple="yes"
                                        valueMessagePrefix="collection.collectionType" noSelection="['': '']"/>
                 </div>
@@ -68,7 +68,8 @@
                 <div class="form-group">
                     <label for="active"><g:message code="providerGroup.sources.active.label"
                                                    default="Status"/><cl:helpText code="collection.active"/></label>
-                    <g:select name="active" from="${command.constraints.active.inList}" value="${command?.active}"
+                    <g:select name="active" from="${grailsApplication.config.collection.developmentStatuses}"
+                              value="${command?.active}"
                               valueMessagePrefix="infoSource.active" noSelection="['': '']"/>
                 </div>
 
@@ -92,7 +93,7 @@
                 <div class="form-group">
                     <label for="keywords"><g:message code="collection.keywords.label" default="Keywords"/><cl:helpText
                             code="collection.keywords"/></label>
-                    <g:textField name="keywords" value="${command?.listKeywords().join(',')}"/>
+                    <g:textField name="keywords" class="form-control" value="${command?.listKeywords().join(',')}"/>
                 </div>
 
                 <!-- sub-collections -->

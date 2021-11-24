@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat
 
 class DataController {
 
-    def crudService, emlRenderService, collectoryAuthService, metadataService, providerGroupService
+    def crudService, emlRenderService, collectoryAuthService, metadataService, providerGroupService, gbifRegistryService, activityLogService
 
     def index = { }
 
@@ -36,7 +36,7 @@ class DataController {
                     params.pg = providerGroupService._get(params.uid, params.entity)
                 }
 
-                if(!params.pg){
+                if (!params.pg){
                     // doesn't exist
                     notFound "no entity with uid = ${uid}"
                     return false
@@ -65,13 +65,11 @@ class DataController {
                 return false
             }
 
-            def apiKey = {
-                if(params.json.api_key){
-                    params.json.api_key
-                } else {
-                    request.getHeader("Authorization")
-                }
-            }.call()
+            String apiKey = getApiKey(params)
+            if (!apiKey){
+                noApiKey()
+                return false
+            }
 
             def keyCheck = collectoryAuthService?.checkApiKey(apiKey)
             if (!keyCheck.valid) {
@@ -82,6 +80,21 @@ class DataController {
             session.username = keyCheck.app ?: (keyCheck.userEmail ?: params.json.user)
         }
         return true
+    }
+
+    private String getApiKey(params) {
+        def apiKey = {
+            if (params.json && params.json.api_key) {
+                params.json.api_key
+            } else if (params.json && params.json.apiKey) {
+                params.json.apiKey
+            } else if (params.json && params.json.Authorization) {
+                params.json.Authorization
+            } else {
+                request.getHeader("Authorization")
+            }
+        }.call()
+        apiKey
     }
 
     /******* Web Services Catalogue *******/
@@ -177,6 +190,11 @@ class DataController {
         render(status:403, text: 'You are not authorised to use this service')
     }
 
+    def noApiKey = {
+        // using the 'forbidden' response code here as 401 causes the client to ask for a log in
+        render(status:400, text: 'This service requires API key')
+    }
+
     def checkApiKey = {
         def apiKey = {
             if (params.api_key) {
@@ -233,33 +251,35 @@ class DataController {
      * @param json - the body of the request
      */
     def saveEntity = {
-        check(params)
-        def pg = params.pg
-        def obj = params.json
-        def urlForm = params.entity
-        def clazz = capitalise(urlForm)
+        def ok = check(params)
+        if (ok) {
+            def pg = params.pg
+            def obj = params.json
+            def urlForm = params.entity
+            def clazz = capitalise(urlForm)
 
-        if (pg) {
-            // check type
-            if (pg.getClass().getSimpleName() == clazz) {
-                // update
-                crudService."update${clazz}"(pg, obj)
-                if (pg.hasErrors()) {
-                    badRequest pg.errors
+            if (pg) {
+                // check type
+                if (pg.getClass().getSimpleName() == clazz) {
+                    // update
+                    crudService."update${clazz}"(pg, obj)
+                    if (pg.hasErrors()) {
+                        badRequest pg.errors
+                    } else {
+                        addContentLocation "/ws/${pg.urlForm()}/${params.uid}"
+                        success "updated ${clazz}"
+                    }
                 } else {
-                    addContentLocation "/ws/${pg.urlForm()}/${params.uid}"
-                    success "updated ${clazz}"
+                    badRequest "entity with uid = ${params.uid} is not ${clazz == 'Institution' ? 'an' : 'a'} ${clazz}"
                 }
             } else {
-                badRequest "entity with uid = ${params.uid} is not ${clazz == 'Institution'? 'an' : 'a'} ${clazz}"
-            }
-        } else {
-            // doesn't exist insert
-            pg = crudService."insert${clazz}"(obj)
-            if (pg.hasErrors()) {
-                badRequest pg.errors
-            } else {
-                created pg.urlForm(), pg.uid
+                // doesn't exist insert
+                pg = crudService."insert${clazz}"(obj)
+                if (!pg || pg.hasErrors()) {
+                    badRequest pg.errors
+                } else {
+                    created pg.urlForm(), pg.uid
+                }
             }
         }
     }
@@ -307,10 +327,10 @@ class DataController {
         def idx = request.forwardURI.lastIndexOf(dirpath) + dirpath.length()
         def fullFileName = request.forwardURI.substring(idx)
         def file = new File(grailsApplication.config.uploadFilePath + File.separator + params.directory, fullFileName)
-        if(!file.exists()){
+        if (!file.exists()){
             file = new File(grailsApplication.config.uploadFilePath + File.separator + params.directory, URLDecoder.decode(fullFileName, "UTF-8"))
         }
-        if(file.exists()){
+        if (file.exists()){
             //set the content type
             response.setContentType("application/octet-stream")
             response.setHeader("Content-disposition", "attachment;filename=" + file.getName())
@@ -410,6 +430,17 @@ class DataController {
         def last = latestModified(list)
 
         renderAsJson results, last, ""
+    }
+
+    def syncGBIF = {
+        String apiKey = getApiKey(params)
+        def keyCheck = collectoryAuthService?.checkApiKey(apiKey)
+        if (!keyCheck.valid) {
+            unauthorised()
+            return false
+        }
+        def results = gbifRegistryService.syncAllResources()
+        renderAsJson results
     }
 
     /**
@@ -703,6 +734,10 @@ class DataController {
 
     /************* contact update services **********/
     def updateContact = {
+        def ok = check(params)
+        if (!ok){
+            return
+        }
         def props = params.json
         props.userLastModified = session.username
         //println "body = "  + props
@@ -711,8 +746,12 @@ class DataController {
             def c = Contact.get(params.id)
             if (c) {
                 bindData(c, props as Map, ['id'])
-                c.save(flush: true)
-                c.errors.each {  log.error(it) }
+                Contact.withTransaction {
+                    c.save(flush: true)
+                }
+                if (c.hasErrors()) {
+                    c.errors.each { log.error(it.toString()) }
+                }
                 addContentLocation "/ws/contacts/${c.id}"
                 def cm = buildContactModel(c)
                 cm.id = c.id
@@ -724,8 +763,12 @@ class DataController {
             // create
             if (props.email) {
                 def c = new Contact(props as Map)
-                c.save(flush: true)
-                c.errors.each { log.error(it) }
+                Contact.withTransaction {
+                    c.save(flush: true)
+                }
+                if (c.hasErrors()) {
+                    c.errors.each { log.error(it.toString()) }
+                }
                 addContentLocation "/ws/contacts/${c.id}"
                 def cm = buildContactModel(c)
                 cm.id = c.id
@@ -738,14 +781,12 @@ class DataController {
     }
 
     def deleteContact = {
-        def props = params.json
-        //println "body = "  + props
         if (params.id) {
             // update
             def c = Contact.get(params.id)
             if (c) {
                 // remove its links as well
-                ActivityLog.log session.username as String, true, Action.DELETE, "contact ${c.buildName()}"
+                activityLogService.log session.username as String, true, Action.DELETE, "contact ${c.buildName()}"
                 // need to delete any ContactFor links first
                 ContactFor.findAllByContact(c).each {
                     it.delete(flush: true)
@@ -888,6 +929,10 @@ class DataController {
      * { event: 'user annotation', id: 'ann03468', uid: 'co13' }
      */
     def notification() {
+        def ok = check(params)
+        if (!ok){
+            return
+        }
         //println "notify"
         if (request.method != 'POST') {
             log.error("not allowed")
@@ -905,7 +950,7 @@ class DataController {
             } else {
                 //println "OK"
                 // register the event
-                ActivityLog.log([user: 'notify-service', isAdmin: false, action: "${action}d ${id}", entityUid: uid])
+                activityLogService.log([user: 'notify-service', isAdmin: false, action: "${action}d ${id}", entityUid: uid])
                 success "notification accepted"
             }
         }
@@ -920,33 +965,50 @@ class DataController {
      * @param id the contact id
      */
     def updateContactFor = {
-        def props = params.json
-        props.userLastModified = session.username
-        //println "body = "  + props
-        def c = Contact.get(params.id)
-        def cf = ContactFor.findByContactAndEntityUid(c, params.pg.uid)
-        if (cf) {
-            // update
-            bindData(cf, props as Map, ['entityUid'])
-            c.save(flush: true)
-            c.errors.each { log.error(it) }
-            success 'updated'
-        } else {
-            // create
-            if (c) {
-                params.pg.addToContacts c,
-                        props.role ?: '',
-                        (props.administrator ?: false) as Boolean,
-                        (props.primaryContact ?: false) as Boolean,
-                        props.userLastModified
-                created 'contactFor', params.pg.uid
+        def ok = check(params)
+        if (!ok || !params.pg || !params.id || !params.pg.uid){
+            return
+        }
+        try {
+            def props = params.json
+            props.userLastModified = session.username
+
+            def c = Contact.get(params.id)
+            def cf = ContactFor.findByContactAndEntityUid(c, params.pg.uid)
+            if (cf) {
+                // update
+                bindData(cf, props as Map, ['entityUid'])
+                Contact.withTransaction {
+                    c.save(flush: true)
+                }
+                if (c.hasErrors()) {
+                    c.errors.each { log.error("Validation error - " + it.toString()) }
+                }
+                success 'updated'
             } else {
-                badRequest "contact doesn't exist"
+                // create
+                if (c) {
+                    params.pg.addToContacts c,
+                            props.role ?: '',
+                            (props.administrator ?: false) as Boolean,
+                            (props.primaryContact ?: false) as Boolean,
+                            props.userLastModified
+                    created 'contactFor', params.pg.uid
+                } else {
+                    badRequest "contact doesn't exist"
+                }
             }
+        } catch (Exception e){
+            log.error(e.getMessage(), e)
+            badRequest "Problem processing this update"
         }
     }
 
     def deleteContactFor = {
+        def ok = check(params)
+        if (!ok){
+            return
+        }
         def props = params.json
         props.userLastModified = session.username
         log.error("body = "  + props)
