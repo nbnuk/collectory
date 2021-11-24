@@ -138,23 +138,34 @@
                         </div>
 
                         <!-- suitable -->
-                        <div class="form-group">
-                            <div><label for="suitableFor"><g:message code="dataResource.suitablefor.label" default="This data set is likely to be suitable for"/></label></div>
-                            <select id="suitableFor" name="suitableFor">
-                                <option value=""><g:message code="dataResource.suitablefor.option.empty.label" default="-- Select a primary area this data collection could be used for --" /></option>
-                                <g:each in="${suitableFor.keySet()}" var="reason">
-                                    <option value="${reason}" <g:if test="${reason == command.suitableFor}">selected</g:if>>${suitableFor.get(reason)}</option>
-                                </g:each>
-                            </select>
-                        </div>
+                        <div class="container" id="suitableForContainer">
+                            <g:message code="dataResource.suitablefor.label" default="This data set is likely to be suitable for" />
+                            <g:hiddenField name="suitableFor" value="${command.suitableFor}"/>
+                            <p><g:message code="dataresource.description.suitable.des" />.
+                            <cl:helpText code="dataResource.informationWithheld"/>
+                            </p>
 
-                        <div class="form-group" >
-                            <g:textField name="suitableForOtherDetail" id="otherdetail" class="form-control" value="${command?.suitableForOtherDetail}" placeholder="${message(code:"dataresource.suitablefor.otherdetail.placeholder", default:'Type something…')}"/>
+                            <div class="row">
+                                <div class="source-box col-md-6">
+                                    <h4><g:message code="dataresource.description.title01" /></h4>
+                                    <ul>
+                                        <g:each var="reason" in="${suitableFor.keySet()}">
+                                            <li class='free' data-reason="${reason}" data-origtext="${suitableFor.get(reason)}">${suitableFor.get(reason)}</li>
+                                        </g:each>
+                                    </ul>
+                                </div>
+                                <div class="sink-box col-md-6 well well-small">
+                                    <h4><g:message code="dataresource.description.title02" /></h4>
+                                    <ul>
+                                        <li class="msg"><g:message code="dataresource.description.des.suitable" />.</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
 
                         <br/>
                         <!-- content types -->
-                        <div class="container">
+                        <div class="container" id="contentTypeContainer">
                             
                               <g:message code="dataResource.contentTypes.label" default="Content types" />
                             
@@ -197,65 +208,104 @@
             $(function() {
                 // bind click
                 $('li.free').click(function() {
+                    var checkhtml = $(this).closest('.container').prop('id') === 'contentTypeContainer'
                     if ($(this).parent().parent().hasClass('source-box')) {
-                        add(this);
-                    }
-                    else {
-                        remove(this);
+                        add(this, true, checkhtml);
+                    } else {
+                        remove(this, checkhtml);
                     }
                 });
-                // move selected types to sink
-                var selected = getSelectedList();
-                $('li.free').each(function(index, element) {
-                    $.each(selected, function(index, value) {
-                        if ($(element).html() == value) {
+                var contentTypeselected = getSelectedList($('input#contentTypes'));
+                var suitableForSelected = getSelectedList($('input#suitableFor'));
+
+                $.each(suitableForSelected, function (index, value) {
+                    var matched = false;
+                    $('#suitableForContainer li.free').each(function (index, element) {
+                        if ($(element).attr('data-reason') === value) {
+                            add(element, false, false);
+                            matched = true;
+                        }
+                    });
+
+                    if (!matched) {
+                        var elem = $("li[data-reason=other]")
+                        $(elem).html(value)
+                        add(elem, false, true);
+                    }
+                });
+
+                $('#contentTypeContainer li.free').each(function(index, element) {
+                    $.each(contentTypeselected, function(index, value) {
+                        if ($(element).html() === value) {
                             add(element);
                         }
                     });
                 })
-
-                setOtherVisibility($('#suitableFor').find(":selected").val());
-                $('#suitableFor').on('change', function(e) {
-                    setOtherVisibility($('#suitableFor').find(":selected").val());
-                });
             });
 
-            function setOtherVisibility(currentSelection) {
-                $('#otherdetail').css('visibility', (currentSelection === 'other') ? 'visible' : 'hidden');
+            function add(obj, askForInput, checkHtml = true) {
+                if ($(obj).attr('data-reason') === 'other' && askForInput) {
+                    var detail = prompt("Please enter the detail", "");
+                    if (detail != null && detail !== "") {
+                        $(obj).html(detail)
+                    }
+
+                    checkHtml = true
+                }
+
+                var container = $(obj).closest('.container')
+                // clear instructions if present
+                $(container).find('.sink-box li.msg').remove();
+                $(container).find('.sink-box ul').append(obj);
+                addToList(obj, checkHtml);
             }
 
-            function add(obj) {
-                // clear instructions if present
-                $('.sink-box li.msg').remove();
-                $(obj).appendTo($('.sink-box ul'));
-                addToList($(obj).html());
-            }
             function remove(obj) {
-                $(obj).appendTo($('.source-box ul'));
-                removeFromList($(obj).html());
+                var valToRemove = null
+                // when remove other button, get the button text and restore it to 'other'
+                if ($(obj).attr('data-reason') === 'other') {
+                    valToRemove = $(obj).html();
+                    $(obj).html($(obj).attr('data-origtext'));
+                } else if ($(obj).attr('data-reason')) {
+                    valToRemove = $(obj).attr('data-reason')
+                }
+
+                if (!valToRemove) valToRemove = $(obj).html();
+
+                var container = $(obj).closest('.container')
+                $(container).find('.source-box ul').append(obj);
+
+                removeFromList(container, valToRemove)
             }
-            function getSelectedList() {
+
+            function getSelectedList(elem) {
                 var list
-                // initial value is empty so parseJSON throws an exception
                 try {
-                    list = $.parseJSON($('input#contentTypes').val());
+                    list = $.parseJSON(elem.val());
                 } catch (error) {
                 }
                 return list === undefined ? [] : list
             }
-            function addToList(ct) {
-                var list = getSelectedList();
-                if ($.inArray(ct, list) < 0) {
-                    list.push(ct);
+
+            function addToList(obj, checkhtml = true) {
+                var container = $(obj).closest('.container')
+                var list = getSelectedList($(container).find("input:hidden"));
+                // in case of suitablefor, we should add the actual key instead of the displayed value
+                var valToAdd = checkhtml ? $(obj).html() : $(obj).attr('data-reason');
+                if ($.inArray(valToAdd, list) < 0) {
+                    list.push(valToAdd);
                 }
-                $('input#contentTypes').val(toJSON(list));
+
+                $(container).find('input:hidden').val(toJSON(list));
             }
-            function removeFromList(ct) {
-                var list = getSelectedList();
-                var idx = $.inArray(ct, list);
-                list.splice(idx,1);
-                $('input#contentTypes').val(toJSON(list));
+
+            function removeFromList(container, valToRemove) {
+                var list = getSelectedList($(container).find("input:hidden"));
+                var idx = $.inArray(valToRemove, list);
+                list.splice(idx, 1);
+                $(container).find("input:hidden").val(toJSON(list));
             }
+
             function toJSON(list) {
                 if (typeof(JSON) == 'object' && JSON.stringify) {
                     return JSON.stringify(list);

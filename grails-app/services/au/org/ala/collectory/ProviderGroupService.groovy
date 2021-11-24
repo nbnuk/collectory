@@ -165,8 +165,6 @@ class ProviderGroupService {
         // FIXME
         if (entity instanceof Collection){
             CollectionController.entitySpecificDescriptionProcessing(entity, params)
-        } else if (entity instanceof DataResource) {
-            DataResourceController.entitySpecificDescriptionProcessing(params)
         }
     }
 
