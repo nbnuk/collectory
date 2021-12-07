@@ -804,6 +804,7 @@ class DataController {
      * @param uid the entity instance
      */
     def contactsForEntity = {
+        check(params)
         def contactList = params.pg.getContacts().collect { buildContactForModel(it, params.pg.urlForm()) }
         addContentLocation "/ws/${params.entity}/${params.pg.uid}/contacts"
         addVaryAcceptHeader()
@@ -830,6 +831,7 @@ class DataController {
      * @param id the database id of the contact relationship (contactFor)
      */
     def contactForEntity = {
+        check(params)
         if (params.id) {
             def cm = buildContactForModel(ContactFor.get(params.id as Long), params.pg.urlForm())
             addContentLocation "/ws/${params.entity}/${params.pg.uid}/contacts/${params.id}"
@@ -882,7 +884,7 @@ class DataController {
             map.contactName = it.primaryContact?.contact?.buildName() ?: ""
             map.contactEmail = it.primaryContact?.contact?.email ?: ""
             map.contactPhone = it.primaryContact?.contact?.phone ?: ""
-            map.uri = it.primaryContact ? "${Holders.grailsApplication.config.grails.serverURL}/ws/${ProviderGroup.urlFormFromUid(it.uid)}/${it.uid}/contacts/${it.primaryContact?.id}" : ''
+            map.uri = it.primaryContact ? "${Holders.grailsApplication.config.grails.serverURL}/ws/${providerGroupService.urlFormFromUid(it.uid)}/${it.uid}/contacts/${it.primaryContact?.id}" : ''
 
             return map
         }
@@ -910,7 +912,7 @@ class DataController {
     def notifyList = {
         if (params.uid) {
             def contactFors = ContactFor.findAllByEntityUidAndNotify(params.uid, true).collect {
-                buildContactForModel(it, ProviderGroup.urlFormFromUid(params.uid))
+                buildContactForModel(it, providerGroupService.urlFormFromUid(params.uid))
             }
             render contactFors as JSON
         } else {
