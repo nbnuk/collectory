@@ -24,7 +24,7 @@
         <div class="body content">
             <h1><g:message code="default.list.label" args="[entityName]" /></h1>
             <g:if test="${flash.message}">
-            <div class="message">${flash.message}</div>
+              <div class="alert alert-warning">${flash.message}</div>
             </g:if>
 
             <div class="list">
