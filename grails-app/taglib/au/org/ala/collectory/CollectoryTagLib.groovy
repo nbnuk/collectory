@@ -812,6 +812,18 @@ class CollectoryTagLib {
         }
     }
 
+    def formatAndTranslateJsonList = { attrs ->
+        if (attrs.value && attrs.map){
+            try {
+                def js = new JsonSlurper()
+                def list = js.parseText(attrs.value?.toString())
+                list = list.collect { attrs.map.getOrDefault(it, it) }
+                out << list.join(", ")
+            } catch (Exception e){
+                out << attrs.value
+            }
+        }
+    }
     /**
      * Formats free text so:
      *  line feeds are honoured
@@ -2030,6 +2042,19 @@ class CollectoryTagLib {
     def contentTypes = { attrs ->
         if (attrs.types) {
             def list = JSON.parse(attrs.types as String).collect {it.toString()}
+            out << '<p>Includes: ' + list.join(', ') + '.</p>'
+        }
+    }
+
+    /**
+     * List of suitable for.
+     *
+     * @attr types json list of string
+     * @attr map translations of strings in types
+     */
+    def suitableFor = { attrs ->
+        if (attrs.types && attrs.map) {
+            def list = JSON.parse(attrs.types as String).collect {attrs.map.getOrDefault(it.toString(), it.toString())}
             out << '<p>Includes: ' + list.join(', ') + '.</p>'
         }
     }

@@ -753,13 +753,15 @@ abstract class ProviderGroupController {
                 log.info ">>${collectoryAuthService?.username()} deleting ${entityName} " + name
                 activityLogService.log collectoryAuthService?.username(), authService?.userInRole(grailsApplication.config.ROLE_ADMIN), pg.uid, Action.DELETE
                 try {
-                    // remove contact links (does not remove the contact)
-                    ContactFor.findAllByEntityUid(pg.uid).each {
-                        log.info "Removing link to contact " + it.contact?.buildName()
-                        it.delete()
+                    Contact.withTransaction {
+                        // remove contact links (does not remove the contact)
+                        ContactFor.findAllByEntityUid(pg.uid).each {
+                            log.info "Removing link to contact " + it.contact?.buildName()
+                            it.delete()
+                        }
+                        // delete
+                        pg.delete(flush: true)
                     }
-                    // delete
-                    pg.delete(flush: true)
                     flash.message = "${message(code: 'default.deleted.message', args: [message(code: "${entityNameLower}.label", default: entityNameLower), name])}"
                     redirect(action: "list")
                 } catch (org.springframework.dao.DataIntegrityViolationException e) {

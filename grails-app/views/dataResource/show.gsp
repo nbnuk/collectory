@@ -172,7 +172,7 @@
                 <p><span class="category"><g:message code="dataResource.datacollectionprotocolname.label" />: </span>${instance.dataCollectionProtocolName}</p>
 
                 <!-- data collection protocol documentation -->
-                <p><span class="category"><g:message code="dataResource.datacollectionprotocoldoc.label" />: </span><g:if test="${instance.dataCollectionProtocolDoc}"><cl:externalLink href="${instance.dataCollectionProtocolDoc}"/></g:if></p>
+                <p><span class="category"><g:message code="dataResource.datacollectionprotocoldoc.label" />: </span>${instance.dataCollectionProtocolDoc}</p>
 
                 <!-- suitable for -->
                 <g:set var="suitable" value="${instance.suitableFor != 'other' ? suitableFor.getOrDefault(instance.suitableFor, "") : (instance.suitableForOtherDetail ?: suitableFor.getOrDefault('other', message(code: "dataresource.suitablefor.other", default: "Other")))}"/>
