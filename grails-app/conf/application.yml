@@ -200,7 +200,8 @@ rifcs:
 resource.publicArchive.url.template: "https://biocache.ala.org.au/archives/gbif/@UID@/@UID@.zip"
 resource.gbifExport.url.template: "https://biocache.ala.org.au/archives/gbif/@UID@/@UID@.zip"
 citation.template: "Records provided by @entityName@, accessed through ALA website."
-citation.link.template = For more information: "@link@"
+citation.link.template: "For more information: @link@"
+citation.rights.template: ""
 
 networkTypes:
     - BCI
