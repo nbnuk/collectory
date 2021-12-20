@@ -97,7 +97,7 @@ class UrlMappings {
         "/ws/contacts/$id/authorised(.$format)?"(controller: 'data', action: 'authorisedForContact')
 
         // entity contacts
-        "/ws/$entity/$uid/contacts/$id?" {
+        "/ws/$entity/$uid/contacts/$id?(.$format)?" {
             controller = 'data'
             action = [GET: 'contactForEntity', PUT: 'updateContactFor', POST: 'updateContactFor', DELETE: 'deleteContactFor']
             constraints {
