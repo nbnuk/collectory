@@ -832,19 +832,27 @@ class DataController {
      */
     def contactForEntity = {
         check(params)
+
         if (params.id) {
-            def cm = buildContactForModel(ContactFor.get(params.id as Long), params.pg.urlForm())
-            addContentLocation "/ws/${params.entity}/${params.pg.uid}/contacts/${params.id}"
-            addVaryAcceptHeader()
-            withFormat {
-                csv {
-                    def out = new StringWriter()
-                    out << "title, first name, last name, role, primary contact, editor, notify, email, phone, fax, mobile\n"
-                    out << "\"${cm.contact.title?:""}\",\"${cm.contact.firstName?:""}\",\"${cm.contact.lastName?:""}\",\"${cm.role}\",${cm.primaryContact},${cm.editor},${cm.notify},${cm.contact.email?:""},${cm.contact.phone?:""},${cm.contact.fax?:""},${cm.contact.mobile?:""}\n"
-                    render (contentType: 'text/csv', text: out.toString())
+            Contact contact = Contact.get(params.id)
+            ContactFor contactFor = ContactFor.findByContact(contact)
+
+            if (contact && contactFor) {
+                def cm = buildContactForModel(contactFor, params.pg.urlForm())
+                addContentLocation "/ws/${params.entity}/${params.pg.uid}/contacts/${params.id}"
+                addVaryAcceptHeader()
+                withFormat {
+                    csv {
+                        def out = new StringWriter()
+                        out << "title, first name, last name, role, primary contact, editor, notify, email, phone, fax, mobile\n"
+                        out << "\"${cm.contact.title ?: ""}\",\"${cm.contact.firstName ?: ""}\",\"${cm.contact.lastName ?: ""}\",\"${cm.role}\",${cm.primaryContact},${cm.editor},${cm.notify},${cm.contact.email ?: ""},${cm.contact.phone ?: ""},${cm.contact.fax ?: ""},${cm.contact.mobile ?: ""}\n"
+                        render(contentType: 'text/csv', text: out.toString())
+                    }
+                    xml { render(contentType: 'text/xml', text: objToXml(cm, 'contactFor')) }
+                    json { render cm as JSON }
                 }
-                xml {render (contentType: 'text/xml', text: objToXml(cm, 'contactFor'))}
-                json {render cm as JSON}
+            } else {
+                forward(action:'contactsForEntity')
             }
         } else {
             forward(action:'contactsForEntity')
