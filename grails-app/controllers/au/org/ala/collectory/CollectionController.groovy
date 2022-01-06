@@ -207,6 +207,7 @@ class CollectionController extends ProviderGroupController {
         } else {
             collection.collectionType = (params.collectionType as JSON).toString()
         }
+        
         params.remove('collectionType')
 
         // special handling for keywords
