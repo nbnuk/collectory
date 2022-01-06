@@ -93,7 +93,7 @@ class DataHub implements ProviderGroup, Serializable {
     def listMemberInstitutions() {
         if (!memberInstitutions) { return []}
         JSON.parse(memberInstitutions).collect {
-            def pg = findByUid(it)
+            def pg = Institution.findByUid(it)
             if (pg) {
                 [uid: it, name: pg?.name, uri: pg.buildUri()]
             } else {
@@ -105,7 +105,9 @@ class DataHub implements ProviderGroup, Serializable {
     def listMemberCollections() {
         if (!memberCollections) { return []}
         JSON.parse(memberCollections).collect {
-            def pg = findByUid(it)
+            log.info "it = ${it}"
+            def pg = Collection.findByUid(it)
+            log.info "pg = ${pg}"
             if (pg) {
                 [uid: it, name: pg?.name, uri: pg.buildUri()]
             } else {
@@ -117,7 +119,7 @@ class DataHub implements ProviderGroup, Serializable {
     def listMemberDataResources() {
         if (!memberDataResources) { return []}
         JSON.parse(memberDataResources).collect {
-            def pg = DataHub.findByUid(it)
+            def pg = DataResource.findByUid(it)
             if (pg) {
                 [uid: it, name: pg?.name, uri: pg.buildUri()]
             } else {

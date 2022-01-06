@@ -820,7 +820,7 @@ abstract class ProviderGroupController {
         return param.join(' ')
     }
 
-    def auditLog(ProviderGroup pg, String eventName, String property, String oldValue, String newValue, Object persistedObject) {
+    protected void auditLog(ProviderGroup pg, String eventName, String property, String oldValue, String newValue, Object persistedObject) {
         def audit = new AuditLogEvent(
                   actor: username(),
                   uri: pg.uid,   /* MEW repurposing of uri */

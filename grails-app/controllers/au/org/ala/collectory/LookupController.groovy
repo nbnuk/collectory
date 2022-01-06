@@ -118,12 +118,12 @@ class LookupController {
             def nm = ''
             def prefix = uid.startsWith('drt') ? 'drt' : uid[0..1]
             switch (prefix) {
-                case 'co': nm = Collection.executeQuery("select c.name from Collection c where c.uid = ?",[uid]); break
-                case 'in': nm = Collection.executeQuery("select c.name from Institution as c where c.uid = ?",[uid]); break
-                case 'dp': nm = Collection.executeQuery("select c.name from DataProvider as c where c.uid = ?",[uid]); break
-                case 'dr': nm = Collection.executeQuery("select c.name from DataResource as c where c.uid = ?",[uid]); break
-                case 'drt': nm = Collection.executeQuery("select c.name from TempDataResource as c where c.uid = ?",[uid]); break
-                case 'dh': nm = Collection.executeQuery("select c.name from DataHub as c where c.uid = ?",[uid]); break
+                case 'co': nm = Collection.executeQuery("select c.name from Collection c where c.uid = ?0",[uid]); break
+                case 'in': nm = Collection.executeQuery("select c.name from Institution as c where c.uid = ?0",[uid]); break
+                case 'dp': nm = Collection.executeQuery("select c.name from DataProvider as c where c.uid = ?0",[uid]); break
+                case 'dr': nm = Collection.executeQuery("select c.name from DataResource as c where c.uid = ?0",[uid]); break
+                case 'drt': nm = Collection.executeQuery("select c.name from TempDataResource as c where c.uid = ?0",[uid]); break
+                case 'dh': nm = Collection.executeQuery("select c.name from DataHub as c where c.uid = ?0",[uid]); break
             }
             if (nm) {
                 result = [name: nm[0]]
