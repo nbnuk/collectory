@@ -67,20 +67,20 @@ class UrlMappings {
             }
         }
 
-        "/ws/$entity/$uid?(.$format)?"(controller: 'data') {
-            action = [HEAD: 'head', GET: 'getEntity', PUT: 'saveEntity', DELETE: 'delete', POST: 'saveEntity']
-            constraints {
-                entity(inList: ['collection', 'institution', 'dataProvider', 'dataResource', 'tempDataResource', 'dataHub'])
-            }
-        }
+//        "/ws/$entity/$uid?(.$format)?"(controller: 'data') {
+//            action = [HEAD: 'head', GET: 'getEntity', PUT: 'saveEntity', DELETE: 'delete', POST: 'saveEntity']
+//            constraints {
+//                entity(inList: ['collection', 'institution', 'dataProvider', 'dataResource', 'tempDataResource', 'dataHub'])
+//            }
+//        }
 
-        "/ws/$entity/summary(.$format)?"(controller: 'data') {
-            action = [HEAD: 'head', GET: 'getEntity', PUT: 'saveEntity', DELETE: 'delete', POST: 'saveEntity']
-            constraints {
-                entity(inList: ['collection', 'institution', 'dataProvider', 'dataResource', 'tempDataResource', 'dataHub'])
-                summary = 'true'
-            }
-        }
+//        "/ws/$entity/summary(.$format)?"(controller: 'data') {
+//            action = [HEAD: 'head', GET: 'getEntity', PUT: 'saveEntity', DELETE: 'delete', POST: 'saveEntity']
+//            constraints {
+//                entity(inList: ['collection', 'institution', 'dataProvider', 'dataResource', 'tempDataResource', 'dataHub'])
+//                summary = 'true'
+//            }
+//        }
 
         // data resource harvesting parameters
         "/ws/dataResource/$uid/connectionParameters(.$format)?"(controller: 'data', action: 'connectionParameters')
@@ -203,7 +203,7 @@ class UrlMappings {
 
         "/ws/dataResource/harvesting(.$format)?"(controller: 'reports', action: 'harvesters')
 
-        "/ws/$entity?(.$format)?"(controller: 'data', action: [GET: 'getEntity', POST: 'saveEntity', PUT: 'saveEntity', DELETE: 'delete'])
+//        "/ws/$entity?(.$format)?"(controller: 'data', action: [GET: 'getEntity', POST: 'saveEntity', PUT: 'saveEntity', DELETE: 'delete'])
 
         "/public/resources(.$format)"(controller: 'public', action: 'resources')
         "/public/condensed(.$format)"(controller: 'public', action: 'condensed')

@@ -1,18 +1,38 @@
 package au.org.ala.collectory
 
-import au.ala.org.ws.security.RequireAuth
+import au.org.ala.ws.security.RequireAuth
 import grails.converters.JSON
 import grails.util.Holders
 import groovy.xml.MarkupBuilder
 import grails.web.http.HttpHeaders
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.security.SecurityScheme
+import io.swagger.v3.oas.models.OpenAPI
+import io.swagger.v3.oas.models.parameters.PathParameter
+import org.springframework.http.MediaType
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RestController
 import org.xml.sax.SAXException
 
+import javax.ws.rs.GET
+import javax.ws.rs.Path
 import javax.xml.XMLConstants
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 
+@RestController
+@SecurityScheme(name = "JWT", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat= "JWT")
 class DataController {
 
     def crudService, emlRenderService, collectoryAuthService, metadataService, providerGroupService, gbifRegistryService, activityLogService
@@ -296,8 +316,7 @@ class DataController {
     }
 
     /**
-     * Return JSON representation of specified entity
-     * or list of entities if no uid specified.
+     * Return JSON representation of specified entity or list of entities if no uid specified.
      *
      * @param entity - controller form of domain class, eg dataProvider
      * @param uid - optional uid of an instance of entity
@@ -305,7 +324,17 @@ class DataController {
      * @param summary - any non-null value will cause a richer summary to be returned for entity lists
      * @param api_key - optional param for displaying any sensitive data
      */
-    def getEntity = {
+//    @GET
+//    @Path("/ws/dataResource/{uid}")
+//    @Operation(summary = "Get entity", tags = "Create-Update-Delete")
+//    @GetMapping(value = [
+//            "/ws/dataResource/{uid}"
+////            ,
+////            "/ws/dataProvider/{uid}",
+////            "/ws/institution/{uid}",
+////            "/ws/collection/{uid}"
+//    ], produces = MediaType.APPLICATION_JSON_VALUE)
+    def getEntity( @Parameter(in = ParameterIn.PATH, name = "uid") String uid) {
         check(params)
         if (params.entity == 'tempDataResource') {
             forward(controller: 'tempDataResource', action: 'getEntity')
@@ -387,7 +416,12 @@ class DataController {
         renderAsJson results, last, ""
     }
 
-    @RequireAuth(requiredRoles = ["ROLE_ADMIN","ROLE_GBIF"])
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "Synchronise with GBIF", tags = "GBIF")
+    @RequestMapping(value = [
+            "/syncGBIF"
+    ], method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequireAuth(["ROLE_ADMIN","ROLE_GBIF"])
     def syncGBIF(){
         def results = gbifRegistryService.syncAllResources()
         renderAsJson results
@@ -489,8 +523,16 @@ class DataController {
     /********* delete **************************
      *
      */
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "Delete entity", tags = "Create-Update-Delete")
+    @RequestMapping(value = [
+            "/dataResource/{uid}",
+            "/dataProvider/{uid}",
+            "/institution/{uid}",
+            "/collection/{uid}"
+    ], method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
     @RequireAuth
-    def delete () {
+    def delete (    ) {
         if (grailsApplication.config.deletesForbidden) {
             render(status:405, text:'delete is currently unavailable')
             return
@@ -617,7 +659,7 @@ class DataController {
      * URI form: /contacts/{id}
      * @param id the database id of the contact
      */
-    @RequireAuth(requiredRoles="ROLE_ADMIN")
+    @RequireAuth("ROLE_ADMIN")
     def contacts() {
         if (params.id) {
             def c = Contact.get(params.id)
@@ -727,7 +769,12 @@ class DataController {
         }
     }
 
-    def deleteContact = {
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "Delete contact", tags = "Delete")
+    @RequestMapping(value = [
+            "/contact/{id}"
+    ], method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
+    def deleteContact() {
         if (params.id) {
             // update
             def c = Contact.get(params.id)
@@ -780,7 +827,7 @@ class DataController {
      * @param uid the entity instance
      * @param id the database id of the contact relationship (contactFor)
      */
-    def contactForEntity = {
+    def contactForEntity() {
         if (params.id) {
             def cm = buildContactForModel(ContactFor.get(params.id as Long), params.pg.urlForm())
             addContentLocation "/ws/${params.entity}/${params.pg.uid}/contacts/${params.id}"

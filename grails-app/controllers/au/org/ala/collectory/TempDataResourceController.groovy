@@ -15,7 +15,7 @@
 
 package au.org.ala.collectory
 
-import au.ala.org.ws.security.RequireAuth
+import au.org.ala.ws.security.RequireAuth
 import grails.converters.JSON
 import grails.web.http.HttpHeaders
 import org.grails.datastore.mapping.query.api.Criteria
@@ -106,7 +106,7 @@ class TempDataResourceController {
         renderJson(json as JSON)
     }
 
-    @RequireAuth(requiredRoles=["ROLE_ADMIN", "ROLE_SANDBOX"])
+    @RequireAuth(["ROLE_ADMIN", "ROLE_SANDBOX"])
     def saveEntity(){
         def drt = params.drt
         def obj = params.json

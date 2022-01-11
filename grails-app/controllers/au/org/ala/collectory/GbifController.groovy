@@ -1,6 +1,6 @@
 package au.org.ala.collectory
 
-import au.ala.org.ws.security.RequireAuth
+import au.org.ala.ws.security.RequireAuth
 import au.org.ala.collectory.resources.gbif.GbifRepatDataSourceAdapter
 import grails.converters.JSON
 import groovy.json.JsonSlurper
@@ -129,7 +129,7 @@ class GbifController {
         [results:results, errorMessage:errorMessage]
     }
 
-    @RequireAuth(requiredRoles = ["ROLE_ADMIN", "ROLE_GBIF"])
+    @RequireAuth(["ROLE_ADMIN", "ROLE_GBIF"])
     def scan(){
 
         def apiKey = request.cookies.find { cookie -> cookie.name == API_KEY_COOKIE }
