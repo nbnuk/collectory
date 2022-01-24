@@ -661,11 +661,14 @@ abstract class ProviderGroupController {
             }
             pg.properties = params
             pg.userLastModified = collectoryAuthService?.username()
-            if (!pg.hasErrors() && pg.save(flush: true)) {
-                flash.message = "${message(code: 'default.updated.message', args: [message(code: "${pg.urlForm()}.label", default: pg.entityType()), pg.uid])}"
-                redirect(action: "show", id: pg.uid)
-            } else {
-                render(view: "/shared/images", model: [command: pg, target: target])
+
+            Contact.withTransaction {
+                if (!pg.hasErrors() && pg.save(flush: true)) {
+                    flash.message = "${message(code: 'default.updated.message', args: [message(code: "${pg.urlForm()}.label", default: pg.entityType()), pg.uid])}"
+                    redirect(action: "show", id: pg.uid)
+                } else {
+                    render(view: "/shared/images", model: [command: pg, target: target])
+                }
             }
         } else {
             flash.message = "${message(code: 'default.not.found.message', args: [message(code: "${entityNameLower}.label", default: entityName), params.id])}"
@@ -685,11 +688,14 @@ abstract class ProviderGroupController {
                     pg.imageRef = null
                 }
                 pg.userLastModified = collectoryAuthService?.username()
-                if (!pg.hasErrors() && pg.save(flush: true)) {
-                    flash.message = "${message(code: 'default.updated.message', args: [message(code: "${pg.urlForm()}.label", default: pg.entityType()), pg.uid])}"
-                    redirect(action: "show", id: pg.uid)
-                } else {
-                    render(view: "/shared/images", model: [command: pg])
+
+                Contact.withTransaction {
+                    if (!pg.hasErrors() && pg.save(flush: true)) {
+                        flash.message = "${message(code: 'default.updated.message', args: [message(code: "${pg.urlForm()}.label", default: pg.entityType()), pg.uid])}"
+                        redirect(action: "show", id: pg.uid)
+                    } else {
+                        render(view: "/shared/images", model: [command: pg])
+                    }
                 }
             } else {
                 response.setHeader("Content-type", "text/plain; charset=UTF-8")
@@ -727,13 +733,14 @@ abstract class ProviderGroupController {
 
             if (pg.isDirty()) {
                 pg.userLastModified = collectoryAuthService?.username()
-                if (!pg.hasErrors() && pg.save(flush: true)) {
-                    flash.message =
-                      "${message(code: 'default.updated.message', args: [message(code: "${pg.urlForm()}.label", default: pg.entityType()), pg.uid])}"
-                    redirect(action: "show", id: pg.uid)
-                }
-                else {
-                    render(view: "description", model: [command: pg])
+                Contact.withTransaction {
+                    if (!pg.hasErrors() && pg.save(flush: true)) {
+                        flash.message =
+                                "${message(code: 'default.updated.message', args: [message(code: "${pg.urlForm()}.label", default: pg.entityType()), pg.uid])}"
+                        redirect(action: "show", id: pg.uid)
+                    } else {
+                        render(view: "description", model: [command: pg])
+                    }
                 }
             } else {
                 redirect(action: "show", id: pg.uid)
