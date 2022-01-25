@@ -16,7 +16,7 @@ plugins {
     id "com.gorylenko.gradle-git-properties" version "2.4.0-rc2"
 }
 
-version "3.0.4"
+version "3.0.5-SNAPSHOT"
 
 group "au.org.ala"
 

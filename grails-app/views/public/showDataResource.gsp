@@ -183,7 +183,7 @@
                 </g:link>
             </g:if>
             <g:elseif test="${instance?.logoRef?.file}">
-                <img class="institutionImage" src='${resource(absolute:"true", dir:"data/dataProvider/",file:instance.logoRef.file)}' />
+                <img class="institutionImage" src='${resource(absolute:"true", dir:"data/dataResource/",file:instance.logoRef.file)}' />
             </g:elseif>
 
             <g:if test="${fieldValue(bean: instance, field: 'imageRef') && fieldValue(bean: instance, field: 'imageRef.file')}">
