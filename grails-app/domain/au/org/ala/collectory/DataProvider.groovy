@@ -137,21 +137,7 @@ class DataProvider implements ProviderGroup, Serializable {
      * @return
      */
     @Override def resolveAddress() {
-        if (ProviderGroup.super.resolveAddress()) {
-            return ProviderGroup.super.resolveAddress()
-        }
-        else {
-            def pg = listConsumers().find {
-                def related = providerGroupService._get(it)
-                return related && related.resolveAddress()
-            }
-            if (pg) {
-                return providerGroupService._get(pg).resolveAddress()
-            }
-            else {
-                return null
-            }
-        }
+       ProviderGroup.super.resolveAddress()
     }
 
     /**

@@ -7,8 +7,6 @@ import java.sql.Timestamp
 
 class DataResource implements ProviderGroup, Serializable {
 
-    def providerGroupService
-
     static final String ENTITY_TYPE = 'DataResource'
     static final String ENTITY_PREFIX = 'dr'
 
@@ -297,17 +295,7 @@ class DataResource implements ProviderGroup, Serializable {
      * @return
      */
     @Override def resolveAddress() {
-        def addr = ProviderGroup.super.resolveAddress() ?: dataProvider?.resolveAddress()
-        if (!addr) {
-            def pg = listConsumers().find {
-                def related = providerGroupService._get(it)
-                return related && related.resolveAddress()
-            }
-            if (pg) {
-                addr = _get(pg).resolveAddress()
-            }
-        }
-        return addr
+        ProviderGroup.super.resolveAddress() ?: dataProvider?.resolveAddress()
     }
 
     /**

@@ -59,21 +59,24 @@ class DataProviderController extends ProviderGroupController {
 
             organizations = gbifRegistryService.loadOrganizationsByCountry(countryCode)
 
-            log.info "Search for organizations returned "+organizations.size()+" organizations for country = " + countryCode
-
-            organizations.each { organization ->
-                def dp = DataProvider.findByGbifRegistryKey(organization.key)
-                if (dp) {
-                    log.info "Organization "+organization.key+" is already imported as data provider = " + dp.uid
-                    organization.uid = dp.uid
-                    if (organization.uid == lastCreatedUID) {
-                        organization.lastCreated = true
+            if (organizations){
+                log.info "Search for organizations returned " + organizations.size()+" organizations for country = " + countryCode
+                organizations.each { organization ->
+                    def dp = DataProvider.findByGbifRegistryKey(organization.key)
+                    if (dp) {
+                        log.info "Organization "+organization.key+" is already imported as data provider = " + dp.uid
+                        organization.uid = dp.uid
+                        if (organization.uid == lastCreatedUID) {
+                            organization.lastCreated = true
+                        }
+                    }
+                    else {
+                        log.info "Organization "+organization.key+" is not yet imported as data provider"
+                        organization.statusAvailable = true
                     }
                 }
-                else {
-                    log.info "Organization "+organization.key+" is not yet imported as data provider"
-                    organization.statusAvailable = true
-                }
+            } else {
+                log.info "Search for organizations returned no results for ${countryCode}"
             }
         }
 
@@ -121,7 +124,7 @@ class DataProviderController extends ProviderGroupController {
         log.info "Importing all organizations from country "+countryCode+" as data provider"
 
         def organizations = gbifRegistryService.loadOrganizationsByCountry(countryCode)
-        log.info organizations.size()+" organizations found for country = " + countryCode
+        log.info organizations.size() + " organizations found for country = " + countryCode
 
         def successCount = 0
         def errorCount = 0
@@ -149,7 +152,7 @@ class DataProviderController extends ProviderGroupController {
             }
         }
 
-        flash.message = "Success: "+successCount+" / Error: "+errorCount
+        flash.message = "Success: " + successCount + " / Error: " + errorCount
         redirect(action: "searchForOrganizations", params: [country: params.country])
     }
 

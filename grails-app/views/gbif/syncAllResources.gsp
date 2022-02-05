@@ -22,31 +22,8 @@
         <span class="alert alert-warning">${errorMessage}</span>
     </g:if>
     <g:else>
-        <p class="lead">Syncing results</p>
-        <table class="table">
-            <thead>
-                <th></th>
-                <th>newly registered</th>
-                <th>updated</th>
-            </thead>
-            <tbody>
-            <tr>
-                <td>Data resources</td>
-                <td>${results.resourcesRegistered}</td>
-                <td>${results.resourcesUpdated}</td>
-            </tr>
-            <tr>
-                <td>Institutions</td>
-                <td>${results.dataProviderRegistered}</td>
-                <td>${results.resourcesUpdated}</td>
-            </tr>
-            <tr>
-                <td>Data providers</td>
-                <td>${results.institutionsRegistered}</td>
-                <td>${results.institutionsUpdated}</td>
-            </tr>
-            </tbody>
-        </table>
+        <p class="lead">Syncing has started for providers/organisations</p>
+        <p>This will continue in the background for several minutes.</p>
     </g:else>
 </div>
 </body>
