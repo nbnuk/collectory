@@ -159,7 +159,7 @@ class EmlRenderService {
     def organisation(builder, tag, ProviderGroup pg, role) {
         builder."${tag}"() {
             builder.organizationName(pg.name)
-            def address = pg.resolveAddress()
+            def address = providerGroupService.resolveAddress(pg)
             if (address && !address.isEmpty()) {
                 builder.address {
                     addIf(address.street, 'deliveryPoint' )
