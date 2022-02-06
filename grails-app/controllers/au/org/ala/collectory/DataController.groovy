@@ -13,7 +13,8 @@ import java.text.SimpleDateFormat
 
 class DataController {
 
-    def crudService, emlRenderService, collectoryAuthService, metadataService, providerGroupService, gbifRegistryService, activityLogService
+    def crudService, emlRenderService, collectoryAuthService, metadataService, providerGroupService,
+            activityLogService, asyncGbifRegistryService
 
     def index = { }
 
@@ -439,8 +440,17 @@ class DataController {
             unauthorised()
             return false
         }
-        def results = gbifRegistryService.syncAllResources()
-        renderAsJson results
+
+        asyncGbifRegistryService.updateAllRegistrations()
+                .onComplete { List results ->
+                    log.error "Provider synced = ${results.size()}"
+                }
+                .onError { Throwable err ->
+                    log.error("An error occured ${err.message}", err)
+                }
+
+        def resp = ["status": "STARTED"]
+        render(resp as JSON)
     }
 
     /**

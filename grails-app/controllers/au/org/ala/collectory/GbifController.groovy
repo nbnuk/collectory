@@ -9,6 +9,7 @@ class GbifController {
 
     def collectoryAuthService
     def gbifRegistryService
+    def asyncGbifRegistryService
     def gbifService
     def authService
     def externalDataService
@@ -117,15 +118,20 @@ class GbifController {
 
     def syncAllResources(){
         log.info("Starting all sync resources...checking user has role ${grailsApplication.config.gbifRegistrationRole}")
-        def results = [:]
         def errorMessage = ""
 
         if (authService.userInRole(grailsApplication.config.gbifRegistrationRole)){
-            results = gbifRegistryService.syncAllResources()
+            asyncGbifRegistryService.updateAllRegistrations()
+                    .onComplete { List results ->
+                        log.error "Provider synced = ${results.size()}"
+                    }
+                    .onError { Throwable err ->
+                        log.error("An error occured ${err.message}", err)
+                    }
         } else {
             errorMessage = "User does not have sufficient privileges to perform this."
         }
-        [results:results, errorMessage:errorMessage]
+        [errorMessage:errorMessage]
     }
 
     def scan(){

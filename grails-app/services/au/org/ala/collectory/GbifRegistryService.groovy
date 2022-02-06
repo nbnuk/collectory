@@ -24,7 +24,7 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpContext
 
 import java.text.MessageFormat
 
@@ -65,16 +65,20 @@ class GbifRegistryService {
      * to do so (i.e. config useGbifDoi=true).
      */
     def updateAllRegistrations() {
-        def providers = DataProvider.list()
-        providers.each {
-            def dp = it
-            log.info("Scheduling update of registration of ${dp.uid}: ${dp.name} ${pool}")
-            pool.submit(new Runnable() {
-                public void run() {
+        def providers = []
+        try {
+            DataProvider.withTransaction {
+                providers = DataProvider.list()
+                providers.each { dp ->
+                    log.info("Update of registration of ${dp.uid}: ${dp.name} ${pool}")
                     updateRegistration(dp, true, true)
                 }
-            })
+                providers
+            }
+        } catch (Exception e){
+          log.error(e.getMessage(), e)
         }
+        providers
     }
 
     /**
@@ -113,6 +117,9 @@ class GbifRegistryService {
 
         // load the current GBIF entry to get the endorsing node key
         def organisation = loadOrganization(dp.gbifRegistryKey)
+        if (!organisation){
+            return false
+        }
 
         // apply mutations
         populateOrganisation(organisation, dp)
@@ -277,6 +284,10 @@ class GbifRegistryService {
     private def syncContactsForProviderGroup(ProviderGroup dp) {
         // load the current value from GBIF and remove the contacts
         def organisation = loadOrganization(dp.gbifRegistryKey)
+        if (!organisation){
+            log.error("Unable to sync contacts for GBIF id ${dp.gbifRegistryKey}")
+            return
+        }
         if (organisation.contacts) {
             log.info("Removing contacts")
             organisation.contacts.each {
@@ -411,9 +422,13 @@ class GbifRegistryService {
 
                     if (Boolean.valueOf(grailsApplication.config.useGbifDoi) && dataResource.gbifRegistryKey) {
                         def created = loadDataset(dataResource.gbifRegistryKey)
-                        dataResource.gbifDoi = created.doi
-                        DataProvider.withTransaction {
-                            dataResource.save(flush: true)
+                        if (created) {
+                            dataResource.gbifDoi = created.doi
+                            DataProvider.withTransaction {
+                                dataResource.save(flush: true)
+                            }
+                        } else {
+                            log.error("Unable to load GBIF ID ${dataResource.gbifRegistryKey}")
                         }
                     }
                 } else {
@@ -427,36 +442,40 @@ class GbifRegistryService {
             // ensure the organisation is correct in GBIF as ownership varies over time, and that the DOI
             // is used if configured
             def dataset = loadDataset(dataResource.gbifRegistryKey)
-            if (!isDryRun()) {
-                if (Boolean.valueOf(grailsApplication.config.useGbifDoi) && dataResource.gbifDoi != dataset.doi) {
-                    log.info("Setting resource[${dataResource.uid}] to use gbifDOI[${dataset.doi}]")
-                    dataResource.gbifDoi = dataset.doi
-                    DataProvider.withTransaction {
-                        dataResource.save(flush: true)
+            if (dataset) {
+                if (!isDryRun()) {
+                    if (Boolean.valueOf(grailsApplication.config.useGbifDoi) && dataResource.gbifDoi != dataset.doi) {
+                        log.info("Setting resource[${dataResource.uid}] to use gbifDOI[${dataset.doi}]")
+                        dataResource.gbifDoi = dataset.doi
+                        DataProvider.withTransaction {
+                            dataResource.save(flush: true)
+                        }
                     }
-                }
 
-                log.info("Updating the GBIF registry dataset[${dataResource.gbifRegistryKey}] " +
-                        "to point to " +
-                        "organisation[${organisationRegistryKey}]")
-                dataset.publishingOrganizationKey = organisationRegistryKey
-                dataset.deleted = null
-                dataset.license = getGBIFCompatibleLicence(dataResource.licenseType)
-                if (dataset.license) {
-                    def http = newHttpInstance();
-                    def datasetKey = dataResource.gbifRegistryKey
-                    HttpPut httpPut = new HttpPut(grailsApplication.config.gbifApiUrl + MessageFormat.format(API_DATASET_DETAIL, datasetKey))
-                    httpPut.setHeader("Content-Type", "application/json")
-                    httpPut.setEntity(new StringEntity((dataset as JSON).toString()))
-                    HttpResponse httpResponse = http.execute(httpPut)
-                    if (isSuccess(httpResponse)){
-                        log.info("Successfully updated dataset in GBIF: ${datasetKey}")
+                    log.info("Updating the GBIF registry dataset[${dataResource.gbifRegistryKey}] " +
+                            "to point to " +
+                            "organisation[${organisationRegistryKey}]")
+                    dataset.publishingOrganizationKey = organisationRegistryKey
+                    dataset.deleted = null
+                    dataset.license = getGBIFCompatibleLicence(dataResource.licenseType)
+                    if (dataset.license) {
+                        def http = newHttpInstance();
+                        def datasetKey = dataResource.gbifRegistryKey
+                        HttpPut httpPut = new HttpPut(grailsApplication.config.gbifApiUrl + MessageFormat.format(API_DATASET_DETAIL, datasetKey))
+                        httpPut.setHeader("Content-Type", "application/json")
+                        httpPut.setEntity(new StringEntity((dataset as JSON).toString()))
+                        HttpResponse httpResponse = http.execute(httpPut)
+                        if (isSuccess(httpResponse)) {
+                            log.info("Successfully updated dataset in GBIF: ${datasetKey}")
+                        }
+                    } else {
+                        log.warn("Unable to update dataset - please check license: ${dataResource.uid} :  ${dataResource.name} :  ${dataResource.licenseType}")
                     }
                 } else {
-                    log.warn("Unable to update dataset - please check license: ${dataResource.uid} :  ${dataResource.name} :  ${dataResource.licenseType}")
+                    log.info("[DRYRUN] Updating data resource ${dataset}")
                 }
             } else {
-                log.info("[DRYRUN] Updating data resource ${dataset}")
+                log.error("Unable to update ${dataResource.uid} as GBIF lookup failed for ${dataResource.gbifRegistryKey}")
             }
         }
 
@@ -609,11 +628,16 @@ class GbifRegistryService {
                 grailsApplication.config.gbifApiUrl +
                         MessageFormat.format(API_ORGANIZATION_COUNTRY_LIMIT, countryCode, limit))
         HttpResponse httpResponse = http.execute(httpGet)
-        ByteArrayOutputStream bos = new ByteArrayOutputStream()
-        httpResponse.getEntity().writeTo(bos)
-        String respText = bos.toString();
-        JsonSlurper slurper = new JsonSlurper()
-        return slurper.parseText(respText)
+        if (isSuccess(httpResponse)){
+            ByteArrayOutputStream bos = new ByteArrayOutputStream()
+            httpResponse.getEntity().writeTo(bos)
+            String respText = bos.toString();
+            JsonSlurper slurper = new JsonSlurper()
+            return slurper.parseText(respText)
+        } else {
+            log.error("Error response ${httpResponse.getStatusLine().getStatusCode()} for ${API_ORGANIZATION_COUNTRY_LIMIT} with ${countryCode} and ${limit}")
+            [:]
+        }
     }
 
     /**
@@ -625,11 +649,16 @@ class GbifRegistryService {
                 grailsApplication.config.gbifApiUrl +
                         MessageFormat.format(API_ORGANIZATION_DETAIL, gbifRegistryKey))
         HttpResponse httpResponse = http.execute(httpGet)
-        ByteArrayOutputStream bos = new ByteArrayOutputStream()
-        httpResponse.getEntity().writeTo(bos)
-        String respText = bos.toString();
-        JsonSlurper slurper = new JsonSlurper()
-        return slurper.parseText(respText)
+        if (isSuccess(httpResponse)){
+            ByteArrayOutputStream bos = new ByteArrayOutputStream()
+            httpResponse.getEntity().writeTo(bos)
+            String respText = bos.toString();
+            JsonSlurper slurper = new JsonSlurper()
+            return slurper.parseText(respText)
+        } else {
+            log.error("Error response ${httpResponse.getStatusLine().getStatusCode()} for ${API_ORGANIZATION_DETAIL} with ${gbifRegistryKey}")
+            [:]
+        }
     }
 
     /**
@@ -642,11 +671,16 @@ class GbifRegistryService {
                         MessageFormat.format(API_DATASET_DETAIL, gbifRegistryKey)
         )
         HttpResponse httpResponse = http.execute(httpGet)
-        ByteArrayOutputStream bos = new ByteArrayOutputStream()
-        httpResponse.getEntity().writeTo(bos)
-        String respText = bos.toString();
-        JsonSlurper slurper = new JsonSlurper()
-        return slurper.parseText(respText)
+        if (isSuccess(httpResponse)){
+            ByteArrayOutputStream bos = new ByteArrayOutputStream()
+            httpResponse.getEntity().writeTo(bos)
+            String respText = bos.toString();
+            JsonSlurper slurper = new JsonSlurper()
+            slurper.parseText(respText)
+        } else {
+            log.error("Error response ${httpResponse.getStatusLine().getStatusCode()} for ${API_DATASET_DETAIL} with ${gbifRegistryKey}")
+            [:]
+        }
     }
 
     /**
@@ -699,6 +733,9 @@ class GbifRegistryService {
 
     def populateDataProviderFromOrganization(DataProvider dp, String organisationKey) {
         def organisation = loadOrganization(organisationKey)
+        if (!organisation){
+            return
+        }
         dp.gbifRegistryKey = organisation.key
         dp.name = organisation.title
         dp.acronym = organisation.abbreviation

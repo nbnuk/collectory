@@ -118,6 +118,17 @@ class ProviderGroupService {
         }
     }
 
+    def resolveAddress(ProviderGroup pg){
+        def addr = pg.resolveAddress()
+        if (!addr) {
+            pg.listConsumers().find {
+                def related = _get(it)
+                return related && related.resolveAddress()
+            }
+        }
+        return addr
+    }
+
     /**
      * Update base attributes
      */
