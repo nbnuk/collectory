@@ -458,6 +458,18 @@ class GbifRegistryService {
                     dataset.publishingOrganizationKey = organisationRegistryKey
                     dataset.deleted = null
                     dataset.license = getGBIFCompatibleLicence(dataResource.licenseType)
+                    dataset.title = dataResource.name
+                    dataset.description = dataResource.pubDescription
+                    if (dataResource.buildLogoUrl()) {
+                        dataset.logoUrl = dataResource.buildLogoUrl()
+                    } else {
+                        dataset.logoUrl = null
+                    }
+                    if (dataResource.websiteUrl) {
+                        dataset.homepage = dataResource.websiteUrl
+                    } else {
+                        dataset.homepage = null
+                    }
                     if (dataset.license) {
                         def http = newHttpInstance();
                         def datasetKey = dataResource.gbifRegistryKey
