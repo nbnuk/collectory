@@ -29,8 +29,8 @@ class ProviderMapController {
         if (!params.offset) params.offset = 0
         if (!params.order) params.order = "asc"
         def maps = ProviderMap.withCriteria {
-            maxResults(params.max)
-            firstResult(params.offset)
+            maxResults(params.getInt('max'))
+            firstResult(params.getInt('offset'))
         }
         [providerMapInstanceList: maps, providerMapInstanceTotal: ProviderMap.count(), returnTo: params.returnTo]
     }
