@@ -268,7 +268,7 @@ class GbifRegistryService {
         //if no institution, get the data provider and create in GBIF
         if (publisherGbifRegistryKey) {
             //create the resource in GBIF
-            log.info("Syncing data resource ${dataResource.uid} -  ${dataResource.name}")
+            log.info("Syncing data resource ${dataResource.uid} -  ${dataResource.name} with ${publisherGbifRegistryKey}")
             syncDataResource(dataResource, publisherGbifRegistryKey)
             log.info("Sync complete for data resource ${dataResource.uid} -  ${dataResource.name}")
             result.success = true
@@ -491,7 +491,11 @@ class GbifRegistryService {
             }
         }
 
-        syncEndpoints(dataResource)
+        try {
+            syncEndpoints(dataResource)
+        } catch (Exception e){
+            log.error("Unable to syncEndpoints ${dataResource.uid}", e)
+        }
     }
 
     def deleteDataResource(DataResource resource){
@@ -524,56 +528,79 @@ class GbifRegistryService {
         if (resource.gbifRegistryKey) {
             log.info("Syncing endpoints for resource[${resource.id}], gbifKey[${resource.gbifRegistryKey}]")
 
-            def http = newHttpInstance()
-            def dataset = loadDataset(resource.gbifRegistryKey)
-            if (dataset) {
+            try {
 
-                if (!isDryRun()) {
+                log.info("Syncing endpoints for resource[${resource.id}]... loading dataset")
+                def dataset = loadDataset(resource.gbifRegistryKey)
 
-                    def dwcaUrl = grailsApplication.config.resource.gbifExport.url.template.replaceAll("@UID@", resource.getUid());
+                if (dataset) {
 
-                    if (dataset.endpoints && dataset.endpoints.size() == 1 && dwcaUrl.equals(dataset.endpoints.get(0).url)) {
-                        log.info("Dataset[${resource.gbifRegistryKey}] has correct URL[${dwcaUrl}]")
-                    } else {
+                    if (!isDryRun()) {
 
-                        // delete the existing ones
-                        if (dataset.endpoints) {
-                            dataset.endpoints.each {
+                        def dwcaUrl = grailsApplication.config.resource.gbifExport.url.template.replaceAll("@UID@", resource.getUid());
 
-                                HttpDelete httpDelete = new HttpDelete(
-                                        grailsApplication.config.gbifApiUrl +
-                                                MessageFormat.format(API_DATASET_ENDPOINT_DETAIL, resource.gbifRegistryKey, it.key as String)
-                                )
-                                HttpResponse httpResponse = http.execute(httpDelete)
-                                if (isSuccess(httpResponse)){
-                                    log.info("Removed endpoint ${it.key as String}")
+                        if (dataset.endpoints && dataset.endpoints.size() == 1 && dwcaUrl.equals(dataset.endpoints.get(0).url)) {
+                            log.info("Dataset[${resource.gbifRegistryKey}] has correct URL[${dwcaUrl}]")
+                        } else {
+
+                            // delete the existing ones
+                            if (dataset.endpoints) {
+                                dataset.endpoints.each {
+
+                                    HttpDelete httpDelete = new HttpDelete(
+                                            grailsApplication.config.gbifApiUrl +
+                                                    MessageFormat.format(API_DATASET_ENDPOINT_DETAIL, resource.gbifRegistryKey, it.key as String)
+                                    )
+                                    try {
+                                        HttpClient http = newHttpInstance();
+                                        HttpResponse httpResponse = http.execute(httpDelete)
+                                        if (isSuccess(httpResponse)) {
+                                            log.info("Removed endpoint ${it.key as String}")
+                                        } else {
+                                            log.warn("Unable to remove endpoint ${it.key as String} " + httpResponse.getStatusLine().getStatusCode())
+                                        }
+                                    } finally {
+                                        httpDelete.releaseConnection()
+                                    }
                                 }
+                            } else {
+                                log.warn("No endpoints to create for Dataset[${resource.gbifRegistryKey}] with URL[${dataset.uid}]")
+                            }
+
+                            // now add the correct one
+                            def endpoint = [
+                                    "type": "DWC_ARCHIVE",
+                                    "url" : dwcaUrl
+                            ]
+
+                            HttpPost httpPost = new HttpPost(
+                                    grailsApplication.config.gbifApiUrl +
+                                            MessageFormat.format(API_DATASET_ENDPOINT, resource.gbifRegistryKey)
+                            )
+                            try {
+                                HttpClient http = newHttpInstance();
+                                httpPost.setHeader("Content-Type", "application/json")
+                                httpPost.setEntity(new StringEntity((endpoint as JSON).toString()))
+
+                                log.info("Creating endpoint for Dataset[${resource.gbifRegistryKey}] with URL[${endpoint.url}]")
+                                HttpResponse httpResponse = http.execute(httpPost)
+                                if (isSuccess(httpResponse)) {
+                                    log.info("Created endpoint for Dataset[${resource.gbifRegistryKey}] with URL[${endpoint.url}]")
+                                } else {
+                                    log.info("Error creating endpoint for Dataset[${resource.gbifRegistryKey}] with URL[${endpoint.url}]"  + httpResponse.getStatusLine().getStatusCode() + " " +  + httpResponse.getStatusLine().getReasonPhrase())
+                                }
+                            } finally {
+                                httpPost.releaseConnection()
                             }
                         }
-
-                        // now add the correct one
-                        def endpoint = [
-                                "type": "DWC_ARCHIVE",
-                                "url" : dwcaUrl
-                        ]
-
-                        HttpPost httpPost = new HttpPost(
-                                grailsApplication.config.gbifApiUrl +
-                                        MessageFormat.format(API_DATASET_ENDPOINT, resource.gbifRegistryKey)
-                        )
-                        httpPost.setHeader("Content-Type", "application/json")
-                        httpPost.setEntity(new StringEntity((endpoint as JSON).toString()))
-                        HttpResponse httpResponse = http.execute(httpPost)
-
-                        if (isSuccess(httpResponse)){
-                            log.info("Created endpoint for Dataset[${resource.gbifRegistryKey}] with URL[${endpoint.url}]")
-                        }
+                    } else {
+                        log.info("[DRYRUN] syncing endpoints with registry key ${resource.gbifRegistryKey}, for resource ${resource.uid}")
                     }
                 } else {
-                    log.info("[DRYRUN] syncing endpoints with registry key ${resource.gbifRegistryKey}, for resource ${resource.uid}")
+                    log.info("Unable to load dataset info from GBIF with registry key ${resource.gbifRegistryKey}, for resource ${resource.uid}. Not syncing.....")
                 }
-            } else {
-                log.info("Unable to load dataset info from GBIF with registry key ${resource.gbifRegistryKey}, for resource ${resource.uid}. Not syncing.....")
+            } catch (Exception e){
+                log.info("Error syncing endpoints: ${resource.uid}. Not syncing....." + e.getMessage(), e)
             }
         } else {
             log.info("Registry key not set for resource: ${resource.uid}. Not syncing.....")
@@ -647,7 +674,7 @@ class GbifRegistryService {
             JsonSlurper slurper = new JsonSlurper()
             return slurper.parseText(respText)?.results
         } else {
-            log.error("Error response ${httpResponse.getStatusLine().getStatusCode()} for ${API_ORGANIZATION_COUNTRY_LIMIT} with ${countryCode} and ${limit}")
+            log.error("[loadOrganizationsByCountry] Error response ${httpResponse.getStatusLine().getStatusCode()} for ${API_ORGANIZATION_COUNTRY_LIMIT} with ${countryCode} and ${limit}")
             [:]
         }
     }
@@ -668,7 +695,7 @@ class GbifRegistryService {
             JsonSlurper slurper = new JsonSlurper()
             return slurper.parseText(respText)
         } else {
-            log.error("Error response ${httpResponse.getStatusLine().getStatusCode()} for ${API_ORGANIZATION_DETAIL} with ${gbifRegistryKey}")
+            log.error("[loadOrganization] Error response ${httpResponse.getStatusLine().getStatusCode()} for ${API_ORGANIZATION_DETAIL} with ${gbifRegistryKey}")
             [:]
         }
     }
@@ -677,20 +704,26 @@ class GbifRegistryService {
      * Loads a dataset from the GBIF API.
      */
     private def loadDataset(gbifRegistryKey) {
-        def http = newHttpInstance()
-        HttpGet httpGet = new HttpGet(
-                grailsApplication.config.gbifApiUrl +
-                        MessageFormat.format(API_DATASET_DETAIL, gbifRegistryKey)
-        )
-        HttpResponse httpResponse = http.execute(httpGet)
-        if (isSuccess(httpResponse)){
-            ByteArrayOutputStream bos = new ByteArrayOutputStream()
-            httpResponse.getEntity().writeTo(bos)
-            String respText = bos.toString();
-            JsonSlurper slurper = new JsonSlurper()
-            slurper.parseText(respText)
-        } else {
-            log.error("Error response ${httpResponse.getStatusLine().getStatusCode()} for ${API_DATASET_DETAIL} with ${gbifRegistryKey}")
+
+        try {
+            def http = newHttpInstance()
+            HttpGet httpGet = new HttpGet(
+                    grailsApplication.config.gbifApiUrl +
+                            MessageFormat.format(API_DATASET_DETAIL, gbifRegistryKey)
+            )
+            HttpResponse httpResponse = http.execute(httpGet)
+            if (isSuccess(httpResponse)){
+                ByteArrayOutputStream bos = new ByteArrayOutputStream()
+                httpResponse.getEntity().writeTo(bos)
+                String respText = bos.toString();
+                JsonSlurper slurper = new JsonSlurper()
+                slurper.parseText(respText)
+            } else {
+                log.error("[loadDataset] Error response ${httpResponse.getStatusLine().getStatusCode()} for ${API_DATASET_DETAIL} with ${gbifRegistryKey}")
+                [:]
+            }
+        } catch (Exception e){
+            log.error("[loadDataset] Error loading dataset " + e.getMessage(), e)
             [:]
         }
     }
@@ -903,83 +936,107 @@ class GbifRegistryService {
      *
      * @return a map of statistics showing number of updates.
      */
-    def syncAllResources(){
+    def updateAllResources(){
 
-        def results = generateSyncBreakdown()
+        try {
+            def results = generateSyncBreakdown()
 
-        def resourcesRegistered= 0
-        def resourcesUpdated = 0
-        def dataProviderRegistered = 0
-        def dataProviderUpdated = 0
-        def institutionsRegistered = 0
-        def institutionsUpdated = 0
+            def resourcesRegistered = 0
+            def resourcesUpdated = 0
+            def dataProviderRegistered = 0
+            def institutionsRegistered = 0
 
-        log.info("Attempting to sync ${results.shareable.size()} data resources.....")
+            log.info("Attempting to sync ${results.shareable.size()} data resources.....")
 
-        results.shareable.keySet().each { dataResource ->
+            def institutionsUpdated = []
+            def dataProviderUpdated = []
 
-            def publisherGbifRegistryKey = "" //data provider or institution
-
-            //get the institution, and check it has been created in GBIF
-            Institution institution = results.linkedToInstitution.get(dataResource)
-            DataProvider dataProvider = results.linkedToDataProvider.get(dataResource)
-            if (institution) {
-                // sync institution
-                if (institution.gbifRegistryKey){
-                    updateRegistrationMetadata(institution)
-                    institutionsUpdated ++
-                } else {
-                    register(institution, true, false)
-                    institutionsRegistered ++
-                }
-
-                publisherGbifRegistryKey = institution.gbifRegistryKey
-
-            } else if (dataProvider) {
-                // sync institution
-                if(dataProvider.gbifRegistryKey){
-                    updateRegistrationMetadata(dataProvider)
-                    dataProviderUpdated ++
-                } else {
-                    register(dataProvider, true, false)
-                    dataProviderRegistered ++
-                }
-                publisherGbifRegistryKey = dataProvider.gbifRegistryKey
-            } else if (grailsApplication.config.gbifOrphansPublisherID){
-                publisherGbifRegistryKey = grailsApplication.config.gbifOrphansPublisherID
-                log.info("Using orphans publisher ID  to sync resource: ${dataResource.uid}")
-            } else {
-                log.info("Unable to sync resource: ${dataResource.uid} -  ${dataResource.name}. " +
-                        "No publishing organisation associated." +
-                        "gbifOrphansPublisherID = ${grailsApplication.config.gbifOrphansPublisherID}")
-            }
-
-            // if no institution, get the data provider and create in GBIF
-            if (publisherGbifRegistryKey) {
-                //create the resource in GBIF
-                log.info("Syncing data resource ${dataResource.uid} -  ${dataResource.name}")
-                if (dataResource.gbifRegistryKey){
-                    resourcesUpdated ++
-                } else {
-                    resourcesRegistered ++
-                }
+            results.shareable.keySet().each { drUid ->
 
                 try {
-                    syncDataResource(dataResource, publisherGbifRegistryKey)
-                    log.info("Sync complete for data resource ${dataResource.uid} -  ${dataResource.name}")
-                } catch (Exception e){
-                    log.error("Sync error for data resource ${dataResource.uid} -  ${dataResource.name} - " + e.getMessage(), e)
+
+                    DataResource.withTransaction {
+
+                        DataResource dataResource = DataResource.findByUid(drUid)
+
+                        log.info("Starting sync of data resource ${dataResource.uid} -  ${dataResource.name}")
+
+                        def publisherGbifRegistryKey = "" //data provider or institution
+
+                        //get the institution, and check it has been created in GBIF
+                        Institution institution = results.linkedToInstitution.get(drUid)
+                        DataProvider dataProvider = results.linkedToDataProvider.get(drUid)
+
+                        if (institution) {
+                            // sync institution
+                            if (institution.gbifRegistryKey) {
+                                if (!institutionsUpdated.contains(institution.uid)) {
+                                    updateRegistrationMetadata(institution)
+                                }
+                                institutionsUpdated << institution.uid
+                            } else {
+                                register(institution, true, false)
+                                institutionsRegistered++
+                            }
+
+                            publisherGbifRegistryKey = institution.gbifRegistryKey
+
+                        } else if (dataProvider) {
+                            // sync institution
+                            if (dataProvider.gbifRegistryKey) {
+                                if (!dataProviderUpdated.contains(dataProvider.uid)) {
+                                    updateRegistrationMetadata(dataProvider)
+                                }
+                                dataProviderUpdated << dataProvider.uid
+                            } else {
+                                register(dataProvider, true, false)
+                                dataProviderRegistered++
+                            }
+                            publisherGbifRegistryKey = dataProvider.gbifRegistryKey
+                        } else if (grailsApplication.config.gbifOrphansPublisherID) {
+                            publisherGbifRegistryKey = grailsApplication.config.gbifOrphansPublisherID
+                            log.info("Using orphans publisher ID to sync resource: ${dataResource.uid}")
+                        } else {
+                            log.info("Unable to sync resource: ${dataResource.uid} -  ${dataResource.name}. " +
+                                    "No publishing organisation associated." +
+                                    "gbifOrphansPublisherID = ${grailsApplication.config.gbifOrphansPublisherID}")
+                        }
+
+                        if (publisherGbifRegistryKey) {
+                            // create / update the resource in GBIF
+                            log.info("Syncing data resource ${dataResource.uid} -  ${dataResource.name}")
+                            try {
+                                syncDataResource(dataResource, publisherGbifRegistryKey)
+                                log.info("Sync complete for data resource ${dataResource.uid} -  ${dataResource.name}")
+                                if (dataResource.gbifRegistryKey) {
+                                    resourcesUpdated++
+                                } else {
+                                    resourcesRegistered++
+                                }
+                            } catch (Exception e) {
+                                log.error("Sync error for data resource ${dataResource.uid} -  ${dataResource.name} - " + e.getMessage(), e)
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    log.error("Problem with sync error for data resource ${drUid} " + e.getMessage(), e)
                 }
             }
+            def result = [
+                    resourcesRegistered   : resourcesRegistered,
+                    resourcesUpdated      : resourcesUpdated,
+                    dataProviderRegistered: dataProviderRegistered,
+                    dataProviderUpdated   : dataProviderUpdated.size(),
+                    institutionsRegistered: institutionsRegistered,
+                    institutionsUpdated   : institutionsUpdated.size()
+            ]
+            log.info("Sync complete ${result.inspect()}")
+            result
+
+        } catch (Exception e){
+            log.error("Problem syncing resources - " + e.getMessage(), e)
+            [:]
         }
-        [
-                resourcesRegistered : resourcesRegistered,
-                resourcesUpdated : resourcesUpdated,
-                dataProviderRegistered : dataProviderRegistered,
-                dataProviderUpdated : dataProviderUpdated,
-                institutionsRegistered : institutionsRegistered,
-                institutionsUpdated : institutionsUpdated
-        ]
     }
 
     /**
@@ -988,7 +1045,10 @@ class GbifRegistryService {
      * @return
      */
     def generateSyncBreakdown(){
-        def url = grailsApplication.config.biocacheServicesUrl + "/occurrences/search?q=*:*&facets=data_resource_uid&pageSize=0&facet=on&flimit=-1"
+
+        log.info("Generating sync breakdown...")
+
+        def url = grailsApplication.config.biocacheServicesUrl + "/occurrences/search?q=*:*&facets=dataResourceUid&pageSize=0&facet=on&flimit=-1"
 
         def js = new JsonSlurper()
         def biocacheSearch = js.parse(new URL(url), "UTF-8")
@@ -1004,77 +1064,84 @@ class GbifRegistryService {
         def recordsShareable = 0
 
         biocacheSearch.facetResults[0].fieldResult.each { result ->
-            def uid = result.fq.replaceAll("\"","").replaceAll("data_resource_uid:","")
+            def uid = result.fq.replaceAll("\"","")
+                    .replaceAll("dataResourceUid:","")
+                    .replaceAll("data_resource_uid:","")
 
             def isShareable = true
 
-            //retrieve current licence
-            def dataResource = DataResource.findByUid(uid)
-            if(dataResource) {
+            DataResource.withTransaction {
 
-                dataResourcesWithData[dataResource] = result.count
+                //retrieve current licence
+                def dataResource = DataResource.findByUid(uid)
+                log.info("Looking up data resource ${uid}")
 
-                //find links to institutions
-                def institution = dataResource.institution
+                if (dataResource) {
 
-                if (institution){
-                    linkedToInstitution[dataResource] = dataResource.institution
+                    dataResourcesWithData[dataResource.uid] = result.count
 
-                } else {
+                    //find links to institutions
+                    def institution = dataResource.institution
 
-                    //get the data provider if available...
-                    def dataLinks = DataLink.findAllByProvider(uid)
-                    def institutionDataLink
+                    if (institution) {
+                        linkedToInstitution[dataResource.uid] = dataResource.institution
 
-                    if (dataLinks) {
-                        //do we have institution link ????
-                        institutionDataLink = dataLinks.find { it.consumer.startsWith("in") }
-                        if (institutionDataLink) {
-
-                            institution = Institution.findByUid(institutionDataLink.consumer)
-
-                            //we have an institution
-                            linkedToInstitution[dataResource] = institution
-                        }
-                    }
-                }
-
-                if (!institution) {
-                    def dataProvider = dataResource.getDataProvider()
-                    if (dataProvider){
-                        linkedToDataProvider[dataResource] = dataProvider
                     } else {
 
-                        // if there is not a orphans publisher ID configured, theres no home
-                        if (!grailsApplication.config.gbifOrphansPublisherID) {
-                            notShareableNoOwner[dataResource] = result.count
-                            isShareable = false //no institution and no data provider
+                        //get the data provider if available...
+                        def dataLinks = DataLink.findAllByProvider(uid)
+                        def institutionDataLink
+
+                        if (dataLinks) {
+                            //do we have institution link ????
+                            institutionDataLink = dataLinks.find { it.consumer.startsWith("in") }
+                            if (institutionDataLink) {
+
+                                institution = Institution.findByUid(institutionDataLink.consumer)
+
+                                //we have an institution
+                                linkedToInstitution[dataResource.uid] = institution
+                            }
                         }
                     }
-                }
 
-                if (dataResource.licenseType == null || !getGBIFCompatibleLicence(dataResource.licenseType)) {
-                    licenceIssues[dataResource] = result.count
-                    isShareable = false
-                }
+                    if (!institution) {
+                        def dataProvider = dataResource.getDataProvider()
+                        if (dataProvider) {
+                            linkedToDataProvider[dataResource.uid] = dataProvider
+                        } else {
 
-                if (!dataResource.isShareableWithGBIF) {
-                    notShareable[dataResource] = result.count
-                    isShareable = false
-                }
+                            // if there is not a orphans publisher ID configured, theres no home
+                            if (!grailsApplication.config.gbifOrphansPublisherID) {
+                                notShareableNoOwner[dataResource.uid] = result.count
+                                isShareable = false //no institution and no data provider
+                            }
+                        }
+                    }
 
-                if (dataResource.gbifDataset) {
-                    providedByGBIF[dataResource] = result.count
-                    isShareable = false
-                }
+                    if (dataResource.licenseType == null || !getGBIFCompatibleLicence(dataResource.licenseType)) {
+                        licenceIssues[dataResource.uid] = result.count
+                        isShareable = false
+                    }
 
-                if (isShareable) {
-                    shareable[dataResource] = result.count
-                    recordsShareable += result.count
+                    if (!dataResource.isShareableWithGBIF) {
+                        notShareable[dataResource.uid] = result.count
+                        isShareable = false
+                    }
+
+                    if (dataResource.gbifDataset) {
+                        providedByGBIF[dataResource.uid] = result.count
+                        isShareable = false
+                    }
+
+                    if (isShareable) {
+                        shareable[dataResource.uid] = result.count
+                        recordsShareable += result.count
+                    }
                 }
             }
         }
-        [
+        def breakdown = [
                 indexedRecords : biocacheSearch.totalRecords,
                 recordsShareable: recordsShareable,
                 dataResourcesWithData:dataResourcesWithData,
@@ -1086,6 +1153,10 @@ class GbifRegistryService {
                 linkedToDataProvider: linkedToDataProvider,
                 linkedToInstitution: linkedToInstitution,
         ]
+
+//        log.info("Breakdown: " + breakdown)
+
+        breakdown
     }
 
     /**
