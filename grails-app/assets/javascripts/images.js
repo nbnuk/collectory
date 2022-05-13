@@ -4,7 +4,8 @@
 function loadImagesTab() {
     var wsBase = "/occurrences/search.json";
     var uiBase = "/occurrences/search";
-    var imagesQueryUrl = "?facets=type_status&fq=multimedia%3AImage&pageSize=100&q=collectionUid:" + SHOW_REC.instanceUuid;
+    var imagesQueryUrl = "?facets=type_status&fq=multimedia%3AImage&pageSize=100&q=" + (SHOW_REC.isPipelinesCompatible? "collectionUid:" : "collection_uid:") + SHOW_REC.instanceUuid;
+
     $.ajax({
         url: SHOW_REC.biocacheServicesUrl + wsBase + imagesQueryUrl,
         dataType: 'jsonp',
@@ -25,7 +26,8 @@ function loadImagesTab() {
                 if(data.totalRecords > 0){
                     $('#imagesTabEl').css({display:'block'});
                     var description = ""
-                    $('#imagesSpiel').html('<p><a href="' + SHOW_REC.biocacheWebappUrl + uiBase + imagesQueryUrl +'">' + data.totalRecords + ' images</a> have been made available from the ' + SHOW_REC.instanceName + '. <br/> ' + description + '</p>');
+                    $('#imagesSpiel').html('<p><a href="' + SHOW_REC.biocacheWebappUrl + uiBase + imagesQueryUrl +'">' + jQuery.i18n.prop("images.available.count", data.totalRecords) + '</a> '
+                    + jQuery.i18n.prop("images.available.count.available", SHOW_REC.instanceName) + '<br/> ' + description + '</p>');
                     $.each(data.occurrences, function(idx, item){
                         var imageText = item.scientificName;
                         if(item.typeStatus !== undefined){

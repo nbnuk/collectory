@@ -28,8 +28,8 @@
             <div class="message">${flash.message}</div>
           </g:if>
           <div>
-            <h1>${grailsApplication.config.projectName}  <g:message code="public.datasets.header.title" /></h1>
-            <p><g:message code="public.datasets.header.message01" /> ${grailsApplication.config.projectName}, <g:message code="public.datasets.header.message02" />.</p>
+            <h1><g:message code="public.datasets.header.title.param" args="${[grailsApplication.config.projectName]}" /></h1>
+            <p><g:message code="public.datasets.header.message.param" args="${[grailsApplication.config.projectName]}" /></p>
           </div><!--close hrgroup-->
         </div><!--close section-->
       </div><!--close header-->
@@ -62,7 +62,7 @@
                             <div class="input-group col-lg-8">
                                 <input type="text" name="dr-search" id="dr-search" class="form-control" />
                                 <span class="input-group-btn">
-                                    <button href="javascript:void(0);" title="Only show data sets which contain the search term"
+                                    <button href="javascript:void(0);" title="${message(code:"public.datasets.search.btn.title")}"
                                             id="dr-search-link" class="btn btn-default">
                                         <g:message code="public.datasets.drsearch.search" />
                                     </button>
@@ -70,7 +70,7 @@
                             </div><!-- /input-group -->
 
                             <div class="pull-right">
-                                <button href="javascript:reset()" title="Remove all filters and sorting options" class=" form-control btn btn-default">
+                                <button href="javascript:reset()" title="${message(code:"datasets.remove.all.filters")}" class=" form-control btn btn-default">
                                     <g:message code="public.datasets.drsearch.resetlist" />
                                 </button>
                                 <button href="#" id="downloadLink" class="btn btn-default"
@@ -92,11 +92,11 @@
                       </div>
                       <div class="col-md-4 form-inline">
                           <label for="sort"><g:message code="public.datasets.sortwidgets.sb" /></label>
-                          <g:select class="form-control  input-sm" id="sort" name="sort" from="${['name','type','license']}"/>
+                          <g:select class="form-control  input-sm" id="sort" name="sort" valueMessagePrefix="datasets.sort" from="${['name','type','license']}"/>
                       </div>
                       <div class="col-md-4 form-inline">
                           <label for="dir"><g:message code="public.datasets.sortwidgets.so" /></label>
-                          <g:select class="form-control  input-sm" id="dir" name="dir" from="${['ascending','descending']}"/>
+                          <g:select class="form-control  input-sm" id="dir" name="dir" valueMessagePrefix="datasets.sort" from="${['ascending','descending']}"/>
                       </div>
                   </div>
                 </div><!--drop downs-->

@@ -113,7 +113,7 @@ function appendResource(value) {
     // $rowA.find('img').tooltip($.extend({},tooltipOptions,{position:{my: 'center bottom', at: 'center top-10'}}));
 
     // row B
-    $rowB.append('<span><strong class="resultsLabelFirst">'+ jQuery.i18n.prop('datasets.js.appendresource06') +': </strong>' + value.resourceType + '</span>');  // resource type
+    $rowB.append('<span><strong class="resultsLabelFirst">'+ jQuery.i18n.prop('datasets.js.appendresource06') +': </strong>' + jQuery.i18n.prop('dataset.result.'+ value.resourceType) + '</span>');  // resource type
     $rowB.append('<span><strong class="resultsLabel">'+ jQuery.i18n.prop('datasets.js.appendresource07') +': </strong>' + (value.licenseType == null ? '' : value.licenseType) + '</span>'); // license type
     if (value.resourceType == 'records') {
         $rowB.append('<span class="viewRecords"><a title="' + jQuery.i18n.prop('datasets.js.appendresource03') + '" href="' + biocacheUrl + '/occurrences/search?q=data_resource_uid:' + value.uid + '">'+ jQuery.i18n.prop('datasets.js.appendresource10') +'</a></span>'); // records link
@@ -182,8 +182,8 @@ function clearList() {
 /** display the current size of the filtered list **/
 function updateTotal() {
     total = resources.length;
-    $('#resultsReturned').html(jQuery.i18n.prop('datasets.js.updatetotal03') +  ' <strong>' + total + '</strong> ' + jQuery.i18n.prop('datasets.js.updatetotal04') + (total == 1 ? jQuery.i18n.prop('datasets.js.updatetotal05') : jQuery.i18n.prop('datasets.js.updatetotal06')));
-    $('#downloadLink').attr('title', jQuery.i18n.prop('datasets.js.updatetotal01') + ' ' + total + ' ' + jQuery.i18n.prop('datasets.js.updatetotal02'));
+    $('#resultsReturned').html(jQuery.i18n.prop((total == 1 ?  "datasets.js.updatetotal.singular":"datasets.js.updatetotal.plural"), total));
+    $('#downloadLink').attr('title', jQuery.i18n.prop('datasets.js.updatetotal.download', total));
 }
 function hideTooltip(element) {
     if (element == undefined) return;
@@ -278,14 +278,14 @@ function showFilters() {
     $('#currentFilter').remove();
     if (currentFilters.length > 0) {
         // create the container
-        $('#currentFilterHolder').append('<div id="currentFilter"><h4><span class="FieldName">Current Filters</span></h4>' +
+        $('#currentFilterHolder').append('<div id="currentFilter"><h4><span class="FieldName">'  + jQuery.i18n.prop("datasets.current.filters") + '</span></h4>' +
                 '<div id="subnavlist"><ul></ul></div></div>');
     }
     $.each(currentFilters, function(index, obj) {
         var displayValue = obj.name == 'contains' ? obj.value : labelFor(obj.value);
         $('#currentFilter #subnavlist ul').append('<li>' + labelFor(obj.name) + ': <b>' + displayValue + '</b>&nbsp;' +
                 '[<b><a href="#" onclick="removeFilter(\'' + obj.name + "','" + obj.value + '\',this);return false;"' +
-                'class="removeLink" title="remove filter">X</a></b>]</li>');
+                'class="removeLink" title="' + jQuery.i18n.prop("datasets.remove.filter") + '">X</a></b>]</li>');
     });
 }
 /** adds a filter and re-filters list**/
@@ -605,6 +605,14 @@ function sortByCount(map) {
 /* returns a display label for the facet */
 function labelFor(item) {
     var text = displayText[item];
+    if (text == undefined) {
+        // Let's try to find with a prefix
+        var textTranslated = jQuery.i18n.prop('datasets.js.displaytext.' + item.replace(/ /g, "_"));
+        // If not exist will start with this prefix
+        if (!textTranslated.startsWith("[datasets.js.displaytext")) {
+            text = textTranslated;
+        }
+    }
     if (text == undefined) {
         // just capitalise - TODO: break out camel case
         text = capitalise(item);

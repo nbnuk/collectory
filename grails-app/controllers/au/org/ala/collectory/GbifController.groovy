@@ -120,18 +120,25 @@ class GbifController {
         log.info("Starting all sync resources...checking user has role ${grailsApplication.config.gbifRegistrationRole}")
         def errorMessage = ""
 
-        if (authService.userInRole(grailsApplication.config.gbifRegistrationRole)){
-            asyncGbifRegistryService.updateAllRegistrations()
-                    .onComplete { List results ->
-                        log.error "Provider synced = ${results.size()}"
-                    }
-                    .onError { Throwable err ->
-                        log.error("An error occured ${err.message}", err)
-                    }
-        } else {
-            errorMessage = "User does not have sufficient privileges to perform this."
+        try {
+            if (authService.userInRole(grailsApplication.config.gbifRegistrationRole)){
+                asyncGbifRegistryService.updateAllResources()
+                        .onComplete {
+                            log.info "Sync complete"
+                        }
+                        .onError { Throwable err ->
+                            log.error("An error occured ${err.message}", err)
+                        }
+            } else {
+                errorMessage = "User does not have sufficient privileges to perform this."
+
+                log.error("Starting all sync resources..." + errorMessage)
+            }
+        } catch (Exception e){
+            log.error(e.getMessage(), e)
         }
-        [errorMessage:errorMessage]
+
+        [errorMessage: errorMessage]
     }
 
     def scan(){

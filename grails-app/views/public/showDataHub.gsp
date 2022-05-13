@@ -21,24 +21,15 @@
 
       biocacheServicesUrl = "${grailsApplication.config.biocacheServicesUrl}";
       biocacheWebappUrl = "${grailsApplication.config.biocacheUiURL}";
-
-      $(document).ready(function() {
-        $("a#lsid").fancybox({
-                    'hideOnContentClick' : false,
-                    'titleShow' : false,
-                    'autoDimensions' : false,
-                    'width' : 600,
-                    'height' : 180
-        });
-        $("a.current").fancybox({
-                    'hideOnContentClick' : false,
-                    'titleShow' : false,
-                    'titlePosition' : 'inside',
-                    'autoDimensions' : true,
-                    'width' : 300
-        });
-      });
     </script>
+    <script type="text/javascript">
+      var COLLECTORY_CONF = {
+        contextPath: "${request.contextPath}",
+        locale: "${(org.springframework.web.servlet.support.RequestContextUtils.getLocale(request).toString())?:request.locale}",
+        cartodbPattern: "${grailsApplication.config.cartodb.pattern}"
+      };
+    </script>
+    <asset:javascript src="application-pages.js"/>
   </head>
   <body class="two-column-right">
     <div id="content">
@@ -64,7 +55,7 @@
             <!-- logo -->
             <g:if test="${fieldValue(bean: instance, field: 'logoRef') && fieldValue(bean: instance, field: 'logoRef.file')}">
                 <section class="public-metadata">
-                    <img class="institutionImage" src='${resource(absolute:"true", dir:"data/"+instance.urlForm()+"/",file:fieldValue(bean: instance, field: 'logoRef.file'))}' />
+                    <img class="institutionImage" src='${resource(absolute:"true", dir:"data/"+instance.urlForm()+"/",file:instance.logoRef.file)}' />
                 </section>
             </g:if>
           </div>
@@ -81,7 +72,7 @@
           <cl:formattedText>${fieldValue(bean: instance, field: "techDescription")}</cl:formattedText>
         </g:if>
         <g:if test="${instance.focus}">
-          <h2><g:message code="public.sdh.co.label02" /></h2>
+          <h2><g:message code="public.sdh.co.label02.param" args="${[grailsApplication.config.skin.orgNameShort]}" /></h2>
           <cl:formattedText>${fieldValue(bean: instance, field: "focus")}</cl:formattedText>
         </g:if>
 
@@ -110,6 +101,10 @@
             <cl:valueOrOtherwise value="${instance.imageRef?.copyright}"><p class="caption">${fieldValue(bean: instance, field: "imageRef.copyright")}</p></cl:valueOrOtherwise>
           </section>
         </g:if>
+
+        <div id="dataAccessWrapper" style="display:none;">
+          <g:render template="dataAccess" model="[instance:instance]"/>
+        </div>
 
         <section class="public-metadata">
           <h4><g:message code="public.location" /></h4>

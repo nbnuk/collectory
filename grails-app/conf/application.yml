@@ -139,6 +139,7 @@ skin:
     homeUrl: http://www.ala.org.au
     orgNameLong: Atlas of Living Australia
     orgNameShort: Atlas
+    orgSupportEmail: support@ala.org.au
     favicon: https://www.ala.org.au/app/uploads/2019/01/cropped-favicon-32x32.png
 
 headerAndFooter:
@@ -190,6 +191,7 @@ disableAlertLinks: false
 disableLoggerLinks: false
 biocacheServicesUrl: https://biocache.ala.org.au/ws
 biocacheUiURL: https://biocache.ala.org.au
+isPipelinesCompatible: true
 
 ROLE_ADMIN: 'ROLE_ADMIN'
 
@@ -368,6 +370,9 @@ environments:
         grails:
             assets:
                 storagePath: "/data/collectory"
+            plugin:
+                sentry:
+                    active: false
         dataSource:
             dbCreate: update
             url: jdbc:mysql://localhost:3306/collectory?autoReconnect=true&connectTimeout=0&useUnicode=true&characterEncoding=UTF-8
@@ -375,6 +380,9 @@ environments:
         grails:
             assets:
                 storagePath: "/data/collectory"
+            plugin:
+                sentry:
+                    active: false
         dataSource:
             dbCreate: update
             url: jdbc:h2:mem:testDb;MVCC=TRUE;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
