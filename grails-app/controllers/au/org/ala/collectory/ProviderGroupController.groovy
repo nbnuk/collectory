@@ -126,7 +126,12 @@ abstract class ProviderGroupController {
         ProviderGroup pg
         switch (entityName) {
             case Collection.ENTITY_TYPE:
-                pg = new Collection(uid: idGeneratorService.getNextCollectionId(), name: name, userLastModified: collectoryAuthService?.username())
+                pg = new Collection(
+                        uid: idGeneratorService.getNextCollectionId(),
+                        name: name,
+                        userLastModified: collectoryAuthService?.username(),
+                        southCoordinate: 0, northCoordinate: 0, westCoordinate: 0, eastCoordinate: 0
+                )
                 if (params.institutionUid && Institution.findByUid(params.institutionUid)) {
                     pg.institution = Institution.findByUid(params.institutionUid)
                 }
@@ -138,7 +143,7 @@ abstract class ProviderGroupController {
             case DataResource.ENTITY_TYPE:
                 pg = new DataResource(uid: idGeneratorService.getNextDataResourceId(), name: name, userLastModified: collectoryAuthService?.username())
                 if (params.dataProviderUid && DataProvider.findByUid(params.dataProviderUid)) {
-                    pg.dataProvider = DataProvider.findByUid(params.dataProviderUid)
+                        pg.dataProvider = DataProvider.findByUid(params.dataProviderUid)
                 }
                 break
             case DataHub.ENTITY_TYPE:
