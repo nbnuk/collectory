@@ -391,4 +391,8 @@ liquibase.command.referencePassword: XXXXX
     <sqlFile path="some.sql" relativeToChangelogFile="true" encoding="utf8" stripComments="1" />
   </changeSet>
   -->
+    <changeSet author="ALA Dev Team" id="1647535601585-105">
+        <dropNotNullConstraint columnDataType="varchar(256)" columnName="attributions" tableName="data_hub"/>
+    </changeSet>
+
 </databaseChangeLog>
