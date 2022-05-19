@@ -2,8 +2,6 @@ package au.org.ala.collectory
 
 class DataProvider implements ProviderGroup, Serializable {
 
-    def providerGroupService
-
     static final String ENTITY_TYPE = 'DataProvider'
     static final String ENTITY_PREFIX = 'dp'
 
@@ -120,13 +118,12 @@ class DataProvider implements ProviderGroup, Serializable {
         }
         def consumers = listConsumers()
         consumers.each {
-            def pg = findByUid(it)
-            if (pg) {
-                if (it[0..1] == 'co') {
-                    dps.relatedCollections << [uid: pg.uid, name: pg.name]
-                } else {
-                    dps.relatedInstitutions << [uid: pg.uid, name: pg.name]
-                }
+            if (it[0..1] == 'co') {
+                def pg = Collection.findByUid(it)
+                dps.relatedCollections << [uid: pg.uid, name: pg.name]
+            } else {
+                def pg = Institution.findByUid(it)
+                dps.relatedInstitutions << [uid: pg.uid, name: pg.name]
             }
         }
         return dps
@@ -151,7 +148,7 @@ class DataProvider implements ProviderGroup, Serializable {
         }
         else {
             for (con in listConsumers()) {
-                def related = providerGroupService._get(con)
+                def related = Collection.findByUid(con) ?: Institution.findByUid(con)
                 if (related.inheritPrimaryContact()) {
                     return related.inheritPrimaryContact()
                 }
@@ -171,7 +168,7 @@ class DataProvider implements ProviderGroup, Serializable {
         }
         else {
             for (con in listConsumers()) {
-                def related = providerGroupService._get(con)
+                def related = Collection.findByUid(con) ?: Institution.findByUid(con)
                 if (related.inheritPrimaryPublicContact()) {
                     return related.inheritPrimaryPublicContact()
                 }
