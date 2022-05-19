@@ -12,9 +12,9 @@ import org.springframework.web.multipart.MultipartFile
  */
 abstract class ProviderGroupController {
 
-    static String entityName = "ProviderGroup"
-    static String entityNameLower = "providerGroup"
-    static int TRUNCATE_LENGTH = 255
+    String entityName = "ProviderGroup"
+    String entityNameLower = "providerGroup"
+    int TRUNCATE_LENGTH = 255
 
     def idGeneratorService, collectoryAuthService, metadataService, gbifService, dataImportService, providerGroupService, activityLogService
 

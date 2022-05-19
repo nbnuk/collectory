@@ -394,5 +394,9 @@ liquibase.command.referencePassword: XXXXX
     <changeSet author="ALA Dev Team" id="1647535601585-105">
         <dropNotNullConstraint columnDataType="varchar(256)" columnName="attributions" tableName="data_hub"/>
     </changeSet>
+    <changeSet author="ALA Dev Team" id="1647535601585-106">
+        <dropNotNullConstraint columnDataType="decimal(13,10)" columnName="latitude" tableName="data_hub"/>
+        <dropNotNullConstraint columnDataType="decimal(13,10)" columnName="longitude" tableName="data_hub"/>
+    </changeSet>
 
 </databaseChangeLog>
