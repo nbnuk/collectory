@@ -2,8 +2,6 @@ package au.org.ala.collectory
 
 class Institution implements ProviderGroup, Serializable {
 
-    def idGeneratorService
-
     static final String ENTITY_TYPE = 'Institution'
     static final String ENTITY_PREFIX = 'in'
 
@@ -65,7 +63,7 @@ class Institution implements ProviderGroup, Serializable {
         networkMembership type: "text"
         sort: 'name'
     }
-    
+
     /**
      * Returns a summary of the institution including:
      * - id
