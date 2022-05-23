@@ -153,20 +153,20 @@ security:
     cas:
         casServerName: https://auth-test.ala.org.au
         uriFilterPattern:
-            - /admin.*
-            - /collection.*
-            - /institution.*
-            - /contact.*
-            - /reports.*
-            - /providerCode.*
-            - /providerMap.*
-            - /dataProvider.*
-            - /dataResource.*
-            - /dataHub.*
-            - /manage/.*
-            - /alaAdmin.*
+            - /admin/*
+            - /collection/*
+            - /institution/*
+            - /contact/*
+            - /reports/*
+            - /providerCode/*
+            - /providerMap/*
+            - /dataProvider/*
+            - /dataResource/*
+            - /dataHub/*
+            - /manage/*
+            - /alaAdmin/*
         authenticateOnlyIfCookieFilterPattern:
-            - /public/show.*
+            - /public/show/*
         uriExclusionFilterPattern:
             - /images.*
             - /css.*
