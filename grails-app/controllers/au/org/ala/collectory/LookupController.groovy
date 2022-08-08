@@ -1,5 +1,16 @@
 package au.org.ala.collectory
 
+import au.org.ala.plugins.openapi.Path
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.ArraySchema
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.ExampleObject
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.parameters.RequestBody
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+
+import javax.ws.rs.Produces
 import java.text.ParseException
 import java.text.NumberFormat
 import grails.converters.JSON
@@ -7,6 +18,10 @@ import com.opencsv.CSVWriter
 
 import groovy.xml.StreamingMarkupBuilder
 import grails.web.http.HttpHeaders
+
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.PATH
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY
 
 class LookupController {
 
@@ -17,7 +32,44 @@ class LookupController {
 
     def index = { }
 
-    def collection = {
+//    @Operation(
+//            method = "GET",
+//            tags = "collection, hubs",
+//            operationId = "getProviderGroupForCollectionAndInstitutionCodes",
+//            summary = "Get the provider group for a collection and institution code",
+//            parameters = [
+//                    @Parameter(
+//                            name = "institutionCode",
+//                            in = PATH,
+//                            description = "Institution code",
+//                            schema = @Schema(implementation = String),
+//                            required = true
+//                    ),
+//                    @Parameter(
+//                            name = "collectionCode",
+//                            in = PATH,
+//                            description = "Collection code",
+//                            schema = @Schema(implementation = String),
+//                            required = true
+//                    )
+//            ],
+//            responses = [
+//                    @ApiResponse(
+//                            description = "provider group summary",
+//                            responseCode = "200",
+//                            content = [
+//                                    @Content(
+//                                            mediaType = "application/json",
+//                                            schema = @Schema(implementation = ProviderGroupSummary)
+//                                    )
+//                            ]
+//                    )
+//            ],
+//            security = []
+//    )
+//    @Path("lookup/inst/{institutionCode}/coll/{collectionCode}")
+//    @Produces("application/json")
+    def collection() {
         def inst = params.inst
         def coll = params.coll
         if (!inst && !coll) {
@@ -161,7 +213,60 @@ class LookupController {
         render list as JSON
     }
 
-    def citations = {
+//    @Operation(
+//            method = "POST",
+//            tags = "citations",
+//            operationId = "getCitations",
+//            summary = "Get citations for a list of data resource UIDs.",
+//            parameters = [
+//                    @Parameter(
+//                            name = "Accept",
+//                            in = HEADER,
+//                            description = "Response format; text/csv, text/plain, application/json",
+//                            schema = @Schema(implementation = String),
+//                            required = true
+//                    )
+//            ],
+//            requestBody = @RequestBody(
+//                    required = true,
+//                    description = "A JSON array containing dataResource UIDs.",
+//                    content = [
+//                            @Content(
+//                                    mediaType = "application/json",
+//                                    array = @ArraySchema(schema = @Schema(implementation = String)),
+//                                    examples = [
+//                                            @ExampleObject(
+//                                                    value = "[\"dr654\",\"dr653\"]"
+//                                            )
+//                                    ]
+//                            )
+//                    ]
+//                    ),
+//            responses = [
+//                    @ApiResponse(
+//                            description = "citation",
+//                            responseCode = "200",
+//                            content = [
+//                                    @Content(
+//                                            mediaType = "application/json",
+//                                            array = @ArraySchema(schema = @Schema(implementation = Citation))
+//                                    ),
+//                                    @Content(
+//                                            mediaType = "text/csv",
+//                                            schema = @Schema(implementation = String)
+//                                    ),
+//                                    @Content(
+//                                            mediaType = "text/plain",
+//                                            schema = @Schema(implementation = String)
+//                                    )
+//                            ]
+//                    )
+//            ],
+//            security = []
+//    )
+//    @Path("citations")
+//    @Produces("application/json")
+    def citations() {
         if (params.include) {
             params.uids = "[${params.include}]"
         }
@@ -221,6 +326,18 @@ class LookupController {
         } else {
             render ([error:"no uids posted"] as JSON)
         }
+    }
+
+    class Citation {
+        String name
+        String citation
+        String rights
+        String link
+        String dataGeneralizations
+        String informationWithheld
+        Integer downloadLimit
+        String uid
+        String DOI
     }
 
     def csvCitations(uids) {

@@ -24,7 +24,7 @@ class CollectoryAuthService{
 
     def isAdmin() {
         def adminFlag = false
-        if (grailsApplication.config.security.cas.bypass?:''.toBoolean())
+        if (!grailsApplication.config.security.oidc.enabled.toBoolean())
             adminFlag = true
         else {
             if(authService) {
@@ -36,7 +36,7 @@ class CollectoryAuthService{
 
     protected boolean userInRole(role) {
         def roleFlag = false
-        if(grailsApplication.config.security.cas.bypass?:''.toBoolean())
+        if(!grailsApplication.config.security.oidc.enabled.toBoolean())
             roleFlag = true
         else {
             if (authService != null) {
@@ -48,7 +48,7 @@ class CollectoryAuthService{
     }
 
     protected boolean isAuthorisedToEdit(uid) {
-        if (grailsApplication.config.security.cas.bypass.toBoolean() || isAdmin()) {
+        if (!grailsApplication.config.security.oidc.enabled.toBoolean() || isAdmin()) {
             return true
         } else {
             def email = RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()?.attributes?.email

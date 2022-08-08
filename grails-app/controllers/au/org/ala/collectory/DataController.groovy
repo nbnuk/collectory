@@ -1,15 +1,29 @@
 package au.org.ala.collectory
+
+import au.org.ala.plugins.openapi.Path
 import grails.converters.JSON
 import grails.util.Holders
 import groovy.xml.MarkupBuilder
 import grails.web.http.HttpHeaders
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.ArraySchema
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.xml.sax.SAXException
 
+import javax.ws.rs.Produces
 import javax.xml.XMLConstants
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
 import java.text.DateFormat
 import java.text.SimpleDateFormat
+
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.PATH
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY
 
 class DataController {
 
@@ -172,7 +186,7 @@ class DataController {
     def notModified = {
         render(status: 304)
     }
-    
+
     def notFound = { text ->
         render(status:404, text: text)
     }
@@ -351,6 +365,50 @@ class DataController {
      * @param summary - any non-null value will cause a richer summary to be returned for entity lists
      * @param api_key - optional param for displaying any sensitive data
      */
+//    @Operation(
+//            method = "GET",
+//            tags = "collection, 'institution, dataProvider, dataResource, tempDataResource, dataHub",
+//            operationId = "getEntity",
+//            summary = "Get a list of entities for a data type or details of a record.",
+//            description = "Get a summary of entities that exist for a data type or detailed information for a specific entity.",
+//            parameters = [
+//                    @Parameter(
+//                    name = "entity",
+//                    in = PATH,
+//                    description = "entity",
+//                    schema = @Schema(implementation = String),
+//                    required = true
+//                    ),
+//                    @Parameter(
+//                            name = "summary",
+//                            in = QUERY,
+//                            description = "false to include the summary",
+//                            schema = @Schema(implementation = Boolean),
+//                            required = false
+//                    )
+//                    @Parameter(
+//                            name = "q",
+//                            in = QUERY,
+//                            description = "restrict to associated object names that contain this value",
+//                            schema = @Schema(implementation = String),
+//                            required = false
+//                    )],
+//            responses = [
+//                    @ApiResponse(
+//                            description = "List of entities",
+//                            responseCode = "200",
+//                            content = [
+//                                    @Content(
+//                                            mediaType = "application/json",
+//                                            array = @ArraySchema(schema = @Schema(implementation = Entity))
+//                                    )
+//                            ]
+//                    )
+//            ],
+//            security = []
+//    )
+//    @Path("ws/{entity}/{uid}")
+//    @Produces("application/json")
     def getEntity = {
         check(params)
         if (params.entity == 'tempDataResource') {
@@ -389,6 +447,13 @@ class DataController {
         }
     }
 
+    class Entity {
+        String name
+        String uri
+        String uid
+        String logo
+    }
+
     /**
      * Return JSON representation of the counts of the specified entity
      * grouped by the specified property.
@@ -403,12 +468,12 @@ class DataController {
         def clazz = capitalise(urlForm)
         def domain = grailsApplication.getClassForName("au.org.ala.collectory.${clazz}")
         def list = domain.list()
-        
+
         // suppress 'declined' data resources
         if (urlForm == 'dataResource' && params.public == "true") {
             list = list.findAll { it.status != 'declined' }
         }
-        
+
         // init results with total
         def results = [total: list.size()]
 
@@ -572,7 +637,58 @@ class DataController {
     }
 
     /************ EML services *************/
-
+//    @Operation(
+//            method = "GET",
+//            tags = "field",
+//            operationId = "getFieldById",
+//            summary = "Get a field by Id",
+//            description = "Get a field by Id. Includes all objects associated with the field.",
+//            parameters = [
+//                    @Parameter(
+//                            name = "id",
+//                            in = PATH,
+//                            description = "Id of the field",
+//                            schema = @Schema(implementation = String),
+//                            required = true
+//                    ),
+//                    @Parameter(
+//                            name = "start",
+//                            in = QUERY,
+//                            description = "starting index for associated objects",
+//                            schema = @Schema(implementation = Long),
+//                            required = false
+//                    ),
+//                    @Parameter(
+//                            name = "pageSize",
+//                            in = QUERY,
+//                            description = "number of associated objects to return",
+//                            schema = @Schema(implementation = Long),
+//                            required = false
+//                    ),
+//                    @Parameter(
+//                            name = "q",
+//                            in = QUERY,
+//                            description = "restrict to associated object names that contain this value",
+//                            schema = @Schema(implementation = String),
+//                            required = false
+//                    )
+//            ],
+//            responses = [
+//                    @ApiResponse(
+//                            description = "field",
+//                            responseCode = "200",
+//                            content = [
+//                                    @Content(
+//                                            mediaType = "application/json",
+//                                            schema = @Schema(implementation = Field)
+//                                    )
+//                            ]
+//                    )
+//            ],
+//            security = []
+//    )
+//    @Path("eml/{dataResourceUid}")
+//    @Produces("text/xml")
     def eml = {
         if (params.id) {
             def pg = providerGroupService._get(params.id)
