@@ -1,8 +1,10 @@
 package au.org.ala.collectory
 
 import au.org.ala.plugins.openapi.Path
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.headers.Header
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.ExampleObject
@@ -32,43 +34,48 @@ class LookupController {
 
     def index = { }
 
-//    @Operation(
-//            method = "GET",
-//            tags = "collection, hubs",
-//            operationId = "getProviderGroupForCollectionAndInstitutionCodes",
-//            summary = "Get the provider group for a collection and institution code",
-//            parameters = [
-//                    @Parameter(
-//                            name = "institutionCode",
-//                            in = PATH,
-//                            description = "Institution code",
-//                            schema = @Schema(implementation = String),
-//                            required = true
-//                    ),
-//                    @Parameter(
-//                            name = "collectionCode",
-//                            in = PATH,
-//                            description = "Collection code",
-//                            schema = @Schema(implementation = String),
-//                            required = true
-//                    )
-//            ],
-//            responses = [
-//                    @ApiResponse(
-//                            description = "provider group summary",
-//                            responseCode = "200",
-//                            content = [
-//                                    @Content(
-//                                            mediaType = "application/json",
-//                                            schema = @Schema(implementation = ProviderGroupSummary)
-//                                    )
-//                            ]
-//                    )
-//            ],
-//            security = []
-//    )
-//    @Path("lookup/inst/{institutionCode}/coll/{collectionCode}")
-//    @Produces("application/json")
+    @Operation(
+            method = "GET",
+            tags = "collection, hubs",
+            operationId = "getProviderGroupForCollectionAndInstitutionCodes",
+            summary = "Get the provider group for a collection and institution code",
+            parameters = [
+                    @Parameter(
+                            name = "institutionCode",
+                            in = PATH,
+                            description = "Institution code",
+                            schema = @Schema(implementation = String),
+                            required = true
+                    ),
+                    @Parameter(
+                            name = "collectionCode",
+                            in = PATH,
+                            description = "Collection code",
+                            schema = @Schema(implementation = String),
+                            required = true
+                    )
+            ],
+            responses = [
+                    @ApiResponse(
+                            description = "provider group summary",
+                            responseCode = "200",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = ProviderGroupSummaryResponse)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    )
+            ],
+            security = []
+    )
+    @Path("/ws/lookup/inst/{institutionCode}/coll/{collectionCode}")
+    @Produces("application/json")
     def collection() {
         def inst = params.inst
         def coll = params.coll
@@ -95,6 +102,19 @@ class LookupController {
             }
         }
     }
+
+    @JsonIgnoreProperties('metaClass')
+    class ProviderGroupSummaryResponse {
+        long id
+        String uid
+        String uri
+        String name
+        String acronym
+        String shortDescription
+        String lsid
+        Object taxonomyCoverageHints
+    }
+
 
     def institution = {
         renderEntitySummaries(Institution, params.id)
@@ -213,59 +233,64 @@ class LookupController {
         render list as JSON
     }
 
-//    @Operation(
-//            method = "POST",
-//            tags = "citations",
-//            operationId = "getCitations",
-//            summary = "Get citations for a list of data resource UIDs.",
-//            parameters = [
-//                    @Parameter(
-//                            name = "Accept",
-//                            in = HEADER,
-//                            description = "Response format; text/csv, text/plain, application/json",
-//                            schema = @Schema(implementation = String),
-//                            required = true
-//                    )
-//            ],
-//            requestBody = @RequestBody(
-//                    required = true,
-//                    description = "A JSON array containing dataResource UIDs.",
-//                    content = [
-//                            @Content(
-//                                    mediaType = "application/json",
-//                                    array = @ArraySchema(schema = @Schema(implementation = String)),
-//                                    examples = [
-//                                            @ExampleObject(
-//                                                    value = "[\"dr654\",\"dr653\"]"
-//                                            )
-//                                    ]
-//                            )
-//                    ]
-//                    ),
-//            responses = [
-//                    @ApiResponse(
-//                            description = "citation",
-//                            responseCode = "200",
-//                            content = [
-//                                    @Content(
-//                                            mediaType = "application/json",
-//                                            array = @ArraySchema(schema = @Schema(implementation = Citation))
-//                                    ),
-//                                    @Content(
-//                                            mediaType = "text/csv",
-//                                            schema = @Schema(implementation = String)
-//                                    ),
-//                                    @Content(
-//                                            mediaType = "text/plain",
-//                                            schema = @Schema(implementation = String)
-//                                    )
-//                            ]
-//                    )
-//            ],
-//            security = []
-//    )
-//    @Path("citations")
-//    @Produces("application/json")
+    @Operation(
+            method = "POST",
+            tags = "citations",
+            operationId = "getCitations",
+            summary = "Get citations for a list of data resource UIDs.",
+            parameters = [
+                    @Parameter(
+                            name = "Accept",
+                            in = HEADER,
+                            description = "Response format; text/csv, text/plain, application/json",
+                            schema = @Schema(implementation = String),
+                            required = true
+                    )
+            ],
+            requestBody = @RequestBody(
+                    required = true,
+                    description = "A JSON array containing dataResource UIDs.",
+                    content = [
+                            @Content(
+                                    mediaType = "application/json",
+                                    array = @ArraySchema(schema = @Schema(implementation = String)),
+                                    examples = [
+                                            @ExampleObject(
+                                                    value = "[\"dr654\",\"dr653\"]"
+                                            )
+                                    ]
+                            )
+                    ]
+                    ),
+            responses = [
+                    @ApiResponse(
+                            description = "citation",
+                            responseCode = "200",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            array = @ArraySchema(schema = @Schema(implementation = Citation))
+                                    ),
+                                    @Content(
+                                            mediaType = "text/csv",
+                                            schema = @Schema(implementation = String)
+                                    ),
+                                    @Content(
+                                            mediaType = "text/plain",
+                                            schema = @Schema(implementation = String)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    )
+            ],
+            security = []
+    )
+    @Path("/ws/citations")
+    @Produces("application/json")
     def citations() {
         if (params.include) {
             params.uids = "[${params.include}]"
@@ -328,6 +353,7 @@ class LookupController {
         }
     }
 
+    @JsonIgnoreProperties('metaClass')
     class Citation {
         String name
         String citation
