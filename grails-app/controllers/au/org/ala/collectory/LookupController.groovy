@@ -158,7 +158,42 @@ class LookupController {
      * 2. database id if it is a number
      * 3. acronym if it matches a collection
      */
-    def summary = {
+    @Operation(
+            method = "GET",
+            tags = "collection, institution, dataProvider, dataResource, tempDataResource, dataHub",
+            operationId = "getEntitySummary",
+            summary = "Get a summary information for an entity",
+            parameters = [
+                    @Parameter(
+                            name = "id",
+                            in = PATH,
+                            description = "Entity id",
+                            schema = @Schema(implementation = String),
+                            required = true
+                    ),
+            ],
+            responses = [
+                    @ApiResponse(
+                            description = "entity summary",
+                            responseCode = "200",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = EntitySummaryResponse)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    )
+            ],
+            security = []
+    )
+    @Path("/ws/lookup/summary/{id}")
+    @Produces("application/json")
+    def summary () {
         log.debug "debugging summary: request from ${request.remoteAddr} for ${params.id}"
         def instance
         if (params.id?.startsWith('drt')) {
@@ -178,6 +213,30 @@ class LookupController {
             def error = ["error":"unable to find an entity for id = " + params.id]
             render error as JSON
         }
+    }
+
+    @JsonIgnoreProperties('metaClass')
+    class EntitySummaryResponse {
+        String acronym
+        String collectionId
+        String collectionName
+        String collectionUid
+        List<String> derivedCollCodes
+        List<String> derivedInstCodes
+        Map<String, String>  hubMembership
+        Long id
+        String institutionId
+        String institutionLogoUrl
+        String institutionName
+        String institutionUid
+        String lsid
+        String name
+        List<Map<String, String>> relatedDataProviders
+        List<Map<String, String>>  relatedDataResources
+        String shortDescription
+        Object taxonomyCoverageHints
+        String uid
+        String uri
     }
 
     /**

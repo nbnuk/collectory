@@ -367,33 +367,42 @@ class DataController {
      * @param summary - any non-null value will cause a richer summary to be returned for entity lists
      * @param api_key - optional param for displaying any sensitive data
      */
+
+    // since  this method provides response for all entity types and optionally specific instance of an entity type with the optional {uid} path param,  the specs for api gateway will need to be specified with a special proxy character e.g. /ws/{entity+} to support the optional {uid} param.
     @Operation(
             method = "GET",
-            tags = "collection, 'institution, dataProvider, dataResource, tempDataResource, dataHub",
+            tags = "collection, institution, dataProvider, dataResource, tempDataResource, dataHub",
             operationId = "getEntity",
             summary = "Get a list of entities for a data type or details of a record.",
             description = "Get a summary of entities that exist for a data type or detailed information for a specific entity.",
             parameters = [
                     @Parameter(
-                    name = "entity",
-                    in = PATH,
-                    description = "entity",
-                    schema = @Schema(implementation = String),
-                    required = true
+                        name = "entity",
+                        in = PATH,
+                        description = "entity e.g. datResource, dataProvider etc",
+                        schema = @Schema(implementation = String),
+                        required = true
                     ),
                     @Parameter(
-                            name = "summary",
-                            in = QUERY,
-                            description = "false to include the summary",
-                            schema = @Schema(implementation = Boolean),
-                            required = false
+                        name = "uid",
+                        in = PATH,
+                        description = "optional uid of an instance of entity",
+                        schema = @Schema(implementation = String),
+                        required = false
                     ),
                     @Parameter(
-                            name = "q",
-                            in = QUERY,
-                            description = "restrict to associated object names that contain this value",
-                            schema = @Schema(implementation = String),
-                            required = false
+                        name = "summary",
+                        in = QUERY,
+                        description = "false to include the summary",
+                        schema = @Schema(implementation = Boolean),
+                        required = false
+                    ),
+                    @Parameter(
+                        name = "q",
+                        in = QUERY,
+                        description = "restrict to associated object names that contain this value",
+                        schema = @Schema(implementation = String),
+                        required = false
                     )],
             responses = [
                     @ApiResponse(
