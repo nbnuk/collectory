@@ -11,27 +11,16 @@ class CollectoryAuthService{
     def providerGroupService
 
     def username() {
-        def username = 'not available'
-        if(RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()?.attributes?.email)
-            username = RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()?.attributes?.email
-        else {
-            if(authService)
-                username = authService.email
-        }
-
+        def username = authService.getUserName()
         return (username) ? username : 'not available'
     }
 
     def isAdmin() {
-        def adminFlag = false
-        if (!grailsApplication.config.security.oidc.enabled.toBoolean())
-            adminFlag = true
-        else {
-            if(authService) {
-                adminFlag = authService.userInRole(grailsApplication.config.ROLE_ADMIN)
-            }
-        }
-        return adminFlag
+        return !grailsApplication.config.security.oidc.enabled.toBoolean() || authService.userInRole(grailsApplication.config.ROLE_ADMIN as String)
+    }
+
+    def isLoggedIn(){
+        return !grailsApplication.config.security.oidc.enabled.toBoolean() || authService.getUserName()
     }
 
     protected boolean userInRole(role) {
@@ -51,15 +40,9 @@ class CollectoryAuthService{
         if (!grailsApplication.config.security.oidc.enabled.toBoolean() || isAdmin()) {
             return true
         } else {
-            def email = RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()?.attributes?.email
+            def email = authService.getEmail()
             if(email) {
                 return providerGroupService._get(uid)?.isAuthorised(email)
-            } else {
-                if(authService) {
-                    email = authService.email
-                    if(email)
-                        return providerGroupService._get(uid)?.isAuthorised(email)
-                }
             }
         }
 

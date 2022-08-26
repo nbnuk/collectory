@@ -14,7 +14,6 @@ class ManageController {
     /**
      * Landing page for self-service management of entities.
      *
-     * This is not cas-enabled so we must use the helper cookie to determine whether the user is logged in.
      * If the user is logged in, redirect to the cas-enabled 'list' action, so we can get roles.
      * Only users who are NOT logged in will see the 'index' page.
      *
@@ -22,7 +21,7 @@ class ManageController {
      */
     def index = {
         // forward if logged in
-        if ((AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName) || grailsApplication.config.security.cas.bypass?:''.toBoolean()) && !params.noRedirect) {
+        if (collectoryAuthService.isLoggedIn() && !params.noRedirect) {
             redirect(action: 'list')
         }
     }

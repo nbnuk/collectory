@@ -180,6 +180,7 @@ security:
         disableCAS: true
         ignoreCase: true
         authCookieName: ALA-Auth
+        enabled: false
     oidc:
         enabled: true
         discovery-uri: 'https://auth-test.ala.org.au/cas/oidc/.well-known'

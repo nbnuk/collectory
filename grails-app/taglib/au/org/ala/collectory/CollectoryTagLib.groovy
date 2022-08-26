@@ -157,7 +157,7 @@ class CollectoryTagLib {
      * @attr role the role to check
      */
     def ifGranted = { attrs, body ->
-        if (!grailsApplication.config.security.oidc.enabled.toBoolean() || request.isUserInRole(attrs.role)) {
+        if (!grailsApplication.config.security.oidc.enabled.toBoolean() || request.isUserInRole(attrs.role as String)) {
             out << body()
         }
     }
@@ -169,7 +169,7 @@ class CollectoryTagLib {
      * @attr role the role to check
      */
     def ifNotGranted = { attrs, body ->
-        if (grailsApplication.config.security.oidc.enabled.toBoolean() && !request.isUserInRole(attrs.role)) {
+        if (grailsApplication.config.security.oidc.enabled.toBoolean() && !request.isUserInRole(attrs.role as String)) {
             out << body()
         }
     }
@@ -188,13 +188,13 @@ class CollectoryTagLib {
     }
 
     def isLoggedIn = { attrs, body ->
-        if (AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
+        if (request.getUserPrincipal()) {
             out << body()
         }
     }
 
     def isNotLoggedIn = {attrs, body ->
-        if (grailsApplication.config.security.oidc.enabled.toBoolean() && !AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
+        if (grailsApplication.config.security.oidc.enabled.toBoolean() && !request.userPrincipal) {
             out << body()
         }
     }
@@ -212,7 +212,7 @@ class CollectoryTagLib {
     }
 
     private boolean isAdmin() {
-        return !grailsApplication.config.security.oidc.enabled.toBoolean() || request?.isUserInRole(grailsApplication.config.ROLE_ADMIN)
+        return !grailsApplication.config.security.oidc.enabled.toBoolean() || request?.isUserInRole(grailsApplication.config.ROLE_ADMIN as String)
     }
 
     /**
@@ -245,7 +245,7 @@ class CollectoryTagLib {
      * @attrs uid - the uid of the entity
      */
     def isAuth = { attrs, body ->
-            if (isAuthorisedToEdit(attrs.uid, request.getUserPrincipal()?.attributes?.email)) {
+            if (isAuthorisedToEdit(attrs.uid, request.getRemoteUser())) {
             out << body()
         } else {
             out << ' You are not authorised to change this record '// + debugString
@@ -1585,7 +1585,7 @@ class CollectoryTagLib {
      * @body the label for the button - defaults to 'Edit' if not specified
      */
     def editButton = { attrs, body ->
-        if (isAuthorisedToEdit(attrs.uid, request.getUserPrincipal()?.attributes?.email)) {
+        if (isAuthorisedToEdit(attrs.uid, request.getRemoteUser())) {
             def paramsMap
             // anchor class
             paramsMap = [class:'edit btn btn-default']
