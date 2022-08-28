@@ -194,7 +194,7 @@ class CollectoryTagLib {
     }
 
     def isNotLoggedIn = {attrs, body ->
-        if (grailsApplication.config.security.oidc.enabled.toBoolean() && !request.userPrincipal) {
+        if (grailsApplication.config.security.oidc.enabled.toBoolean() && !request.getUserPrincipal()) {
             out << body()
         }
     }

@@ -1,6 +1,5 @@
 package au.org.ala.collectory
 import grails.converters.JSON
-import org.springframework.web.context.request.RequestContextHolder
 
 class CollectoryAuthService{
 
