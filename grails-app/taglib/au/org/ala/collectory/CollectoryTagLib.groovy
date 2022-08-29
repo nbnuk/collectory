@@ -18,14 +18,6 @@ class CollectoryTagLib {
 
     static namespace = 'cl'
 
-    def loggedInName = {
-        if (AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
-            out << "logged in as ${AuthenticationCookieUtils.getUserName(request, grailsApplication.config.security.cas.authCookieName)}"
-        } else {
-            out << "no cookie found"
-        }
-    }
-
     def getFacetForEntity(entity){
         if(entity.ENTITY_TYPE == 'DataResource')
             'data_resource_uid'
@@ -67,47 +59,6 @@ class CollectoryTagLib {
 
     def encodeWithinQuery(String value, String encoding){
         java.net.URLEncoder.encode(value, encoding).replace("+", "%20")
-    }
-
-    /**
-     * Generate the link the login link for the banner.
-     *
-     * Will be to log in or out based on current auth status.
-     */
-    def loginoutLink = {
-        def requestUri = grailsApplication.config.security.cas.serverName + request.forwardURI
-        if (AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
-            // currently logged in
-            out << "<li class='nav-logout nav-right'><a id='${AuthenticationCookieUtils.getUserName(request)}' href='${grailsApplication.config.security.cas.logoutUrl}?url=${requestUri}'><span>Log out</span></a></li>"
-        } else {
-            // currently logged out
-            out << "<li class='nav-login nav-right'><a href='${grailsApplication.config.security.cas.loginUrl}?service=${requestUri}'><span>Log in</span></a></li>"
-        }
-    }
-
-    /**
-     * Generate the login link for the banner.
-     *
-     * Will be to log in or out based on current auth status.
-     * TODO: also check for user principal in request in case cookies are disabled
-     *
-     * @attr showUser if supplied, the username will be shown before the logout link
-     * @attr fixedAppUrl if supplied will be used for logout instead of the current page
-     */
-    def loginoutLink2011 = { attrs ->
-        def requestUri = grailsApplication.config.security.cas.serverName + request.forwardURI
-        if (AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
-            // currently logged in
-            if (attrs.showUser) {
-                out << "<span id='logged-in'>Logged in as ${loggedInUsername()}</span>"
-            }
-            out << link(controller: 'public', action: 'logout',
-                    params: [casUrl: grailsApplication.config.security.cas.logoutUrl,
-                             appUrl: attrs.fixedAppUrl ?: requestUri]) {'Logout'}
-        } else {
-            // currently logged out
-            out << "<a href='${grailsApplication.config.security.cas.loginUrl}?service=${requestUri}'><span>Log in</span></a>"
-        }
     }
 
     /**
