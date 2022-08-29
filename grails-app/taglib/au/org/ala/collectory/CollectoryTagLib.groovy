@@ -212,7 +212,7 @@ class CollectoryTagLib {
     }
 
     private boolean isAdmin() {
-        return grailsApplication.config.security.cas.bypass?:''.toBoolean() || request?.isUserInRole(grailsApplication.config.ROLE_ADMIN)
+        return grailsApplication.config.security.cas.bypass.toBoolean() || request?.isUserInRole(grailsApplication.config.ROLE_ADMIN)
     }
 
     /**
