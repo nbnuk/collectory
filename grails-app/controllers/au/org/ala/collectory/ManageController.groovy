@@ -21,7 +21,7 @@ class ManageController {
      */
     def index = {
         // forward if logged in
-        if (collectoryAuthService.isLoggedIn() && !params.noRedirect) {
+        if ((!grailsApplication.config.security.oidc.enabled.toBoolean()  || request?.getUserPrincipal()) && !params.noRedirect) {
             redirect(action: 'list')
         }
     }

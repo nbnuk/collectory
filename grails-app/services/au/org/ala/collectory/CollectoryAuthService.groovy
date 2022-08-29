@@ -1,5 +1,6 @@
 package au.org.ala.collectory
 import grails.converters.JSON
+import org.springframework.web.context.request.RequestContextHolder
 
 class CollectoryAuthService{
 
@@ -10,7 +11,14 @@ class CollectoryAuthService{
     def providerGroupService
 
     def username() {
-        def username = authService.getUserName()
+        def username = 'not available'
+        if(RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()?.name)
+            username = RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()?.name
+        else {
+            if(authService)
+                username = authService.getUserName()
+        }
+
         return (username) ? username : 'not available'
     }
 
@@ -18,34 +26,17 @@ class CollectoryAuthService{
         return !grailsApplication.config.security.oidc.enabled.toBoolean() || authService.userInRole(grailsApplication.config.ROLE_ADMIN as String)
     }
 
-    def isLoggedIn(){
-        return !grailsApplication.config.security.oidc.enabled.toBoolean() || authService.getUserName()
-    }
-
     protected boolean userInRole(role) {
         def roleFlag = false
         if(!grailsApplication.config.security.oidc.enabled.toBoolean())
             roleFlag = true
         else {
-            if (authService != null) {
+            if (authService) {
                 roleFlag = authService.userInRole(role)
             }
         }
 
         return roleFlag || isAdmin()
-    }
-
-    protected boolean isAuthorisedToEdit(uid) {
-        if (!grailsApplication.config.security.oidc.enabled.toBoolean() || isAdmin()) {
-            return true
-        } else {
-            def email = authService.getEmail()
-            if(email) {
-                return providerGroupService._get(uid)?.isAuthorised(email)
-            }
-        }
-
-        return false
     }
 
     /**
