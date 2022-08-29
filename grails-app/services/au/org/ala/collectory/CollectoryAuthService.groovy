@@ -24,7 +24,7 @@ class CollectoryAuthService{
 
     def isAdmin() {
         def adminFlag = false
-        if (grailsApplication.config.security.cas.bypass?:''.toBoolean())
+        if (grailsApplication.config.security.cas.bypass.toBoolean())
             adminFlag = true
         else {
             if(authService) {
@@ -36,7 +36,7 @@ class CollectoryAuthService{
 
     protected boolean userInRole(role) {
         def roleFlag = false
-        if(grailsApplication.config.security.cas.bypass?:''.toBoolean())
+        if(grailsApplication.config.security.cas.bypass.toBoolean())
             roleFlag = true
         else {
             if (authService != null) {
