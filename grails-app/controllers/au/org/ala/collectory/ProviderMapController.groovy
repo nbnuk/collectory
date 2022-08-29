@@ -1,5 +1,7 @@
 package au.org.ala.collectory
 
+import grails.gorm.transactions.Transactional
+
 class ProviderMapController {
 
     static allowedMethods = [save: "POST", update: "POST", delete: "POST"]
@@ -48,7 +50,8 @@ class ProviderMapController {
         return [providerMapInstance: providerMapInstance, returnTo: params.returnTo]
     }
 
-    def save = {
+    @Transactional
+    def save () {
         def providerMapInstance = new ProviderMap(params)
         if (providerMapInstance.save(flush: true)) {
             flash.message = "${message(code: 'default.created.message', args: [message(code: 'providerMap.label', default: 'ProviderMap'), providerMapInstance.id])}"
@@ -85,7 +88,8 @@ class ProviderMapController {
         }
     }
 
-    def update = {
+    @Transactional
+    def update () {
         def providerMapInstance = ProviderMap.get(params.id)
         if (providerMapInstance) {
             if (params.version) {
@@ -112,7 +116,8 @@ class ProviderMapController {
         }
     }
 
-    def delete = {
+    @Transactional
+    def delete () {
         def providerMapInstance = ProviderMap.get(params.id)
         if (providerMapInstance) {
             if (providerMapInstance.collection.uid) {
