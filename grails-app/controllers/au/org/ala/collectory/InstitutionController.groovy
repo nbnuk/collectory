@@ -1,5 +1,7 @@
 package au.org.ala.collectory
 
+import grails.gorm.transactions.Transactional
+
 
 class InstitutionController extends ProviderGroupController {
 
@@ -40,8 +42,8 @@ class InstitutionController extends ProviderGroupController {
     // All in base class!!
 
     /** end V2 editing ************************************************************************************************/
-
-    def delete = {
+    @Transactional
+    def delete () {
         def providerGroupInstance = get(params.id)
         if (providerGroupInstance) {
             if (isAdmin()) {

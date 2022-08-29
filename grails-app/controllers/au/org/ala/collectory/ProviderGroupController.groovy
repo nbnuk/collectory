@@ -1,7 +1,7 @@
 package au.org.ala.collectory
 
 import grails.converters.JSON
-
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.multipart.MultipartFile
 
@@ -763,7 +763,7 @@ abstract class ProviderGroupController {
             if (collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN) || !grailsApplication.config.security.oidc.enabled.toBoolean()) {
                 def name = pg.name
                 log.info ">>${collectoryAuthService?.username()} deleting ${entityName} " + name
-                activityLogService.log collectoryAuthService?.username(), authService?.userInRole(grailsApplication.config.ROLE_ADMIN), pg.uid, Action.DELETE
+                activityLogService.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), pg.uid, Action.DELETE
                 try {
                     Contact.withTransaction {
                         // remove contact links (does not remove the contact)
@@ -776,7 +776,7 @@ abstract class ProviderGroupController {
                     }
                     flash.message = "${message(code: 'default.deleted.message', args: [message(code: "${entityNameLower}.label", default: entityNameLower), name])}"
                     redirect(action: "list")
-                } catch (org.springframework.dao.DataIntegrityViolationException e) {
+                } catch (DataIntegrityViolationException e) {
                     flash.message = "${message(code: 'default.not.deleted.message', args: [message(code: "${entityNameLower}.label", default: entityNameLower), name])}"
                     redirect(action: "show", id: params.id)
                 }
