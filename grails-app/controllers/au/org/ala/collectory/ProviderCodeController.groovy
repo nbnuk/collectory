@@ -1,5 +1,6 @@
 package au.org.ala.collectory
 
+import grails.gorm.transactions.Transactional
 import org.springframework.dao.DataIntegrityViolationException
 
 class ProviderCodeController {
@@ -15,10 +16,12 @@ class ProviderCodeController {
         [providerCodeInstanceList: ProviderCode.list(params), providerCodeInstanceTotal: ProviderCode.count()]
     }
 
+    @Transactional
     def create() {
         [providerCodeInstance: new ProviderCode(params)]
     }
 
+    @Transactional
     def save() {
         def providerCodeInstance = new ProviderCode(params)
         if (!providerCodeInstance.save(flush: true)) {
@@ -52,6 +55,7 @@ class ProviderCodeController {
         [providerCodeInstance: providerCodeInstance]
     }
 
+    @Transactional
     def update(Long id, Long version) {
         def providerCodeInstance = ProviderCode.get(id)
         if (!providerCodeInstance) {
@@ -81,6 +85,7 @@ class ProviderCodeController {
         redirect(action: "show", id: providerCodeInstance.id)
     }
 
+    @Transactional
     def delete(Long id) {
         def providerCodeInstance = ProviderCode.get(id)
         if (!providerCodeInstance) {
