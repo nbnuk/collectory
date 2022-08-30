@@ -76,42 +76,15 @@ class DataController {
                     return false
                 }
             }
-            // all data modifications (except deletes) by ws require a valid api key in the body
+            // all data modifications (except deletes) by ws require authorisation via JWT or API Key
             if (!params.json && request.method != 'DELETE') {
                 unauthorised()
                 return false
             }
-
-            String apiKey = getApiKey(params)
-            if (!apiKey){
-                noApiKey()
-                return false
-            }
-
-            def keyCheck = collectoryAuthService?.checkApiKey(apiKey)
-            if (!keyCheck.valid) {
-                unauthorised()
-                return false
-            }
             // inject the user name into the session so it can be used by audit logging if changes are made
-            session.username = keyCheck.app ?: (keyCheck.userEmail ?: params.json.user)
+            session.username = params?.json?.user
         }
         return true
-    }
-
-    private String getApiKey(params) {
-        def apiKey = {
-            if (params.json && params.json.api_key) {
-                params.json.api_key
-            } else if (params.json && params.json.apiKey) {
-                params.json.apiKey
-            } else if (params.json && params.json.Authorization) {
-                params.json.Authorization
-            } else {
-                request.getHeader("Authorization")
-            }
-        }.call()
-        apiKey
     }
 
     /******* Web Services Catalogue *******/
@@ -212,26 +185,6 @@ class DataController {
         render(status:400, text: 'This service requires API key')
     }
 
-    def checkApiKey = {
-        def apiKey = {
-            if (params.api_key) {
-                params.api_key
-            } else if (params.apiKey){
-                params.apiKey
-            } else {
-                request.getHeader("Authorization")
-            }
-        }.call()
-        def keyCheck
-        if (apiKey) {
-            keyCheck = collectoryAuthService?.checkApiKey(apiKey)
-        }
-        if (!keyCheck?.valid) {
-            return false
-        }
-        return true
-    }
-
     /**
      * Should be added for any uri that returns multiple formats based on content negotiation.
      * (So the content can be correctly cached by proxies.)
@@ -267,7 +220,7 @@ class DataController {
      * @param pg - optional instance specified by uid (added in beforeInterceptor)
      * @param json - the body of the request
      */
-    def saveEntity = {
+    def saveEntity () {
         def ok = check(params)
         if (ok) {
             def pg = params.pg
@@ -516,13 +469,6 @@ class DataController {
     }
 
     def syncGBIF = {
-        String apiKey = getApiKey(params)
-        def keyCheck = collectoryAuthService?.checkApiKey(apiKey)
-        if (!keyCheck.valid) {
-            unauthorised()
-            return false
-        }
-
         asyncGbifRegistryService.updateAllRegistrations()
                 .onComplete { List results ->
                     log.error "Provider synced = ${results.size()}"
@@ -819,15 +765,10 @@ class DataController {
     /**
      * Returns a single contact (independent of any entity).
      * A valid api key is needed to display contact information
-     * URI form: /contacts/{id}
+     * URI form: /ws/contacts/{id}
      * @param id the database id of the contact
      */
-    def contacts = {
-
-        if (!checkApiKey()) {
-            unauthorised()
-            return
-        }
+    def contacts () {
         if (params.id) {
             def c = Contact.get(params.id)
             if (c) {

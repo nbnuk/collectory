@@ -1,14 +1,32 @@
 package au.org.ala.collectory
-import grails.converters.JSON
+
+import au.org.ala.ws.service.WebService
+import grails.web.servlet.mvc.GrailsParameterMap
+import org.pac4j.core.config.Config
+import org.pac4j.core.context.WebContext
+import org.pac4j.core.profile.ProfileManager
+import org.pac4j.core.profile.UserProfile
+import org.pac4j.core.util.FindBest
+import org.pac4j.http.client.direct.DirectBearerAuthClient
+import org.pac4j.jee.context.JEEContextFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.context.request.RequestContextHolder
 
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+
 class CollectoryAuthService{
-
     static transactional = false
-
+    def apiKeyService
     def grailsApplication
     def authService
     def providerGroupService
+    @Autowired(required = false)
+    Config config
+    @Autowired(required = false)
+    DirectBearerAuthClient directBearerAuthClient
+
+    static final API_KEY_COOKIE = "ALA-API-Key"
 
     def username() {
         def username = 'not available'
@@ -98,19 +116,100 @@ class CollectoryAuthService{
         return [sorted: entities.values().sort { it.name }, keys:entities.keySet().sort(), latestMod: latestMod]
     }
 
-    def checkApiKey(key) {
-        // try the preferred api key store first
-        if(grailsApplication.config.security.apikey.checkEnabled.toBoolean()){
-            def url = grailsApplication.config.security.apikey.serviceUrl + key
-            def conn = new URL(url).openConnection()
-            if (conn.getResponseCode() == 200) {
-                return JSON.parse(conn.content.text as String)
+    /**
+     * Get the provided api key from all possible options i.e. params, cookie, and header
+     * @param params
+     * @param request
+     * @return apiKey String
+     */
+    private static String getApiKey(params, HttpServletRequest request) {
+        def apiKey = {
+            // handle api keys if present in params
+            if (params.json && params.json.api_key) {
+                params.json.api_key
+            } else if (params.json && params.json.apiKey) {
+                params.json.apiKey
+            } else if (params.json && params.json.Authorization) {
+                params.json.Authorization
+            } else if (params.apiKey) {
+                params.apiKey
+                // handle api keys if present in cookie
+            }else  if (request.cookies.find { cookie -> cookie.name == API_KEY_COOKIE }){
+                def cookieApiKey = request.cookies.find { cookie -> cookie.name == API_KEY_COOKIE }
+                cookieApiKey.value
             } else {
-                log.info "Rejected change using key ${key}"
-                return [valid:false]
+                // handle api key in  header. check for default api key header and the check for Authorization
+                def headerValue = request.getHeader(WebService.DEFAULT_API_KEY_HEADER) ?: request.getHeader("Authorization")
+                headerValue
             }
-        } else {
-            return [valid:true]
-        }
+        }.call()
+        apiKey
     }
+
+
+
+    def checkJWT(HttpServletRequest request, HttpServletResponse response, String role, String scope) {
+        def result = false
+            def context = context(request, response)
+            ProfileManager profileManager = new ProfileManager(context, config.sessionStore)
+            profileManager.setConfig(config)
+
+            def credentials = directBearerAuthClient.getCredentials(context, config.sessionStore)
+            if (credentials.isPresent()) {
+                def profile = directBearerAuthClient.getUserProfile(credentials.get(), context, config.sessionStore)
+                if (profile.isPresent()) {
+                    def userProfile = profile.get()
+                    profileManager.save(
+                            directBearerAuthClient.getSaveProfileInSession(context, userProfile),
+                            userProfile,
+                            directBearerAuthClient.isMultiProfile(context, userProfile)
+                    )
+
+                    result = true
+                    if (role) {
+                        result = userProfile.roles.contains(role)
+                    }
+
+                    if (result && scope) {
+                        result = userProfile.permissions.contains(scope) || profileHasScope(userProfile, scope)
+                    }
+                }
+            }
+        return result
+    }
+
+    private static boolean profileHasScope(UserProfile userProfile, String scope) {
+        def scopes = userProfile.attributes['scope']
+        def result = false
+        if (scopes != null) {
+            if (scopes instanceof String) {
+                result = scopes.tokenize(',').contains(scope)
+            } else if (scopes.class.isArray()) {
+                result =scopes.any { it?.toString() == scope }
+            } else if (scopes instanceof Collection) {
+                result =scopes.any { it?.toString() == scope }
+            }
+        }
+        return result
+    }
+
+    private WebContext context(HttpServletRequest request, HttpServletResponse response) {
+        final WebContext context = FindBest.webContextFactory(null, config, JEEContextFactory.INSTANCE).newContext(request, response)
+        return context
+    }
+
+    def isAuthorisedWsRequest(GrailsParameterMap params, HttpServletRequest request, HttpServletResponse response){
+        Boolean authorised
+        // check for JWT first
+        authorised = checkJWT(request, response, null, 'users/read')
+        // if still unauthorised, check for and attempt  to validate API key
+        if(!authorised && grailsApplication.config.security.apikey.checkEnabled.toBoolean()){
+            def apiKey = getApiKey(params, request)
+            def apiKeyResponse = apiKeyService.checkApiKey(apiKey)
+            authorised = apiKeyResponse.valid
+        }
+
+        return authorised
+    }
+
 }

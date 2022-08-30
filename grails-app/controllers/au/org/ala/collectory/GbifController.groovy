@@ -142,25 +142,6 @@ class GbifController {
     }
 
     def scan(){
-
-        def apiKey = request.cookies.find { cookie -> cookie.name == API_KEY_COOKIE }
-        if (!apiKey){
-            // look in the standard place - http apiKey param
-            apiKey = params.apiKey
-        }
-
-        if (!apiKey || !apiKey.value){
-            response.sendError(401)
-            return
-        }
-
-        def keyCheck =  collectoryAuthService.checkApiKey(apiKey.value)
-
-        if (!keyCheck || !keyCheck.valid){
-            response.sendError(401, "Invalid key suppliied")
-            return
-        }
-
         if (!params.uid || !params.uid.startsWith('dp')){
             response.sendError(400, "No valid UID supplied")
             return

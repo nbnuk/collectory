@@ -105,7 +105,7 @@ class TempDataResourceController {
         renderJson(json as JSON)
     }
 
-    def saveEntity = {
+    def saveEntity () {
         def uid = params.uid
         def drt = params.drt
         def obj = params.json
@@ -115,29 +115,22 @@ class TempDataResourceController {
             session.username = obj.user
         }
 
-        def keyCheck = collectoryAuthService?.checkApiKey(obj.api_key)
-        if (!keyCheck.valid) {
-            unauthorised()
-        }
-        else {
-            if (drt) {
-                // update
-                crudService.updateTempDataResource(drt, obj)
-                if (drt.hasErrors()) {
-                    badRequest drt.errors
-                } else {
-                    addContentLocation "/ws/tempDataResource/${params.uid}"
-                    success "updated entity"
-                }
+        if (drt) {
+            // update
+            crudService.updateTempDataResource(drt, obj)
+            if (drt.hasErrors()) {
+                badRequest drt.errors
+            } else {
+                addContentLocation "/ws/tempDataResource/${uid}"
+                success "updated entity"
             }
-            else {
-                // create
-                drt = crudService.insertTempDataResource(obj)
-                if (drt.hasErrors()) {
-                    badRequest drt.errors
-                } else {
-                    created drt.uid
-                }
+        } else {
+            // create
+            drt = crudService.insertTempDataResource(obj)
+            if (drt.hasErrors()) {
+                badRequest drt.errors
+            } else {
+                created drt.uid
             }
         }
     }
