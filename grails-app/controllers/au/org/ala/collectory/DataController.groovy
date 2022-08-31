@@ -465,6 +465,11 @@ class DataController {
     )
     @Path("/ws/{entity}/{uid}")
     @Produces("application/json")
+    /**
+     * THE method is not a protected API method but there is a minor functionality within it which calls crudService and behaves differently based on whether a the request has a API key.
+     * The functionality described above has been preserved to maintain backwards compatibility but should be removed in the future once the legacy API key access is deprecated
+     */
+
     def getEntity () {
         check(params)
         if (params.entity == 'tempDataResource') {
@@ -478,8 +483,9 @@ class DataController {
                 def eTag = (params.pg.uid + ":" + params.pg.lastUpdated).encodeAsMD5()
                 def entityInJson
                 if (clazz == 'DataResource') {
-                    def keyCheck = checkApiKey()
-                    entityInJson = crudService."read${clazz}"(params.pg, keyCheck)
+                    // this auth check (JWT or API key) is a special case handling to support backwards compatibility(which used to check for API key).
+                    def authCheck = collectoryAuthService.isAuthorisedWsRequest(getParams(), request, response)
+                    entityInJson = crudService."read${clazz}"(params.pg, authCheck)
                 } else {
                     entityInJson = crudService."read${clazz}"(params.pg)
                 }

@@ -119,7 +119,7 @@ class IptController {
         def username = collectoryAuthService.username()
         def admin =  collectoryAuthService.userInRole(grailsApplication.config.ROLE_ADMIN)
 
-        log.debug "Access via apikey: ${keyCheck}, user ${username}, admin ${admin}"
+        log.debug "Access by user ${username}, admin ${admin}"
         if (create && !admin) {
             render (status: 403, text: "Unable to create resources for " + params.uid)
             return
