@@ -11,8 +11,11 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.headers.Header
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import org.xml.sax.SAXException
 
 import javax.ws.rs.Produces
@@ -22,6 +25,7 @@ import javax.xml.validation.SchemaFactory
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER
 import static io.swagger.v3.oas.annotations.enums.ParameterIn.PATH
 import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY
 import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY
@@ -220,6 +224,89 @@ class DataController {
      * @param pg - optional instance specified by uid (added in beforeInterceptor)
      * @param json - the body of the request
      */
+    @Operation(
+            method = "POST",
+            tags = "collection, institution, dataProvider, dataResource, tempDataResource, dataHub",
+            operationId = "saveEntity",
+            summary = "Insert or  update an entity",
+            description = "Insert or update an  entity  - if uid is specified, entity must exist and is updated with the provided data",
+            parameters = [
+                    @Parameter(
+                            name = "entity",
+                            in = PATH,
+                            description = "entity e.g. datResource, dataProvider etc",
+                            schema = @Schema(implementation = String),
+                            required = true
+                    ),
+                    @Parameter(
+                            name = "uid",
+                            in = PATH,
+                            description = "optional uid of an instance of entity",
+                            schema = @Schema(implementation = String),
+                            required = false
+                    ),
+                    @Parameter(
+                            name = "pg",
+                            in = QUERY,
+                            description = "optional instance specified by uid ",
+                            schema = @Schema(implementation = String),
+                            required = false
+                    ),
+                    @Parameter(
+                            name = "q",
+                            in = QUERY,
+                            description = "restrict to associated object names that contain this value",
+                            schema = @Schema(implementation = String),
+                            required = false
+                    ),
+                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
+            ],
+            requestBody = @RequestBody(
+                    required = true,
+                    description = "A JSON object containing the entity to be saved or updated",
+                    content = [
+                            @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = Object)
+                            )
+                    ]
+            ),
+            responses = [
+                    @ApiResponse(
+                            description = "Status of operation  -  inserted",
+                            responseCode = "201",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = Object)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    ),
+                    @ApiResponse(
+                            description = "Status of operation  -  updated",
+                            responseCode = "200",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = Object)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    )
+            ],
+            security = [@SecurityRequirement(name = 'openIdConnect')]
+    )
+    @Path("/ws/{entity}/{uid}?")
+    @Produces("application/json")
     def saveEntity () {
         def ok = check(params)
         if (ok) {
@@ -467,8 +554,33 @@ class DataController {
 
         renderAsJson results, last, ""
     }
-
-    def syncGBIF = {
+    @Operation(
+            method = "GET",
+            tags = "gbif",
+            operationId = "syncGBIF",
+            summary = "Update All registrations with GBIF",
+            responses = [
+                    @ApiResponse(
+                            description = "Status of GBIF sync operation",
+                            responseCode = "200",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = Object)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    )
+            ],
+            security = []
+    )
+    @Path("/ws/syncGBIF")
+    @Produces("application/json")
+    def syncGBIF () {
         asyncGbifRegistryService.updateAllRegistrations()
                 .onComplete { List results ->
                     log.error "Provider synced = ${results.size()}"
@@ -768,6 +880,51 @@ class DataController {
      * URI form: /ws/contacts/{id}
      * @param id the database id of the contact
      */
+    @Operation(
+            method = "GET",
+            tags = "contacts",
+            operationId = "contacts",
+            summary = "Get a contact",
+            description = "Get an existing contact with the specified contact id",
+            parameters = [
+                    @Parameter(
+                            name = "id",
+                            in = PATH,
+                            description = "contact identifier value",
+                            schema = @Schema(implementation = String),
+                            required = true
+                    ),
+                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
+            ],
+            responses = [
+                    @ApiResponse(
+                            description = "Contact info",
+                            responseCode = "200",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = ContactModelResponse)
+                                    ),
+                                    @Content(
+                                            mediaType = "text/csv",
+                                            schema = @Schema(implementation = String)
+                                    ),
+                                    @Content(
+                                            mediaType = "text/xml",
+                                            schema = @Schema(implementation = ContactModelResponse)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    )
+            ],
+            security = [@SecurityRequirement(name = 'openIdConnect')]
+    )
+    @Path("/ws/contacts/{id}")
+    @Produces("application/json")
     def contacts () {
         if (params.id) {
             def c = Contact.get(params.id)
@@ -830,7 +987,54 @@ class DataController {
     }
 
     /************* contact update services **********/
-    def updateContact = {
+    @Operation(
+            method = "POST",
+            tags = "contacts",
+            operationId = "updateContact",
+            summary = "Update an existing contact",
+            description = "Update an existing contact with the specified contact id",
+            parameters = [
+                    @Parameter(
+                            name = "id",
+                            in = PATH,
+                            description = "contact identifier value",
+                            schema = @Schema(implementation = String),
+                            required = true
+                    ),
+                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
+            ],
+            requestBody = @RequestBody(
+                    required = true,
+                    description = "A JSON object containing the contact details to be updated",
+                    content = [
+                            @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = Object)
+                            )
+                    ]
+            ),
+            responses = [
+                    @ApiResponse(
+                            description = "Updated status of the contact with new contact info",
+                            responseCode = "200",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = ContactModelResponse)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    )
+            ],
+            security = [@SecurityRequirement(name = 'openIdConnect')]
+    )
+    @Path("/ws/contacts/{id}")
+    @Produces("application/json")
+    def updateContact () {
         def ok = check(params)
         if (!ok){
             return
@@ -872,6 +1076,22 @@ class DataController {
             }
         }
     }
+
+    @JsonIgnoreProperties('metaClass')
+    class ContactModelResponse {
+        String id
+        String title
+        String firstName
+        String lastName
+        String email
+        String phone
+        String fax
+        String mobile
+        Boolean publish
+        Date dateCreated
+        Date lastUpdated
+    }
+
 
     def deleteContact = {
         if (params.id) {
@@ -1067,7 +1287,83 @@ class DataController {
      * @param uid the entity instance
      * @param id the contact id
      */
-    def updateContactFor = {
+    @Operation(
+            method = "POST",
+            tags = "contacts",
+            operationId = "updateContactFor",
+            summary = "Update or create a contact association for a single entity.",
+            description = "Update or create a contact for an entity with the specified entity uid contact id",
+            parameters = [
+                    @Parameter(
+                            name = "entity",
+                            in = PATH,
+                            description = "entity an entity type in url form ie one of collection, institution, dataProvider, dataResource, dataHub",
+                            schema = @Schema(implementation = String),
+                            required = true
+                    ),
+                    @Parameter(
+                            name = "uid",
+                            in = PATH,
+                            description = "uid the entity instance",
+                            schema = @Schema(implementation = String),
+                            required = true
+                    ),
+                    @Parameter(
+                            name = "id",
+                            in = PATH,
+                            description = "contact identifier value",
+                            schema = @Schema(implementation = String),
+                            required = true
+                    ),
+                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
+            ],
+            requestBody = @RequestBody(
+                    required = true,
+                    description = "A JSON object containing the contact details to be updated",
+                    content = [
+                            @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = Object)
+                            )
+                    ]
+            ),
+            responses = [
+                    @ApiResponse(
+                            description = "Status of operation  -  inserted",
+                            responseCode = "201",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = Object)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    ),
+                    @ApiResponse(
+                            description = "Status of operation  -  updated",
+                            responseCode = "200",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = Object)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    )
+            ],
+            security = [@SecurityRequirement(name = 'openIdConnect')]
+    )
+    @Path("/ws/{entity}/{uid}/contacts/{id}")
+    @Produces("application/json")
+    def updateContactFor () {
         def ok = check(params)
         if (!ok){
             return

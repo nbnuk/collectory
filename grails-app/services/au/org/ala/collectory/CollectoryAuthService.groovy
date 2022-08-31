@@ -131,10 +131,12 @@ class CollectoryAuthService{
                 params.json.apiKey
             } else if (params.json && params.json.Authorization) {
                 params.json.Authorization
-            } else if (params.apiKey) {
+            } else if (params.api_key) {
+                params.api_key
+            }else if (params.apiKey) {
                 params.apiKey
                 // handle api keys if present in cookie
-            }else  if (request.cookies.find { cookie -> cookie.name == API_KEY_COOKIE }){
+            } else  if (request.cookies.find { cookie -> cookie.name == API_KEY_COOKIE }){
                 def cookieApiKey = request.cookies.find { cookie -> cookie.name == API_KEY_COOKIE }
                 cookieApiKey.value
             } else {

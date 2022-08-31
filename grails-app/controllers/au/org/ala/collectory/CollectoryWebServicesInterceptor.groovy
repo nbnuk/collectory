@@ -26,8 +26,8 @@ class CollectoryWebServicesInterceptor {
         match(controller: 'data', action: "saveEntity")
         match(controller:'data', action:"syncGBIF")
         match('controller':'data', action: 'updateContact')
+        match('controller':'data', action: 'updateContactFor')
         match('controller':'data', action: 'contacts')
-        match(controller: 'tempDataResource', action: "saveEntity")
         match(controller:'gbif', action:"scan")
         match(controller:'ipt', action:"scan")
 

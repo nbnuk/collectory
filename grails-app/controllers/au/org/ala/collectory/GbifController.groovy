@@ -1,8 +1,26 @@
 package au.org.ala.collectory
 
 import au.org.ala.collectory.resources.gbif.GbifRepatDataSourceAdapter
+import au.org.ala.plugins.openapi.Path
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import grails.converters.JSON
 import groovy.json.JsonSlurper
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.headers.Header
+import io.swagger.v3.oas.annotations.media.ArraySchema
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+
+import javax.ws.rs.Produces
+
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.PATH
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.PATH
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY
 
 class GbifController {
     static final API_KEY_COOKIE = "ALA-API-Key"
@@ -141,6 +159,43 @@ class GbifController {
         [errorMessage: errorMessage]
     }
 
+    @Operation(
+            method = "GET",
+            tags = "gbif",
+            operationId = "scanGbif",
+            summary = "Update the collectory with data from external resources GBIF",
+            description = "Update the collectory with data from external resources i.e. GBIF",
+            parameters = [
+                    @Parameter(
+                            name = "uid",
+                            in = PATH,
+                            description = "provider uid",
+                            schema = @Schema(implementation = String),
+                            required = true
+                    ),
+                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
+            ],
+            responses = [
+                    @ApiResponse(
+                            description = "Result of the scan operation",
+                            responseCode = "200",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = GbifScanResponse)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    )
+            ],
+            security = [@SecurityRequirement(name = 'openIdConnect')]
+    )
+    @Path("/ws/gbif/scan/{uid}")
+    @Produces("application/json")
     def scan(){
         if (!params.uid || !params.uid.startsWith('dp')){
             response.sendError(400, "No valid UID supplied")
@@ -204,5 +259,14 @@ class GbifController {
                  resources: output
                 ]
         render(fullOutput as JSON)
+    }
+
+    @JsonIgnoreProperties('metaClass')
+    class GbifScanResponse {
+        String loadGuid
+        String trackingUrl
+        ArrayList<Object> updates
+        ArrayList<Object>  resources
+
     }
 }

@@ -145,7 +145,7 @@ class TempDataResourceController {
      * @param alaId - optional for all drts with this alaId
      * @param summary - any non-null value will cause a richer summary to be returned for entity lists
      */
-    def getEntity = {
+    def getEntity () {
         if (params.drt) {
             addContentLocation "/ws/tempDataResource/${params.drt.uid}"
             //addLastModifiedHeader params.drt.lastUpdated
