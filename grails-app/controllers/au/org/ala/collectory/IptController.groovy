@@ -54,8 +54,8 @@ class IptController {
             method = "GET",
             tags = "ipt",
             operationId = "scanIpt",
-            summary = "Scan an IPT instance described by a data provider and provide a list of datasets that need to be updated.",
-            description = "UScan an IPT instance described by a data provider and provide a list of datasets that need to be updated.",
+            summary = "Scan an IPT instance described by a data provider id",
+            description = "Scan an IPT instance described by a data provider id",
             parameters = [
                     @Parameter(
                             name = "uid",

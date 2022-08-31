@@ -3,6 +3,7 @@ package au.org.ala.collectory
 import au.org.ala.plugins.openapi.Path
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import grails.converters.JSON
+import grails.gorm.transactions.Transactional
 import grails.util.Holders
 import groovy.xml.MarkupBuilder
 import grails.web.http.HttpHeaders
@@ -1098,8 +1099,8 @@ class DataController {
         Date lastUpdated
     }
 
-
-    def deleteContact = {
+    @Transactional
+    def deleteContact () {
         if (params.id) {
             // update
             def c = Contact.get(params.id)
@@ -1382,8 +1383,10 @@ class DataController {
         if (cf) {
             // update
             bindData(cf, props as Map, ['entityUid'])
-            c.save(flush: true)
-            c.errors.each { log.error(it) }
+            Contact.withTransaction {
+                c.save(flush: true)
+            }
+            c.errors.each {  log.error(it.toString()) }
             success 'updated'
         } else {
             // create
@@ -1400,7 +1403,7 @@ class DataController {
         }
     }
 
-    def deleteContactFor = {
+    def deleteContactFor () {
         def ok = check(params)
         if (!ok){
             return
@@ -1411,7 +1414,9 @@ class DataController {
         def c = Contact.get(params.id)
         def cf = ContactFor.findByContactAndEntityUid(c, params.pg.uid)
         if (cf) {
-            cf.delete(flush: true)
+            ContactFor.withTransaction {
+                cf.delete(flush: true)
+            }
             success "deleted"
         } else {
             badRequest 'contact association does not exist'
