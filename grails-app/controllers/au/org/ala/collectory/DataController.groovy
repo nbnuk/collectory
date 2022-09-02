@@ -566,6 +566,9 @@ class DataController {
             tags = "gbif",
             operationId = "syncGBIF",
             summary = "Update All registrations with GBIF",
+            parameters =[
+                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
+            ],
             responses = [
                     @ApiResponse(
                             description = "Status of GBIF sync operation",
