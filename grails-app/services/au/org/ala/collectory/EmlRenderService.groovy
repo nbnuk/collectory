@@ -591,6 +591,8 @@ class EmlRenderService {
                     gbif() {
                         /* dateStamp, metadataLanguage, hierarchyLevel, resourceLogoUrl */
                         commonElements2 xml, pg
+                        citation pg.citation?:''
+                        rights  pg.rights?:''                        
                     }
                 }
             }
