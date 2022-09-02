@@ -78,7 +78,7 @@ class DataResourceController extends ProviderGroupController {
             redirect(action: "list")
         } else {
             // are they allowed to edit
-            if (collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN) || grailsApplication.config.security.cas.bypass.toBoolean()) {
+            if (collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN) || !grailsApplication.config.security.oidc.enabled.toBoolean()) {
                 render(view: 'consumers', model:[command: pg, source: params.source])
             } else {
                 render("You are not authorised to edit these properties.")
@@ -245,7 +245,7 @@ class DataResourceController extends ProviderGroupController {
         // create new links
         newConsumers.each {
             if (!(it in oldConsumers)) {
-                DataLink.withTransaction {
+                DataLink.withTransaction { status ->
                     def dl = new DataLink(consumer: it, provider: pg.uid).save()
                     auditLog(pg, 'INSERT', 'consumer', '', it, dl)
                     log.info "created link from ${pg.uid} to ${it}"
@@ -255,7 +255,7 @@ class DataResourceController extends ProviderGroupController {
         // remove old links - NOTE only for the variety (collection or institution) that has been returned
         oldConsumers.each {
             if (!(it in newConsumers) && it[0..1] == params.source) {
-                DataLink.withTransaction {
+                DataLink.withTransaction { status ->
                     log.info "deleting link from ${pg.uid} to ${it}"
                     def dl = DataLink.findByConsumerAndProvider(it, pg.uid)
                     auditLog(pg, 'DELETE', 'consumer', it, '', dl)

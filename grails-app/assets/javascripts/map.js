@@ -44,6 +44,9 @@ var defaultZoom;
 // represents the number in 'all' collections - used in case the total number changes on an ajax request
 var maxCollections = 0;
 
+// num of filtered collections;
+var collectionsCount = 0
+
 var geoJsonLayer;
 
 var clusterMarkers;
@@ -149,7 +152,7 @@ function setLabels(data){
     }
     var innerFeatures = "";
 
-    var collectionsCount = 0
+    collectionsCount = 0;
 
     $.each(data.features, function( index, entity ) {
         if (entity.properties.entityType == "Institution") {
@@ -157,7 +160,7 @@ function setLabels(data){
         }
     });
 
-    switch (data.features.length) {
+    switch (collectionsCount) {
         //case 0: innerFeatures = "No collections are selected."; break;
         //case 1: innerFeatures = "One collection is selected."; break;
         case 0: innerFeatures = jQuery.i18n.prop('map.js.nocollectionsareselected'); break;
@@ -209,16 +212,16 @@ function getSelectedFiltersAsString() {
 \************************************************************/
 function updateList(features) {
     // update the potential total
-    maxCollections = Math.max(features.length, maxCollections);
+    maxCollections = Math.max(collectionsCount, maxCollections);
     if (!$('div#all').hasClass('inst')) {  // don't change text if showing institutions
         $('span#allButtonTotal').html(jQuery.i18n.prop('show.all') + " " + maxCollections + " " + jQuery.i18n.prop('collections') + ".")
     }
     // update display of number of features
     var innerFeatures = "";
-    switch (features.length) {
+    switch (collectionsCount) {
         case 0: innerFeatures = jQuery.i18n.prop('map.js.nocollectionsareselected'); break;
-        case 1: innerFeatures = features.length + " " + jQuery.i18n.prop('map.js.collectionislisted'); break;
-        default: innerFeatures = features.length + " " + jQuery.i18n.prop('map.js.collectionsarelistedalphabetically'); break;
+        case 1: innerFeatures = collectionsCount + " " + jQuery.i18n.prop('map.js.collectionislisted'); break;
+        default: innerFeatures = collectionsCount + " " + jQuery.i18n.prop('map.js.collectionsarelistedalphabetically'); break;
     }
     $('span#numFilteredCollections').html(innerFeatures);
 

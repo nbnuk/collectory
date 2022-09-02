@@ -1,5 +1,7 @@
 package au.org.ala.collectory
 
+import grails.gorm.transactions.Transactional
+
 class ProviderMapController {
 
     static allowedMethods = [save: "POST", update: "POST", delete: "POST"]
@@ -14,7 +16,7 @@ class ProviderMapController {
     def beforeInterceptor = [action:this.&auth]
 
     def auth() {
-        if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_EDITOR) && !grailsApplication.config.security.cas.bypass.toBoolean()) {
+        if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_EDITOR) && grailsApplication.config.security.oidc.enabled.toBoolean()) {
             render "You are not authorised to access this page."
             return false
         }
@@ -48,7 +50,8 @@ class ProviderMapController {
         return [providerMapInstance: providerMapInstance, returnTo: params.returnTo]
     }
 
-    def save = {
+    @Transactional
+    def save () {
         def providerMapInstance = new ProviderMap(params)
         if (providerMapInstance.save(flush: true)) {
             flash.message = "${message(code: 'default.created.message', args: [message(code: 'providerMap.label', default: 'ProviderMap'), providerMapInstance.id])}"
@@ -85,13 +88,14 @@ class ProviderMapController {
         }
     }
 
-    def update = {
+    @Transactional
+    def update () {
         def providerMapInstance = ProviderMap.get(params.id)
         if (providerMapInstance) {
             if (params.version) {
                 def version = params.version.toLong()
                 if (providerMapInstance.version > version) {
-                    
+
                     providerMapInstance.errors.rejectValue("version", "default.optimistic.locking.failure", [message(code: 'providerMap.label', default: 'ProviderMap')] as Object[], "Another user has updated this ProviderMap while you were editing")
                     render(view: "edit", model: [providerMapInstance: providerMapInstance], params:[returnTo: params.returnTo])
                     return
@@ -112,7 +116,8 @@ class ProviderMapController {
         }
     }
 
-    def delete = {
+    @Transactional
+    def delete () {
         def providerMapInstance = ProviderMap.get(params.id)
         if (providerMapInstance) {
             if (providerMapInstance.collection.uid) {

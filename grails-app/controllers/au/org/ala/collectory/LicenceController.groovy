@@ -1,17 +1,62 @@
 package au.org.ala.collectory
 
+import au.org.ala.plugins.openapi.Path
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import grails.converters.JSON
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.headers.Header
+import io.swagger.v3.oas.annotations.media.ArraySchema
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.springframework.dao.DataIntegrityViolationException
+
+import javax.ws.rs.Produces
+
 
 /**
  * Simple webservice providing support licences in the system.
  */
 class LicenceController {
 
+    @Operation(
+            method = "GET",
+            tags = "licence",
+            operationId = "getLicence",
+            summary = "Get a list of available licences",
+            responses = [
+                    @ApiResponse(
+                            description = "A list of available licences",
+                            responseCode = "200",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            array = @ArraySchema(schema = @Schema(implementation =  LicenceResponse))
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    )
+            ],
+            security = []
+    )
+    @Path("/ws/licence")
+    @Produces("application/json")
     def index() {
         response.setContentType("application/json")
         render (Licence.findAll().collect { [name:it.name, url:it.url] } as JSON)
     }
+
+    @JsonIgnoreProperties('metaClass')
+    class LicenceResponse {
+        String name
+        String url
+    }
+
+
 
     def list() {
         if (params.message)

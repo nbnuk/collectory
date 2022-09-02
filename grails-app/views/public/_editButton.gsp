@@ -1,5 +1,5 @@
 <cl:isLoggedIn>
-    <cl:isAuth uuid="${instance.uid}">
+    <cl:isAuth uid="${instance.uid}">
         <g:set var="providerType" value="${instance.getClass().getSimpleName()}"/>
         <div style="float:right;">
             <a href="${g.createLink(controller: providerType, action: 'show', id: instance.uid)}"
