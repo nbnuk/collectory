@@ -642,6 +642,7 @@ class PublicController {
             projections {
                 groupProperty("institution")
             }
+            institution { order("name") }
         }
 
         results.each {
@@ -653,7 +654,7 @@ class PublicController {
                 def lon = (it.longitude == 0.0) ? -1 : it.longitude
 
                 if (it.collections) {
-
+                    it.collections = it.collections.sort { it.name }
                     def relevantCollections = []
 
                     if (showAll ) {
