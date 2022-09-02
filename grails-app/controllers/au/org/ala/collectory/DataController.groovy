@@ -87,7 +87,7 @@ class DataController {
                 return false
             }
             // inject the user name into the session so it can be used by audit logging if changes are made
-            session.username = params?.json?.user
+            session.username = params?.json?.user?: collectoryAuthService.username()
         }
         return true
     }
