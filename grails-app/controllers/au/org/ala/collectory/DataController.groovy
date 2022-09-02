@@ -583,7 +583,7 @@ class DataController {
                             ]
                     )
             ],
-            security = []
+            security = [@SecurityRequirement(name = 'openIdConnect')]
     )
     @Path("/ws/syncGBIF")
     @Produces("application/json")
