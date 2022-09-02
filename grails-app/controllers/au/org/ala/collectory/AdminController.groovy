@@ -9,7 +9,7 @@ class AdminController {
     def dataLoaderService, idGeneratorService, collectoryAuthService, metadataService, activityLogService, providerGroupService
 
     def auth() {
-        if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN) && !grailsApplication.config.security.cas.bypass.toBoolean()) {
+        if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN) && grailsApplication.config.security.oidc.enabled.toBoolean()) {
             render "You are not authorised to access this page."
             return false
         }

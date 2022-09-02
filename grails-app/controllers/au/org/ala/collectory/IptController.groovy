@@ -1,10 +1,26 @@
 package au.org.ala.collectory
 
+import au.ala.org.ws.security.RequireApiKey
+import au.org.ala.plugins.openapi.Path
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.opencsv.CSVWriter
 import grails.converters.JSON
 import grails.converters.XML
 import groovy.json.JsonSlurper
 import grails.web.http.HttpHeaders
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.headers.Header
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+
+import javax.ws.rs.Produces
+
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.PATH
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY
 
 /**
  * Request a scan and an update of a data provider that links to a GBIF IPT instance.
@@ -29,29 +45,81 @@ class IptController {
      *    <dd>The term that is used as a key when </dd>
      * <dt>
      * <p>
-     * Authentication is either via standard authentication cookies or by the
-     * "ALA-API-Key" cookie that contains a valid API Key. The user is then taken
-     * from the API key.
+     * Authentication is done via the CollectoryWebServicesInterceptor
      * <p>
      * Output formats are JSON, XML or plain text (the default). Plain text is a list of updatable data resource ids
      * suitable for feeding into a shell script.
      */
+    @Operation(
+            method = "GET",
+            tags = "ipt",
+            operationId = "scanIpt",
+            summary = "Scan an IPT instance described by a data provider id",
+            description = "Scan an IPT instance described by a data provider id",
+            parameters = [
+                    @Parameter(
+                            name = "uid",
+                            in = PATH,
+                            description = "provider uid",
+                            schema = @Schema(implementation = String),
+                            required = true
+                    ),
+                    @Parameter(
+                            name = "create",
+                            in = QUERY,
+                            description = "Boolean flag to determine whether to update existing datasets and create data resources for new datasets",
+                            schema = @Schema(implementation = Boolean),
+                            required = false
+                    ),
+                    @Parameter(
+                            name = "check",
+                            in = QUERY,
+                            description = "Boolean flag to  check to see ifresource needs updating by looking at the data currency",
+                            schema = @Schema(implementation = Boolean),
+                            required = false
+                    ),
+                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
+            ],
+            responses = [
+                    @ApiResponse(
+                            description = "Result of the scan operation",
+                            responseCode = "200",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = ArrayList)
+                                    ),
+                                    @Content(
+                                            mediaType = "test/xml",
+                                            schema = @Schema(implementation = ArrayList)
+                                    ),
+                                    @Content(
+                                            mediaType = "text/plain",
+                                            schema = @Schema(implementation = ArrayList)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    )
+            ],
+            security = [@SecurityRequirement(name = 'openIdConnect')]
+    )
+    @Path("/ws/ipt/scan/{uid}")
+    @Produces("text/plain")
     def scan() {
         def create = params.create != null && params.create.equalsIgnoreCase("true")
         def check = params.check == null || !params.check.equalsIgnoreCase("false")
         def keyName = params.key ?: 'catalogNumber'
         def isShareableWithGBIF = params.isShareableWithGBIF ? params.isShareableWithGBIF.toBoolean(): true
         def provider = providerGroupService._get(params.uid)
-        def apiKey = request.cookies.find { cookie -> cookie.name == API_KEY_COOKIE }
-        if (!apiKey){
-            // look in the standard place - http apiKey param
-            apiKey = params.apiKey
-        }
-        def keyCheck = apiKey ? collectoryAuthService.checkApiKey(apiKey.value) : null
-        def username = keyCheck?.userEmail ?: collectoryAuthService.username()
-        def admin = keyCheck?.valid || collectoryAuthService.userInRole(grailsApplication.config.ROLE_ADMIN)
 
-        log.debug "Access via apikey: ${keyCheck}, user ${username}, admin ${admin}"
+        def username = collectoryAuthService.username()
+        def admin =  collectoryAuthService.userInRole(grailsApplication.config.ROLE_ADMIN)
+
+        log.debug "Access by user ${username}, admin ${admin}"
         if (create && !admin) {
             render (status: 403, text: "Unable to create resources for " + params.uid)
             return

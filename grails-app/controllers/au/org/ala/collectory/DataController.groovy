@@ -1,15 +1,36 @@
 package au.org.ala.collectory
+
+import au.org.ala.plugins.openapi.Path
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import grails.converters.JSON
+import grails.gorm.transactions.Transactional
 import grails.util.Holders
 import groovy.xml.MarkupBuilder
 import grails.web.http.HttpHeaders
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.headers.Header
+import io.swagger.v3.oas.annotations.media.ArraySchema
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.ExampleObject
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.parameters.RequestBody
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import org.xml.sax.SAXException
 
+import javax.ws.rs.Produces
 import javax.xml.XMLConstants
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
 import java.text.DateFormat
 import java.text.SimpleDateFormat
+
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.PATH
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY
 
 class DataController {
 
@@ -60,42 +81,15 @@ class DataController {
                     return false
                 }
             }
-            // all data modifications (except deletes) by ws require a valid api key in the body
+            // all data modifications (except deletes) by ws require authorisation via JWT or API Key
             if (!params.json && request.method != 'DELETE') {
                 unauthorised()
                 return false
             }
-
-            String apiKey = getApiKey(params)
-            if (!apiKey){
-                noApiKey()
-                return false
-            }
-
-            def keyCheck = collectoryAuthService?.checkApiKey(apiKey)
-            if (!keyCheck.valid) {
-                unauthorised()
-                return false
-            }
             // inject the user name into the session so it can be used by audit logging if changes are made
-            session.username = keyCheck.app ?: (keyCheck.userEmail ?: params.json.user)
+            session.username = params?.json?.user?: collectoryAuthService.username()
         }
         return true
-    }
-
-    private String getApiKey(params) {
-        def apiKey = {
-            if (params.json && params.json.api_key) {
-                params.json.api_key
-            } else if (params.json && params.json.apiKey) {
-                params.json.apiKey
-            } else if (params.json && params.json.Authorization) {
-                params.json.Authorization
-            } else {
-                request.getHeader("Authorization")
-            }
-        }.call()
-        apiKey
     }
 
     /******* Web Services Catalogue *******/
@@ -172,7 +166,7 @@ class DataController {
     def notModified = {
         render(status: 304)
     }
-    
+
     def notFound = { text ->
         render(status:404, text: text)
     }
@@ -194,26 +188,6 @@ class DataController {
     def noApiKey = {
         // using the 'forbidden' response code here as 401 causes the client to ask for a log in
         render(status:400, text: 'This service requires API key')
-    }
-
-    def checkApiKey = {
-        def apiKey = {
-            if (params.api_key) {
-                params.api_key
-            } else if (params.apiKey){
-                params.apiKey
-            } else {
-                request.getHeader("Authorization")
-            }
-        }.call()
-        def keyCheck
-        if (apiKey) {
-            keyCheck = collectoryAuthService?.checkApiKey(apiKey)
-        }
-        if (!keyCheck?.valid) {
-            return false
-        }
-        return true
     }
 
     /**
@@ -251,7 +225,90 @@ class DataController {
      * @param pg - optional instance specified by uid (added in beforeInterceptor)
      * @param json - the body of the request
      */
-    def saveEntity = {
+    @Operation(
+            method = "POST",
+            tags = "collection, institution, dataProvider, dataResource, tempDataResource, dataHub",
+            operationId = "saveEntity",
+            summary = "Insert or  update an entity",
+            description = "Insert or update an  entity  - if uid is specified, entity must exist and is updated with the provided data",
+            parameters = [
+                    @Parameter(
+                            name = "entity",
+                            in = PATH,
+                            description = "entity e.g. datResource, dataProvider etc",
+                            schema = @Schema(implementation = String),
+                            required = true
+                    ),
+                    @Parameter(
+                            name = "uid",
+                            in = PATH,
+                            description = "optional uid of an instance of entity",
+                            schema = @Schema(implementation = String),
+                            required = false
+                    ),
+                    @Parameter(
+                            name = "pg",
+                            in = QUERY,
+                            description = "optional instance specified by uid ",
+                            schema = @Schema(implementation = String),
+                            required = false
+                    ),
+                    @Parameter(
+                            name = "q",
+                            in = QUERY,
+                            description = "restrict to associated object names that contain this value",
+                            schema = @Schema(implementation = String),
+                            required = false
+                    ),
+                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
+            ],
+            requestBody = @RequestBody(
+                    required = true,
+                    description = "A JSON object containing the entity to be saved or updated",
+                    content = [
+                            @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = Object)
+                            )
+                    ]
+            ),
+            responses = [
+                    @ApiResponse(
+                            description = "Status of operation  -  inserted",
+                            responseCode = "201",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = Object)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    ),
+                    @ApiResponse(
+                            description = "Status of operation  -  updated",
+                            responseCode = "200",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = Object)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    )
+            ],
+            security = [@SecurityRequirement(name = 'openIdConnect')]
+    )
+    @Path("/ws/{entity}/{uid}?")
+    @Produces("application/json")
+    def saveEntity () {
         def ok = check(params)
         if (ok) {
             def pg = params.pg
@@ -351,7 +408,70 @@ class DataController {
      * @param summary - any non-null value will cause a richer summary to be returned for entity lists
      * @param api_key - optional param for displaying any sensitive data
      */
-    def getEntity = {
+
+    // since  this method provides response for all entity types and optionally specific instance of an entity type with the optional {uid} path param,  the specs for api gateway will need to be specified with a special proxy character e.g. /ws/{entity+} to support the optional {uid} param.
+    @Operation(
+            method = "GET",
+            tags = "collection, institution, dataProvider, dataResource, tempDataResource, dataHub",
+            operationId = "getEntity",
+            summary = "Get a list of entities for a data type or details of a record.",
+            description = "Get a summary of entities that exist for a data type or detailed information for a specific entity.",
+            parameters = [
+                    @Parameter(
+                        name = "entity",
+                        in = PATH,
+                        description = "entity e.g. datResource, dataProvider etc",
+                        schema = @Schema(implementation = String),
+                        required = true
+                    ),
+                    @Parameter(
+                        name = "uid",
+                        in = PATH,
+                        description = "optional uid of an instance of entity",
+                        schema = @Schema(implementation = String),
+                        required = false
+                    ),
+                    @Parameter(
+                        name = "summary",
+                        in = QUERY,
+                        description = "false to include the summary",
+                        schema = @Schema(implementation = Boolean),
+                        required = false
+                    ),
+                    @Parameter(
+                        name = "q",
+                        in = QUERY,
+                        description = "restrict to associated object names that contain this value",
+                        schema = @Schema(implementation = String),
+                        required = false
+                    )],
+            responses = [
+                    @ApiResponse(
+                            description = "List of entities",
+                            responseCode = "200",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            array = @ArraySchema(schema = @Schema(implementation = Entity))
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    )
+            ],
+            security = []
+    )
+    @Path("/ws/{entity}/{uid}")
+    @Produces("application/json")
+    /**
+     * THE method is not a protected API method but there is a minor functionality within it which calls crudService and behaves differently based on whether a the request has a API key.
+     * The functionality described above has been preserved to maintain backwards compatibility but should be removed in the future once the legacy API key access is deprecated
+     */
+
+    def getEntity () {
         check(params)
         if (params.entity == 'tempDataResource') {
             forward(controller: 'tempDataResource', action: 'getEntity')
@@ -364,8 +484,9 @@ class DataController {
                 def eTag = (params.pg.uid + ":" + params.pg.lastUpdated).encodeAsMD5()
                 def entityInJson
                 if (clazz == 'DataResource') {
-                    def keyCheck = checkApiKey()
-                    entityInJson = crudService."read${clazz}"(params.pg, keyCheck)
+                    // this auth check (JWT or API key) is a special case handling to support backwards compatibility(which used to check for API key).
+                    def authCheck = collectoryAuthService.isAuthorisedWsRequest(getParams(), request, response)
+                    entityInJson = crudService."read${clazz}"(params.pg, authCheck)
                 } else {
                     entityInJson = crudService."read${clazz}"(params.pg)
                 }
@@ -389,6 +510,14 @@ class DataController {
         }
     }
 
+    @JsonIgnoreProperties('metaClass')
+    class Entity {
+        String name
+        String uri
+        String uid
+        String logo
+    }
+
     /**
      * Return JSON representation of the counts of the specified entity
      * grouped by the specified property.
@@ -403,12 +532,12 @@ class DataController {
         def clazz = capitalise(urlForm)
         def domain = grailsApplication.getClassForName("au.org.ala.collectory.${clazz}")
         def list = domain.list()
-        
+
         // suppress 'declined' data resources
         if (urlForm == 'dataResource' && params.public == "true") {
             list = list.findAll { it.status != 'declined' }
         }
-        
+
         // init results with total
         def results = [total: list.size()]
 
@@ -432,15 +561,36 @@ class DataController {
 
         renderAsJson results, last, ""
     }
-
-    def syncGBIF = {
-        String apiKey = getApiKey(params)
-        def keyCheck = collectoryAuthService?.checkApiKey(apiKey)
-        if (!keyCheck.valid) {
-            unauthorised()
-            return false
-        }
-
+    @Operation(
+            method = "GET",
+            tags = "gbif",
+            operationId = "syncGBIF",
+            summary = "Update All registrations with GBIF",
+            parameters =[
+                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
+            ],
+            responses = [
+                    @ApiResponse(
+                            description = "Status of GBIF sync operation",
+                            responseCode = "200",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = Object)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    )
+            ],
+            security = [@SecurityRequirement(name = 'openIdConnect')]
+    )
+    @Path("/ws/syncGBIF")
+    @Produces("application/json")
+    def syncGBIF () {
         asyncGbifRegistryService.updateAllRegistrations()
                 .onComplete { List results ->
                     log.error "Provider synced = ${results.size()}"
@@ -572,8 +722,64 @@ class DataController {
     }
 
     /************ EML services *************/
-
-    def eml = {
+    @Operation(
+            method = "GET",
+            tags = "field",
+            operationId = "getFieldById",
+            summary = "Get a field by Id",
+            description = "Get a field by Id. Includes all objects associated with the field.",
+            parameters = [
+                    @Parameter(
+                            name = "id",
+                            in = PATH,
+                            description = "Id of the field",
+                            schema = @Schema(implementation = String),
+                            required = true
+                    ),
+                    @Parameter(
+                            name = "start",
+                            in = QUERY,
+                            description = "starting index for associated objects",
+                            schema = @Schema(implementation = Long),
+                            required = false
+                    ),
+                    @Parameter(
+                            name = "pageSize",
+                            in = QUERY,
+                            description = "number of associated objects to return",
+                            schema = @Schema(implementation = Long),
+                            required = false
+                    ),
+                    @Parameter(
+                            name = "q",
+                            in = QUERY,
+                            description = "restrict to associated object names that contain this value",
+                            schema = @Schema(implementation = String),
+                            required = false
+                    )
+            ],
+            responses = [
+                    @ApiResponse(
+                            description = "field",
+                            responseCode = "200",
+                            content = [
+                                    @Content(
+                                            mediaType = "text/xml",
+                                            schema = @Schema(implementation = Field)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    )
+            ],
+            security = []
+    )
+    @Path("/ws/eml/{id}")
+    @Produces("text/xml")
+    def eml () {
         if (params.id) {
             def pg = providerGroupService._get(params.id)
             if (pg) {
@@ -598,6 +804,14 @@ class DataController {
             badRequest 'you must specify an entity identifier (uid)'
         }
     }
+
+    // TODO - make this a valid response object for eml()
+    @JsonIgnoreProperties('metaClass')
+    class Field {
+
+    }
+
+
 
     def validate(xml) {
         try {
@@ -673,15 +887,55 @@ class DataController {
     /**
      * Returns a single contact (independent of any entity).
      * A valid api key is needed to display contact information
-     * URI form: /contacts/{id}
+     * URI form: /ws/contacts/{id}
      * @param id the database id of the contact
      */
-    def contacts = {
-
-        if (!checkApiKey()) {
-            unauthorised()
-            return
-        }
+    @Operation(
+            method = "GET",
+            tags = "contacts",
+            operationId = "contacts",
+            summary = "Get a contact",
+            description = "Get an existing contact with the specified contact id",
+            parameters = [
+                    @Parameter(
+                            name = "id",
+                            in = PATH,
+                            description = "contact identifier value",
+                            schema = @Schema(implementation = String),
+                            required = true
+                    ),
+                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
+            ],
+            responses = [
+                    @ApiResponse(
+                            description = "Contact info",
+                            responseCode = "200",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = ContactModelResponse)
+                                    ),
+                                    @Content(
+                                            mediaType = "text/csv",
+                                            schema = @Schema(implementation = String)
+                                    ),
+                                    @Content(
+                                            mediaType = "text/xml",
+                                            schema = @Schema(implementation = ContactModelResponse)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    )
+            ],
+            security = [@SecurityRequirement(name = 'openIdConnect')]
+    )
+    @Path("/ws/contacts/{id}")
+    @Produces("application/json")
+    def contacts () {
         if (params.id) {
             def c = Contact.get(params.id)
             if (c) {
@@ -743,7 +997,54 @@ class DataController {
     }
 
     /************* contact update services **********/
-    def updateContact = {
+    @Operation(
+            method = "POST",
+            tags = "contacts",
+            operationId = "updateContact",
+            summary = "Update an existing contact",
+            description = "Update an existing contact with the specified contact id",
+            parameters = [
+                    @Parameter(
+                            name = "id",
+                            in = PATH,
+                            description = "contact identifier value",
+                            schema = @Schema(implementation = String),
+                            required = true
+                    ),
+                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
+            ],
+            requestBody = @RequestBody(
+                    required = true,
+                    description = "A JSON object containing the contact details to be updated",
+                    content = [
+                            @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = Object)
+                            )
+                    ]
+            ),
+            responses = [
+                    @ApiResponse(
+                            description = "Updated status of the contact with new contact info",
+                            responseCode = "200",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = ContactModelResponse)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    )
+            ],
+            security = [@SecurityRequirement(name = 'openIdConnect')]
+    )
+    @Path("/ws/contacts/{id}")
+    @Produces("application/json")
+    def updateContact () {
         def ok = check(params)
         if (!ok){
             return
@@ -786,7 +1087,23 @@ class DataController {
         }
     }
 
-    def deleteContact = {
+    @JsonIgnoreProperties('metaClass')
+    class ContactModelResponse {
+        String id
+        String title
+        String firstName
+        String lastName
+        String email
+        String phone
+        String fax
+        String mobile
+        Boolean publish
+        Date dateCreated
+        Date lastUpdated
+    }
+
+    @Transactional
+    def deleteContact () {
         if (params.id) {
             // update
             def c = Contact.get(params.id)
@@ -980,7 +1297,83 @@ class DataController {
      * @param uid the entity instance
      * @param id the contact id
      */
-    def updateContactFor = {
+    @Operation(
+            method = "POST",
+            tags = "contacts",
+            operationId = "updateContactFor",
+            summary = "Update or create a contact association for a single entity.",
+            description = "Update or create a contact for an entity with the specified entity uid contact id",
+            parameters = [
+                    @Parameter(
+                            name = "entity",
+                            in = PATH,
+                            description = "entity an entity type in url form ie one of collection, institution, dataProvider, dataResource, dataHub",
+                            schema = @Schema(implementation = String),
+                            required = true
+                    ),
+                    @Parameter(
+                            name = "uid",
+                            in = PATH,
+                            description = "uid the entity instance",
+                            schema = @Schema(implementation = String),
+                            required = true
+                    ),
+                    @Parameter(
+                            name = "id",
+                            in = PATH,
+                            description = "contact identifier value",
+                            schema = @Schema(implementation = String),
+                            required = true
+                    ),
+                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
+            ],
+            requestBody = @RequestBody(
+                    required = true,
+                    description = "A JSON object containing the contact details to be updated",
+                    content = [
+                            @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = Object)
+                            )
+                    ]
+            ),
+            responses = [
+                    @ApiResponse(
+                            description = "Status of operation  -  inserted",
+                            responseCode = "201",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = Object)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    ),
+                    @ApiResponse(
+                            description = "Status of operation  -  updated",
+                            responseCode = "200",
+                            content = [
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = Object)
+                                    )
+                            ],
+                            headers = [
+                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
+                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
+                            ]
+                    )
+            ],
+            security = [@SecurityRequirement(name = 'openIdConnect')]
+    )
+    @Path("/ws/{entity}/{uid}/contacts/{id}")
+    @Produces("application/json")
+    def updateContactFor () {
         def ok = check(params)
         if (!ok){
             return
@@ -993,8 +1386,10 @@ class DataController {
         if (cf) {
             // update
             bindData(cf, props as Map, ['entityUid'])
-            c.save(flush: true)
-            c.errors.each { log.error(it) }
+            Contact.withTransaction {
+                c.save(flush: true)
+            }
+            c.errors.each {  log.error(it.toString()) }
             success 'updated'
         } else {
             // create
@@ -1011,7 +1406,7 @@ class DataController {
         }
     }
 
-    def deleteContactFor = {
+    def deleteContactFor () {
         def ok = check(params)
         if (!ok){
             return
@@ -1022,7 +1417,9 @@ class DataController {
         def c = Contact.get(params.id)
         def cf = ContactFor.findByContactAndEntityUid(c, params.pg.uid)
         if (cf) {
-            cf.delete(flush: true)
+            ContactFor.withTransaction {
+                cf.delete(flush: true)
+            }
             success "deleted"
         } else {
             badRequest 'contact association does not exist'

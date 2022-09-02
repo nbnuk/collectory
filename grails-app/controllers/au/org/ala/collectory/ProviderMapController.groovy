@@ -16,7 +16,7 @@ class ProviderMapController {
     def beforeInterceptor = [action:this.&auth]
 
     def auth() {
-        if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_EDITOR) && !grailsApplication.config.security.cas.bypass.toBoolean()) {
+        if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_EDITOR) && grailsApplication.config.security.oidc.enabled.toBoolean()) {
             render "You are not authorised to access this page."
             return false
         }
@@ -95,7 +95,7 @@ class ProviderMapController {
             if (params.version) {
                 def version = params.version.toLong()
                 if (providerMapInstance.version > version) {
-                    
+
                     providerMapInstance.errors.rejectValue("version", "default.optimistic.locking.failure", [message(code: 'providerMap.label', default: 'ProviderMap')] as Object[], "Another user has updated this ProviderMap while you were editing")
                     render(view: "edit", model: [providerMapInstance: providerMapInstance], params:[returnTo: params.returnTo])
                     return

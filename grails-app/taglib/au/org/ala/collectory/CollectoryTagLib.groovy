@@ -18,14 +18,6 @@ class CollectoryTagLib {
 
     static namespace = 'cl'
 
-    def loggedInName = {
-        if (AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
-            out << "logged in as ${AuthenticationCookieUtils.getUserName(request, grailsApplication.config.security.cas.authCookieName)}"
-        } else {
-            out << "no cookie found"
-        }
-    }
-
     def getFacetForEntity(entity){
         if(entity.ENTITY_TYPE == 'DataResource')
             'data_resource_uid'
@@ -70,47 +62,6 @@ class CollectoryTagLib {
     }
 
     /**
-     * Generate the link the login link for the banner.
-     *
-     * Will be to log in or out based on current auth status.
-     */
-    def loginoutLink = {
-        def requestUri = grailsApplication.config.security.cas.serverName + request.forwardURI
-        if (AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
-            // currently logged in
-            out << "<li class='nav-logout nav-right'><a id='${AuthenticationCookieUtils.getUserName(request)}' href='${grailsApplication.config.security.cas.logoutUrl}?url=${requestUri}'><span>Log out</span></a></li>"
-        } else {
-            // currently logged out
-            out << "<li class='nav-login nav-right'><a href='${grailsApplication.config.security.cas.loginUrl}?service=${requestUri}'><span>Log in</span></a></li>"
-        }
-    }
-
-    /**
-     * Generate the login link for the banner.
-     *
-     * Will be to log in or out based on current auth status.
-     * TODO: also check for user principal in request in case cookies are disabled
-     *
-     * @attr showUser if supplied, the username will be shown before the logout link
-     * @attr fixedAppUrl if supplied will be used for logout instead of the current page
-     */
-    def loginoutLink2011 = { attrs ->
-        def requestUri = grailsApplication.config.security.cas.serverName + request.forwardURI
-        if (AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
-            // currently logged in
-            if (attrs.showUser) {
-                out << "<span id='logged-in'>Logged in as ${loggedInUsername()}</span>"
-            }
-            out << link(controller: 'public', action: 'logout',
-                    params: [casUrl: grailsApplication.config.security.cas.logoutUrl,
-                             appUrl: attrs.fixedAppUrl ?: requestUri]) {'Logout'}
-        } else {
-            // currently logged out
-            out << "<a href='${grailsApplication.config.security.cas.loginUrl}?service=${requestUri}'><span>Log in</span></a>"
-        }
-    }
-
-    /**
      * Decorates the role if present
      *
      * @attrs role the role to display
@@ -135,7 +86,7 @@ class CollectoryTagLib {
      */
     def ifAllGranted = { attrs, body ->
         def granted = true
-        if (grailsApplication.config.security.cas.bypass.toBoolean()) {
+        if (!grailsApplication.config.security.oidc.enabled.toBoolean()) {
             granted = true
         } else {
             def roles = attrs.role.toString().tokenize(',')
@@ -157,7 +108,7 @@ class CollectoryTagLib {
      * @attr role the role to check
      */
     def ifGranted = { attrs, body ->
-        if (grailsApplication.config.security.cas.bypass.toBoolean() || request.isUserInRole(attrs.role)) {
+        if (!grailsApplication.config.security.oidc.enabled.toBoolean() || request.isUserInRole(attrs.role as String)) {
             out << body()
         }
     }
@@ -169,7 +120,7 @@ class CollectoryTagLib {
      * @attr role the role to check
      */
     def ifNotGranted = { attrs, body ->
-        if (!grailsApplication.config.security.cas.bypass.toBoolean() && !request.isUserInRole(attrs.role)) {
+        if (grailsApplication.config.security.oidc.enabled.toBoolean() && !request.isUserInRole(attrs.role as String)) {
             out << body()
         }
     }
@@ -188,19 +139,19 @@ class CollectoryTagLib {
     }
 
     def isLoggedIn = { attrs, body ->
-        if (AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
+        if (request.getUserPrincipal()) {
             out << body()
         }
     }
 
     def isNotLoggedIn = {attrs, body ->
-        if (!grailsApplication.config.security.cas.bypass.toBoolean() && !AuthenticationCookieUtils.cookieExists(request, grailsApplication.config.security.cas.authCookieName)) {
+        if (grailsApplication.config.security.oidc.enabled.toBoolean() && !request.getUserPrincipal()) {
             out << body()
         }
     }
 
     def loggedInUsername = {
-        if (grailsApplication.config.security.cas.bypass.toBoolean()) {
+        if (!grailsApplication.config.security.oidc.enabled.toBoolean()) {
             out << 'cas bypassed'
         }
         else if (request.getUserPrincipal()) {
@@ -212,7 +163,7 @@ class CollectoryTagLib {
     }
 
     private boolean isAdmin() {
-        return grailsApplication.config.security.cas.bypass.toBoolean() || request?.isUserInRole(grailsApplication.config.ROLE_ADMIN)
+        return !grailsApplication.config.security.oidc.enabled.toBoolean() || request?.isUserInRole(grailsApplication.config.ROLE_ADMIN as String)
     }
 
     /**
@@ -245,7 +196,7 @@ class CollectoryTagLib {
      * @attrs uid - the uid of the entity
      */
     def isAuth = { attrs, body ->
-            if (isAuthorisedToEdit(attrs.uid, request.getUserPrincipal()?.attributes?.email)) {
+            if (isAuthorisedToEdit(attrs.uid, request.getRemoteUser())) {
             out << body()
         } else {
             out << ' You are not authorised to change this record '// + debugString
@@ -1585,7 +1536,7 @@ class CollectoryTagLib {
      * @body the label for the button - defaults to 'Edit' if not specified
      */
     def editButton = { attrs, body ->
-        if (isAuthorisedToEdit(attrs.uid, request.getUserPrincipal()?.attributes?.email)) {
+        if (isAuthorisedToEdit(attrs.uid, request.getRemoteUser())) {
             def paramsMap
             // anchor class
             paramsMap = [class:'edit btn btn-default']
