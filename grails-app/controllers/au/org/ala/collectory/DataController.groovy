@@ -259,8 +259,7 @@ class DataController {
                             description = "restrict to associated object names that contain this value",
                             schema = @Schema(implementation = String),
                             required = false
-                    ),
-                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
+                    )
             ],
             requestBody = @RequestBody(
                     required = true,
@@ -566,9 +565,6 @@ class DataController {
             tags = "gbif",
             operationId = "syncGBIF",
             summary = "Update All registrations with GBIF",
-            parameters =[
-                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
-            ],
             responses = [
                     @ApiResponse(
                             description = "Status of GBIF sync operation",
@@ -904,7 +900,6 @@ class DataController {
                             schema = @Schema(implementation = String),
                             required = true
                     ),
-                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
             ],
             responses = [
                     @ApiResponse(
@@ -1011,7 +1006,6 @@ class DataController {
                             schema = @Schema(implementation = String),
                             required = true
                     ),
-                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
             ],
             requestBody = @RequestBody(
                     required = true,
@@ -1325,7 +1319,6 @@ class DataController {
                             schema = @Schema(implementation = String),
                             required = true
                     ),
-                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
             ],
             requestBody = @RequestBody(
                     required = true,

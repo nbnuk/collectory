@@ -173,7 +173,6 @@ class GbifController {
                             schema = @Schema(implementation = String),
                             required = true
                     ),
-                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
             ],
             responses = [
                     @ApiResponse(

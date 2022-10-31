@@ -78,7 +78,6 @@ class IptController {
                             schema = @Schema(implementation = Boolean),
                             required = false
                     ),
-                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
             ],
             responses = [
                     @ApiResponse(
