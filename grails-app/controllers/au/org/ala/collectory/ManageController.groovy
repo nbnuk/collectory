@@ -116,6 +116,11 @@ class ManageController {
      */
     def searchForRepatResources() {
         log.debug "Searching for resources from external source: ${params}"
+
+        // Use login credentials from configuration
+        params.username = grailsApplication.config.gbifApiUser
+        params.password = grailsApplication.config.gbifApiPassword
+
         DataSourceConfiguration configuration = new DataSourceConfiguration(params)
         def dataResources = DataResource.all.findAll({ dr -> dr.resourceType == 'records' }).sort({ it.name })
         def resources = externalDataService.searchForDatasets(configuration)
@@ -206,7 +211,7 @@ class ManageController {
 
     /**
      * Landing page for self-service management of entities.
-     * 
+     *
      * @param show = user will display user login/cookie/roles details
      */
     def list = {
