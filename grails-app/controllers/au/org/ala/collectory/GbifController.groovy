@@ -171,6 +171,7 @@ class GbifController {
                             in = PATH,
                             description = "provider uid",
                             schema = @Schema(implementation = String),
+                            example = "1",
                             required = true
                     ),
             ],
