@@ -225,18 +225,21 @@ class DataController {
      * @param pg - optional instance specified by uid (added in beforeInterceptor)
      * @param json - the body of the request
      */
+    // NOTE  - Sine the same method below saveEntity is used for saving and updating an entity - OpenAPI specs for both save and update operations cannot be added on Code.
+    // API Gateway handles the below by using the {entity+} wildcard but for swagger specs in the documentation portal. additional spec has been added for just the /{entity} path - which allows Inserting of an entity
     @Operation(
             method = "POST",
             tags = "collection, institution, dataProvider, dataResource, tempDataResource, dataHub",
-            operationId = "saveEntity",
+            operationId = "updateEntity",
             summary = "Insert or  update an entity",
             description = "Insert or update an  entity  - if uid is specified, entity must exist and is updated with the provided data",
             parameters = [
                     @Parameter(
                             name = "entity",
                             in = PATH,
-                            description = "entity e.g. datResource, dataProvider etc",
+                            description = "entity i.e.  collection, institution, dataProvider, dataResource, tempDataResource, dataHub",
                             schema = @Schema(implementation = String),
+                            example ="collection",
                             required = true
                     ),
                     @Parameter(
@@ -244,23 +247,9 @@ class DataController {
                             in = PATH,
                             description = "optional uid of an instance of entity",
                             schema = @Schema(implementation = String),
+                            example = "co43",
                             required = false
-                    ),
-                    @Parameter(
-                            name = "pg",
-                            in = QUERY,
-                            description = "optional instance specified by uid ",
-                            schema = @Schema(implementation = String),
-                            required = false
-                    ),
-                    @Parameter(
-                            name = "q",
-                            in = QUERY,
-                            description = "restrict to associated object names that contain this value",
-                            schema = @Schema(implementation = String),
-                            required = false
-                    ),
-                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
+                    )
             ],
             requestBody = @RequestBody(
                     required = true,
@@ -287,26 +276,11 @@ class DataController {
                                     @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
                                     @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
                             ]
-                    ),
-                    @ApiResponse(
-                            description = "Status of operation  -  updated",
-                            responseCode = "200",
-                            content = [
-                                    @Content(
-                                            mediaType = "application/json",
-                                            schema = @Schema(implementation = Object)
-                                    )
-                            ],
-                            headers = [
-                                    @Header(name = 'Access-Control-Allow-Headers', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Access-Control-Allow-Methods', description = "CORS header", schema = @Schema(type = "String")),
-                                    @Header(name = 'Access-Control-Allow-Origin', description = "CORS header", schema = @Schema(type = "String"))
-                            ]
                     )
             ],
             security = [@SecurityRequirement(name = 'openIdConnect')]
     )
-    @Path("/ws/{entity}/{uid}?")
+    @Path("/ws/{entity}/{uid}")
     @Produces("application/json")
     def saveEntity () {
         def ok = check(params)
@@ -409,45 +383,35 @@ class DataController {
      * @param api_key - optional param for displaying any sensitive data
      */
 
-    // since  this method provides response for all entity types and optionally specific instance of an entity type with the optional {uid} path param,  the specs for api gateway will need to be specified with a special proxy character e.g. /ws/{entity+} to support the optional {uid} param.
+    // since  this method provides response for all entity types and optionally specific instance of an entity type with the optional {uid} path param,  the specs for api gateway will are to be specified with a special proxy character e.g. /ws/{entity+} to support the optional {uid} param.
+    // additional spec has also been added to swagger json file used in docs portal for /ws/{entity} to got a list of entities.
     @Operation(
             method = "GET",
             tags = "collection, institution, dataProvider, dataResource, tempDataResource, dataHub",
             operationId = "getEntity",
-            summary = "Get a list of entities for a data type or details of a record.",
-            description = "Get a summary of entities that exist for a data type or detailed information for a specific entity.",
+            summary = "Get an entity for a specified entity uid",
+            description = "Get detailed information for a specific entity",
             parameters = [
                     @Parameter(
                         name = "entity",
                         in = PATH,
-                        description = "entity e.g. datResource, dataProvider etc",
+                        description = "entity type -  e.g. datResource, dataProvider etc",
                         schema = @Schema(implementation = String),
+                        example = "collection",
                         required = true
                     ),
                     @Parameter(
                         name = "uid",
                         in = PATH,
-                        description = "optional uid of an instance of entity",
+                        description = "uid of an instance of entity",
                         schema = @Schema(implementation = String),
-                        required = false
-                    ),
-                    @Parameter(
-                        name = "summary",
-                        in = QUERY,
-                        description = "false to include the summary",
-                        schema = @Schema(implementation = Boolean),
-                        required = false
-                    ),
-                    @Parameter(
-                        name = "q",
-                        in = QUERY,
-                        description = "restrict to associated object names that contain this value",
-                        schema = @Schema(implementation = String),
-                        required = false
-                    )],
+                        example = "co43",
+                        required = true
+                    )
+            ],
             responses = [
                     @ApiResponse(
-                            description = "List of entities",
+                            description = "Entity Info",
                             responseCode = "200",
                             content = [
                                     @Content(
@@ -566,9 +530,6 @@ class DataController {
             tags = "gbif",
             operationId = "syncGBIF",
             summary = "Update All registrations with GBIF",
-            parameters =[
-                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
-            ],
             responses = [
                     @ApiResponse(
                             description = "Status of GBIF sync operation",
@@ -734,6 +695,7 @@ class DataController {
                             in = PATH,
                             description = "Id of the field",
                             schema = @Schema(implementation = String),
+                            example = "dr368",
                             required = true
                     ),
                     @Parameter(
@@ -741,6 +703,7 @@ class DataController {
                             in = QUERY,
                             description = "starting index for associated objects",
                             schema = @Schema(implementation = Long),
+                            example = "0",
                             required = false
                     ),
                     @Parameter(
@@ -748,6 +711,7 @@ class DataController {
                             in = QUERY,
                             description = "number of associated objects to return",
                             schema = @Schema(implementation = Long),
+                            example = "1",
                             required = false
                     ),
                     @Parameter(
@@ -755,6 +719,7 @@ class DataController {
                             in = QUERY,
                             description = "restrict to associated object names that contain this value",
                             schema = @Schema(implementation = String),
+                            example ="Environment",
                             required = false
                     )
             ],
@@ -902,9 +867,9 @@ class DataController {
                             in = PATH,
                             description = "contact identifier value",
                             schema = @Schema(implementation = String),
+                            example = "31",
                             required = true
                     ),
-                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
             ],
             responses = [
                     @ApiResponse(
@@ -1009,9 +974,9 @@ class DataController {
                             in = PATH,
                             description = "contact identifier value",
                             schema = @Schema(implementation = String),
+                            example = "31",
                             required = true
                     ),
-                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
             ],
             requestBody = @RequestBody(
                     required = true,
@@ -1307,8 +1272,9 @@ class DataController {
                     @Parameter(
                             name = "entity",
                             in = PATH,
-                            description = "entity an entity type in url form ie one of collection, institution, dataProvider, dataResource, dataHub",
+                            description = "metadata entity type  i.e. collection, institution, dataProvider, dataResource, dataHub",
                             schema = @Schema(implementation = String),
+                            example = "collection",
                             required = true
                     ),
                     @Parameter(
@@ -1316,6 +1282,7 @@ class DataController {
                             in = PATH,
                             description = "uid the entity instance",
                             schema = @Schema(implementation = String),
+                            example = "co43",
                             required = true
                     ),
                     @Parameter(
@@ -1323,9 +1290,9 @@ class DataController {
                             in = PATH,
                             description = "contact identifier value",
                             schema = @Schema(implementation = String),
+                            example = "844",
                             required = true
                     ),
-                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
             ],
             requestBody = @RequestBody(
                     required = true,
