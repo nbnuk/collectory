@@ -194,7 +194,7 @@ class PublicController {
     }
 
     def newBiocacheBreakdown = {
-        def url = "http://ala-bie1.vm.csiro.au:8080/biocache-service/occurrences/search.json?q=*:*&pageSize=0";
+        def url = "http://ala-bie1.vm.csiro.au:8080/biocache-service/occurrences/search?q=*:*&pageSize=0";
         def conn = new URL(url).openConnection()
         conn.setConnectTimeout 1500
         def dataTable = null
@@ -751,7 +751,7 @@ class PublicController {
 
 
     def chart = {}
-    
+
     /************************************ helpers ***********************************/
     private String limit(str, int length) {
         if (str?.size() > length) {

@@ -1,9 +1,9 @@
 <asset:script type="text/javascript">
 
-  var queryUrl = CHARTS_CONFIG.biocacheServicesUrl + "/occurrences/search.json?pageSize=0&q=${facet}:${instance.uid}";
+  var queryUrl = CHARTS_CONFIG.biocacheServicesUrl + "/occurrences/search?pageSize=0&q=${facet}:${instance.uid}";
   $.ajax({
     url: queryUrl,
-    dataType: 'jsonp',
+    dataType: 'json',
     timeout: 30000,
     complete: function(jqXHR, textStatus) {
     },

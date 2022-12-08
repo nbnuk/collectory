@@ -2,13 +2,13 @@
  * Populate Images tab body with images via AJAX call to Biocache
  */
 function loadImagesTab() {
-    var wsBase = "/occurrences/search.json";
+    var wsBase = "/occurrences/search";
     var uiBase = "/occurrences/search";
     var imagesQueryUrl = "?facets=type_status&fq=multimedia%3AImage&pageSize=100&q=" + (SHOW_REC.isPipelinesCompatible? "collectionUid:" : "collection_uid:") + SHOW_REC.instanceUuid;
 
     $.ajax({
         url: SHOW_REC.biocacheServicesUrl + wsBase + imagesQueryUrl,
-        dataType: 'jsonp',
+        dataType: 'json',
         timeout: 20000,
         complete: function(jqXHR, textStatus) {
             if (textStatus == 'timeout') {
