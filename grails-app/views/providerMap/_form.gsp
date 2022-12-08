@@ -3,12 +3,22 @@
     <g:hiddenField name="id" value="${providerMapInstance?.id}" />
     <div class="form-group ${hasErrors(bean: providerMapInstance, field: 'providerGroup', 'errors')}">
         <label for="institutionSelect"><g:message code="providerMap.institution.label" default="Institution" /></label>
-        <g:select id="institutionSelect" name="institution.id" class="form-control" from="${au.org.ala.collectory.Institution.list([sort: 'name'])}" optionKey="id" value="${providerMapInstance?.institution?.id}" noSelection="${['null':'---- select an institution -----']}"/>
+        <g:if test="${!providerMapInstance.dateCreated}">
+            <g:select id="institutionSelect" name="institution.id" class="form-control" from="${au.org.ala.collectory.Institution.list([sort: 'name'])}" optionKey="id" value="${providerMapInstance?.institution?.id}" noSelection="${['null':'---- select an institution -----']}"/>
+        </g:if>
+        <g:else>
+            <g:select id="institutionSelect" name="institution.id" class="form-control" from="${au.org.ala.collectory.Institution.list([sort: 'name'])}" optionKey="id" value="${providerMapInstance?.institution?.id}" noSelection="${['null':'---- select an institution -----']}" disabled="disabled" />
+        </g:else>
     </div>
 
     <div class="form-group ${hasErrors(bean: providerMapInstance, field: 'providerGroup', 'errors')}">
         <label for="collectionSelect"><g:message code="providerMap.collection.label" default="Collection" /></label>
-        <g:select id="collectionSelect" name="collection.id" class="form-control" from="${au.org.ala.collectory.Collection.list([sort: 'name'])}" optionKey="id" value="${providerMapInstance?.collection?.id}" noSelection="${['null':'---- select an collection -----']}"/>
+        <g:if test="${!providerMapInstance.dateCreated}">
+            <g:select id="collectionSelect" name="collection.id" class="form-control" from="${au.org.ala.collectory.Collection.list([sort: 'name'])}" optionKey="id" value="${providerMapInstance?.collection?.id}" noSelection="${['null':'---- select a collection -----']}"/>
+        </g:if>
+        <g:else>
+            <g:select id="collectionSelect" name="collection.id" class="form-control" from="${au.org.ala.collectory.Collection.list([sort: 'name'])}" optionKey="id" value="${providerMapInstance?.collection?.id}" noSelection="${['null':'---- select a collection -----']}" disabled="disabled" />
+        </g:else>
     </div>
 
     <div class="form-group ${hasErrors(bean: providerMapInstance, field: 'institutionCodes', 'errors')}">
@@ -91,10 +101,19 @@ $('#institutionSelect').change(function() {
 
             $.each( data.collections, function( key, collection ) {
                 console.log(collection);
-                $('#collectionSelect')
-                    .append($("<option></option>")
-                    .attr("value", collection.id)
-                    .text(collection.name));
+                let collectionUid = collection.uid;
+                $.get(collection.uri, function(collectionDetail) {
+                    if (collectionDetail.recordsProviderMapping == null) {
+                        // only add to the select collections without mappings
+                        console.log("Adding " + collectionUid + " because does not have a mapping");
+                        $('#collectionSelect')
+                            .append($("<option></option>")
+                            .attr("value", collection.id)
+                            .text(collection.name));
+                    } else {
+                        console.log("Not adding "+ collectionUid + " because already have a mapping");
+                    }
+                });
             });
         });
     }
