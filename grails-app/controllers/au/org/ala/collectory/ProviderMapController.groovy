@@ -42,9 +42,10 @@ class ProviderMapController {
         providerMapInstance.properties = params
         println "createFor = ${params.createFor}"
         if (params.createFor) {
-            def pg = Collection._get(params.createFor) as Collection
+            def pg = Collection.findByUid(params.createFor) as Collection
             if (pg) {
                 providerMapInstance.collection = pg
+                providerMapInstance.institution = pg.institution
             }
         }
         return [providerMapInstance: providerMapInstance, returnTo: params.returnTo]
@@ -125,12 +126,8 @@ class ProviderMapController {
                     // remove collection link
                     providerMapInstance.collection?.providerMap = null
                     // remove code links
-                    providerMapInstance.collectionCodes.each {
-                        providerMapInstance.removeFromCollectionCodes it
-                    }
-                    providerMapInstance.institutionCodes.each {
-                        providerMapInstance.removeFromInstitutionCodes it
-                    }
+                    providerMapInstance.collectionCodes.removeAll(providerMapInstance.collectionCodes)
+                    providerMapInstance.institutionCodes.removeAll(providerMapInstance.institutionCodes)
                     // remove map
                     providerMapInstance.delete(flush: true)
                     flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'providerMap.label', default: 'ProviderMap'), params.id])}"

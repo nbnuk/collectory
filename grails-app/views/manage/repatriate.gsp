@@ -69,14 +69,6 @@
                 <label for="maxRecordCount"><g:message code="manage.extload.label12" /><cl:helpText code="manage.extload.label12.help"/></label>
                 <g:field type="number" name="maxRecordCount" class="form-control form-control-sm" value="1000000" />
             </div>
-            <div class="form-group hide">
-                <label for="username"><g:message code="manage.extload.label08" /><cl:helpText code="manage.extload.label08.help"/></label>
-                <g:field type="text" name="username" class="form-control" value="${grailsApplication.config.gbifApiUser}" />
-            </div>
-            <div class="form-group hide">
-                <label for="password"><g:message code="manage.extload.label09" /><cl:helpText code="manage.extload.label09.help"/></label>
-                <g:field type="password" name="password" class="form-control" value="${grailsApplication.config.gbifApiPassword}" />
-            </div>
             <div>
                 <span class="button"><input type="submit" name="performReview" value="Review" class="save btn btn-default"></span>
             </div>

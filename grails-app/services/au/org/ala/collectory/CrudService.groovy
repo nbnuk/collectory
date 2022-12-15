@@ -971,7 +971,7 @@ class CrudService {
     }
 
     def formatSpaceSeparatedList(str) {
-        str.tokenize(" ")
+        str?.tokenize(" ")
     }
 }
 

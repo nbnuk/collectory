@@ -45,6 +45,7 @@ class LookupController {
                             in = PATH,
                             description = "Institution code",
                             schema = @Schema(implementation = String),
+                            example = "in105",
                             required = true
                     ),
                     @Parameter(
@@ -52,6 +53,7 @@ class LookupController {
                             in = PATH,
                             description = "Collection code",
                             schema = @Schema(implementation = String),
+                            example = "co229",
                             required = true
                     )
             ],
@@ -169,6 +171,7 @@ class LookupController {
                             in = PATH,
                             description = "Entity id",
                             schema = @Schema(implementation = String),
+                            example = "dp3874",
                             required = true
                     ),
             ],
@@ -297,21 +300,30 @@ class LookupController {
             tags = "citations",
             operationId = "getCitations",
             summary = "Get citations for a list of data resource UIDs.",
-            parameters = [
-                    @Parameter(
-                            name = "Accept",
-                            in = HEADER,
-                            description = "Response format; text/csv, text/plain, application/json",
-                            schema = @Schema(implementation = String),
-                            required = true
-                    )
-            ],
             requestBody = @RequestBody(
                     required = true,
                     description = "A JSON array containing dataResource UIDs.",
                     content = [
                             @Content(
                                     mediaType = "application/json",
+                                    array = @ArraySchema(schema = @Schema(implementation = String)),
+                                    examples = [
+                                            @ExampleObject(
+                                                    value = "[\"dr654\",\"dr653\"]"
+                                            )
+                                    ]
+                            ),
+                            @Content(
+                                    mediaType = "text/csv",
+                                    array = @ArraySchema(schema = @Schema(implementation = String)),
+                                    examples = [
+                                            @ExampleObject(
+                                                    value = "[\"dr654\",\"dr653\"]"
+                                            )
+                                    ]
+                            ),
+                            @Content(
+                                    mediaType = "text/plain",
                                     array = @ArraySchema(schema = @Schema(implementation = String)),
                                     examples = [
                                             @ExampleObject(

@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.headers.Header
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 
@@ -56,12 +57,29 @@ class IptController {
             operationId = "scanIpt",
             summary = "Scan an IPT instance described by a data provider id",
             description = "Scan an IPT instance described by a data provider id",
+            requestBody = @RequestBody(
+                    content = [
+                            @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ArrayList)
+                            ),
+                            @Content(
+                                    mediaType = "test/xml",
+                                    schema = @Schema(implementation = ArrayList)
+                            ),
+                            @Content(
+                                    mediaType = "text/plain",
+                                    schema = @Schema(implementation = ArrayList)
+                            )
+                    ]
+            ),
             parameters = [
                     @Parameter(
                             name = "uid",
                             in = PATH,
                             description = "provider uid",
                             schema = @Schema(implementation = String),
+                            example = "dp1518",
                             required = true
                     ),
                     @Parameter(
@@ -69,6 +87,7 @@ class IptController {
                             in = QUERY,
                             description = "Boolean flag to determine whether to update existing datasets and create data resources for new datasets",
                             schema = @Schema(implementation = Boolean),
+                            example = "false",
                             required = false
                     ),
                     @Parameter(
@@ -76,9 +95,9 @@ class IptController {
                             in = QUERY,
                             description = "Boolean flag to  check to see ifresource needs updating by looking at the data currency",
                             schema = @Schema(implementation = Boolean),
+                            example = "true",
                             required = false
                     ),
-                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String), required = true)
             ],
             responses = [
                     @ApiResponse(

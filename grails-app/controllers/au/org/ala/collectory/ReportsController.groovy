@@ -235,7 +235,7 @@ class ReportsController {
         Collection.list([sort: 'name']).each {
             if (it.numRecordsDigitised > 0) {
                 // find the number of biocache records
-                def url = grailsApplication.config.biocacheServicesUrl + "/occurrences/collections/" + it.generatePermalink() + ".json?pageSize=0"
+                def url = grailsApplication.config.biocacheServicesUrl + "/occurrences/collections/" + it.generatePermalink() + "?pageSize=0"
                 def count = 0
                 def conn = new URL(url).openConnection()
                 conn.setConnectTimeout 3000
@@ -260,7 +260,7 @@ class ReportsController {
         Collection.list([sort: 'name']).each {
             def rec = new Records()
             // find the number of biocache records
-            def url = grailsApplication.config.biocacheServicesUrl + "/occurrences/searchForUID.JSON?pageSize=0&q=" + it.uid
+            def url = grailsApplication.config.biocacheServicesUrl + "/occurrences/searchForUID?pageSize=0&q=" + it.uid
             def count = 0
             def conn = new URL(url).openConnection()
             conn.setConnectTimeout 3000
@@ -285,7 +285,7 @@ class ReportsController {
         DataProvider.list([sort: 'name']).each {
             def rec = new Records()
             // find the number of biocache records
-            def url = grailsApplication.config.biocacheServicesUrl + "/occurrences/searchForUID.JSON?pageSize=0&q=" + it.uid
+            def url = grailsApplication.config.biocacheServicesUrl + "/occurrences/searchForUID?pageSize=0&q=" + it.uid
 
             def count = 0
             def conn = new URL(url).openConnection()
@@ -307,7 +307,7 @@ class ReportsController {
     def dataLinks = {
         [links: DataLink.list([sort:'provider'])]
     }
-    
+
     class ReportCommand {
         int totalCollections
         int totalInstitutions
@@ -451,7 +451,7 @@ class ReportsController {
                         " and administratorForEntity = 1 and admin = 1")[0]
                 latestActivity = ActivityLog.list([sort: 'timestamp', order:'desc', max:10])
                 break
-                
+
                 case 'membership':
                 partners = Institution.findAllByIsALAPartner(true)
 
