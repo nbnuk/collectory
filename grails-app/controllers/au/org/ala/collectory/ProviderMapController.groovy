@@ -1,26 +1,21 @@
 package au.org.ala.collectory
 
+import au.org.ala.web.AlaSecured
 import grails.gorm.transactions.Transactional
 
+@AlaSecured(value =["ROLE_ADMIN", "ROLE_EDITOR"], anyRole = true,  message =  "You are not authorised to access this page. You do not have 'editor' rights.")
 class ProviderMapController {
 
     static allowedMethods = [save: "POST", update: "POST", delete: "POST"]
 
     def collectoryAuthService
-/*
- * Access control
- *
- * All methods require EDITOR role.
- * Edit methods require ADMIN or the user to be an administrator for the entity.
- */
-    def beforeInterceptor = [action:this.&auth]
 
-    def auth() {
-        if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_EDITOR) && grailsApplication.config.security.oidc.enabled.toBoolean()) {
-            render "You are not authorised to access this page."
-            return false
-        }
-    }
+    /*
+     * Access control
+     *
+     * All methods require EDITOR role.
+     * Edit methods require ADMIN or the user to be an administrator for the entity.
+     */
 
     def index = {
         redirect(action: "list", params: params)

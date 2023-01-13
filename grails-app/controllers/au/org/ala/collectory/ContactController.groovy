@@ -1,5 +1,8 @@
 package au.org.ala.collectory
 
+import au.org.ala.web.AlaSecured
+
+@AlaSecured(value = ["ROLE_ADMIN", "ROLE_EDITOR"], anyRole = true,  message =  "You are not authorised to access this page. You do not have 'editor' rights.")
 class ContactController {
 
     static allowedMethods = [save: "POST", update: "POST", delete: "POST"]
@@ -13,14 +16,6 @@ class ContactController {
     def collectoryAuthService
     def activityLogService
     def providerGroupService
-
-    def auth() {
-        if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_EDITOR) && grailsApplication.config.security.oidc.enabled.toBoolean()) {
-            render "You are not authorised to access this page."
-            return false
-        }
-        return true
-    }
 
     /**
      End access control
@@ -136,10 +131,10 @@ class ContactController {
     /**
      * MEW - modified to cascade delete all ContactFor links for the contact
      */
+    @AlaSecured(value = ["ROLE_ADMIN"], message =  "You are not authorised to access this page.")
     def delete() {
         def contactInstance = Contact.get(params.id)
         if (contactInstance) {
-            if (collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN)) {
                 try {
                     activityLogService.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), Action.DELETE, "contact ${contactInstance.buildName()}"
                     // need to delete any ContactFor links first
@@ -157,9 +152,6 @@ class ContactController {
                     flash.message = "${message(code: 'default.not.deleted.message', args: [message(code: 'contact.label', default: 'Contact'), params.id])}"
                     redirect(action: "show", id: params.id)
                 }
-            } else {
-                render "You are not authorised to access this page."
-            }
         }
         else {
             flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'contact.label', default: 'Contact'), params.id])}"
