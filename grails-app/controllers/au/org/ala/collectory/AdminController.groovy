@@ -1,15 +1,14 @@
 package au.org.ala.collectory
 
-import au.org.ala.web.AlaSecured
+
 import com.opencsv.CSVReader
 import grails.converters.JSON
 import grails.web.JSONBuilder
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 
-@AlaSecured(value = ["ROLE_ADMIN"], message =  "You are not authorised to access this page. You do not have 'Admin' rights.")
 class AdminController {
 
-    def dataLoaderService, idGeneratorService, collectoryAuthService, metadataService, activityLogService, providerGroupService
+    def dataLoaderService, idGeneratorService, metadataService
 
     def index = {
         redirect(controller: 'manage')

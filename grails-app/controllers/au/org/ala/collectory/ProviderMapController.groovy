@@ -1,9 +1,8 @@
 package au.org.ala.collectory
 
-import au.org.ala.web.AlaSecured
+
 import grails.gorm.transactions.Transactional
 
-@AlaSecured(value =["ROLE_ADMIN", "ROLE_EDITOR"], anyRole = true,  message =  "You are not authorised to access this page. You do not have 'editor' rights.")
 class ProviderMapController {
 
     static allowedMethods = [save: "POST", update: "POST", delete: "POST"]
@@ -114,31 +113,35 @@ class ProviderMapController {
 
     @Transactional
     def delete () {
-        def providerMapInstance = ProviderMap.get(params.id)
-        if (providerMapInstance) {
-            if (providerMapInstance.collection.uid) {
-                try {
-                    // remove collection link
-                    providerMapInstance.collection?.providerMap = null
-                    // remove code links
-                    providerMapInstance.collectionCodes.removeAll(providerMapInstance.collectionCodes)
-                    providerMapInstance.institutionCodes.removeAll(providerMapInstance.institutionCodes)
-                    // remove map
-                    providerMapInstance.delete(flush: true)
-                    flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'providerMap.label', default: 'ProviderMap'), params.id])}"
-                    redirect(action: "list", params:[returnTo: params.returnTo])
-                }
-                catch (org.springframework.dao.DataIntegrityViolationException e) {
-                    flash.message = "${message(code: 'default.not.deleted.message', args: [message(code: 'providerMap.label', default: 'ProviderMap'), params.id])}"
-                    redirect(action: "show", id: params.id, params:[returnTo: params.returnTo])
+        if (collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN)) {
+            def providerMapInstance = ProviderMap.get(params.id)
+            if (providerMapInstance) {
+                if (providerMapInstance.collection.uid) {
+                    try {
+                        // remove collection link
+                        providerMapInstance.collection?.providerMap = null
+                        // remove code links
+                        providerMapInstance.collectionCodes.removeAll(providerMapInstance.collectionCodes)
+                        providerMapInstance.institutionCodes.removeAll(providerMapInstance.institutionCodes)
+                        // remove map
+                        providerMapInstance.delete(flush: true)
+                        flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'providerMap.label', default: 'ProviderMap'), params.id])}"
+                        redirect(action: "list", params: [returnTo: params.returnTo])
+                    }
+                    catch (org.springframework.dao.DataIntegrityViolationException e) {
+                        flash.message = "${message(code: 'default.not.deleted.message', args: [message(code: 'providerMap.label', default: 'ProviderMap'), params.id])}"
+                        redirect(action: "show", id: params.id, params: [returnTo: params.returnTo])
+                    }
+                } else {
+                    render "You are not authorised to access this page."
                 }
             } else {
-                render "You are not authorised to access this page."
+                flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'providerMap.label', default: 'ProviderMap'), params.id])}"
+                redirect(action: "list", params: [returnTo: params.returnTo])
             }
-        }
-        else {
-            flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'providerMap.label', default: 'ProviderMap'), params.id])}"
-            redirect(action: "list", params:[returnTo: params.returnTo])
+        } else{
+            response.setHeader("Content-type", "text/plain; charset=UTF-8")
+            render(message(code: "provider.group.controller.04", default: "You are not authorised to access this page."))
         }
     }
 }
