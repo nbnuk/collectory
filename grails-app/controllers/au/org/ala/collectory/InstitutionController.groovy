@@ -5,7 +5,7 @@ import grails.gorm.transactions.Transactional
 
 class InstitutionController extends ProviderGroupController {
 
-    def authService, activityLogService, providerGroupService
+    def authService
 
     InstitutionController() {
         entityName = "Institution"

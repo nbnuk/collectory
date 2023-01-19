@@ -4,8 +4,6 @@ class DataProviderController extends ProviderGroupController {
 
     def gbifRegistryService
     def authService
-    def activityLogService
-    def providerGroupService
 
     DataProviderController() {
         entityName = "DataProvider"

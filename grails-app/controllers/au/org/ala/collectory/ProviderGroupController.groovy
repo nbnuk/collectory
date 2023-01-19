@@ -857,8 +857,11 @@ abstract class ProviderGroupController {
             return true
         } else {
             def email = RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()?.name
-            if (email) {
-                return providerGroupService._get(uid)?.isAuthorised(email)
+            ProviderGroup pg = providerGroupService?._get(uid)
+            if (email && pg) {
+                if(pg){
+                    return pg.isAuthorised(email)
+                }
             }
         }
         return false
