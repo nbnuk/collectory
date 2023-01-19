@@ -24,10 +24,24 @@ class AdminRoleInterceptor {
 
     AdminRoleInterceptor(){
         match(controller: 'admin')
+        match(controller: 'manage')
+        match(controller: 'gbif', actionName:'healthCheck')
+        match(controller: 'gbif', actionName:'healthCheckLinked')
+        match(controller: 'gbif', actionName:'downloadCSV')
     }
 
     boolean before() {
-        // check roles using userInRoles.userInRole methods also returns true if user has the application configured ROLE_ADMIN.
+        // add an exception for /manage/  and /manage/index/ as it is redirected from  /admin/  - which should be visible to all logged in users.
+        if(controllerName == "manage" && (actionName == "index" || actionName == "list")){
+            return true
+        }
+
+        // check against configured gbifRegistrationRole for admin gbif methods
+        if(controllerName == "gbif" && collectoryAuthService?.userInRole(grailsApplication.config.gbifRegistrationRole)){
+            return true
+        }
+
+        // check roles using userInRoles.userInRole method. also returns true if user has the application configured ROLE_ADMIN.
         if (collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN)) {
             return true
         }
