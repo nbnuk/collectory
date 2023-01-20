@@ -8,7 +8,7 @@ import au.org.ala.collectory.resources.DarwinCoreFields
 
 class DataResourceController extends ProviderGroupController {
 
-    def metadataService, dataImportService, gbifRegistryService, authService, activityLogService, providerGroupService
+    def metadataService, dataImportService, gbifRegistryService, authService
 
     DataResourceController() {
         entityName = "DataResource"

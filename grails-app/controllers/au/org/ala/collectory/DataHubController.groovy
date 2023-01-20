@@ -2,8 +2,6 @@ package au.org.ala.collectory
 
 class DataHubController extends ProviderGroupController {
 
-    def activityLogService, providerGroupService
-
     DataHubController() {
         entityName = "DataHub"
         entityNameLower = "dataHub"
