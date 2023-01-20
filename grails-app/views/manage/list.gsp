@@ -41,8 +41,8 @@
                             <g:set var="username" value="${request.userPrincipal?.name}"/>
                             <g:if test="${username}">
                                 <p><g:message code="manage.list.username.des01" /> ${username}.</p>
-                                <p>User ${request.isUserInRole('ROLE_COLLECTION_ADMIN') ? 'has' : 'does not have'} ROLE_COLLECTION_ADMIN.</p>
-                                <p>User ${request.isUserInRole('ROLE_COLLECTION_EDITOR') ? 'has' : 'does not have'} ROLE_COLLECTION_EDITOR.</p>
+                                <p>User ${request.isUserInRole('ROLE_ADMIN') ? 'has' : 'does not have'} ROLE_ADMIN.</p>
+                                <p>User ${request.isUserInRole('ROLE_EDITOR') ? 'has' : 'does not have'} ROLE_EDITOR.</p>
                             </g:if>
                             <g:else>
                                 <p><g:message code="manage.list.des03" />.</p>
@@ -76,17 +76,17 @@
                         </table>
                     </g:if>
                     <g:else>
-                        <cl:ifGranted role="ROLE_COLLECTION_ADMIN">
+                        <cl:ifGranted role="ROLE_ADMIN">
                             <p><strong><em><g:message code="manage.list.des05" />.</em></strong></p>
                         </cl:ifGranted>
-                        <cl:ifNotGranted role="ROLE_COLLECTION_ADMIN">
+                        <cl:ifNotGranted role="ROLE_ADMIN">
                             <p style="font-style: italic;margin: 10px;color: black;"><g:message code="manage.list.des06" />.</p>
                         </cl:ifNotGranted>
 
-                        <cl:ifGranted role="ROLE_COLLECTION_EDITOR">
+                        <cl:ifGranted role="ROLE_EDITOR">
                             <p><g:message code="manage.list.des07" />.</p>
                         </cl:ifGranted>
-                        <cl:ifNotGranted role="ROLE_COLLECTION_EDITOR">
+                        <cl:ifNotGranted role="ROLE_EDITOR">
                             <p><g:message code="manage.list.des08" />
                             <span class="link" onclick="return sendEmail('support(SPAM_MAIL@ALA.ORG.AU)ala.org.au')"><g:message code="manage.list.des09" /></span>
                             <g:message code="manage.list.des10" />.</p>
@@ -109,16 +109,16 @@
                             <h4 class="ok"><g:message code="manage.list.title06" /></h4>
                             <p><g:message code="manage.list.des14" /> <em><cl:loggedInUsername/></em>.</p>
 
-                            <cl:ifGranted role="ROLE_COLLECTION_EDITOR">
+                            <cl:ifGranted role="ROLE_EDITOR">
                                 <h4 class="ok"><g:message code="manage.list.title07" /></h4>
                             </cl:ifGranted>
-                            <cl:ifNotGranted role="ROLE_COLLECTION_EDITOR">
+                            <cl:ifNotGranted role="ROLE_EDITOR">
                                 <h4 class="missing"><g:message code="manage.list.title08" />!</h4>
                                 <p><g:message code="manage.list.des15" /> <span class="link" onclick="return sendEmail('support(SPAM_MAIL@ALA.ORG.AU)ala.org.au')"><g:message code="manage.list.des16" /></span>
-                                <g:message code="manage.list.des17" /> ROLE_COLLECTION_EDITOR.</p>
+                                <g:message code="manage.list.des17" /> ROLE_EDITOR.</p>
                             </cl:ifNotGranted>
 
-                            <cl:ifGranted role="ROLE_COLLECTION_EDITOR">
+                            <cl:ifGranted role="ROLE_EDITOR">
                                 <g:if test="${!entities}">
                                     <h4 class="missing"><g:message code="manage.list.title09" />!</h4>
                                 </g:if>
@@ -126,7 +126,7 @@
                                     <h4 class="ok"><g:message code="manage.list.title10" args="[entities.size()]" />.</h4>
                                 </g:else>
                             </cl:ifGranted>
-                            <cl:ifNotGranted role="ROLE_COLLECTION_EDITOR">
+                            <cl:ifNotGranted role="ROLE_EDITOR">
                                 <h4><g:message code="manage.list.title11" />.</h4>
                             </cl:ifNotGranted>
                             <p><g:message code="manage.list.des18" />.</p>
@@ -143,7 +143,7 @@
                 </div>
 
                 <div id="addCollection" class="hidden infoSection">
-                    <cl:ifGranted role="ROLE_COLLECTION_EDITOR">
+                    <cl:ifGranted role="ROLE_EDITOR">
 
                         <h2><g:message code="manage.list.addcollection.title01" /></h2>
                         <p><g:message code="manage.list.addcollection.des01" />:</p>

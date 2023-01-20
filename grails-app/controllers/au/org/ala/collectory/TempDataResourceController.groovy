@@ -25,38 +25,6 @@ class TempDataResourceController {
 
     static allowedMethods = [save: "POST", update: "POST", delete: "POST"]
 
-    /** make sure that uid params point to an existing entity and json is parsable **/
-    def beforeInterceptor = this.&check
-
-    def check() {
-        def uid = params.uid
-        if (uid) {
-            // it must exist
-            def drt = TempDataResource.findByUid(uid)
-            if (drt) {
-                params.drt = drt
-            } else {
-                // doesn't exist
-                notFound "no entity with uid = ${uid}"
-                return false
-            }
-        }
-        // check payload
-        if (request.getContentLength() == 0) {
-            // no payload so return OK as entity exists (if specified)
-            success "no post body"
-            return false
-        }
-        try {
-            params.json = request.JSON
-        } catch (Exception e) {
-            println "exception caught ${e}"
-            if (request.getContentLength() > 0) {
-                badRequest 'cannot parse request body as JSON'
-                return false
-            }
-        }
-    }
 
     def unauthorised = {
         // using the 'forbidden' response code here as 401 causes the client to ask for a log in

@@ -1,5 +1,7 @@
 package au.org.ala.collectory
 
+
+
 class ContactController {
 
     static allowedMethods = [save: "POST", update: "POST", delete: "POST"]
@@ -13,15 +15,6 @@ class ContactController {
     def collectoryAuthService
     def activityLogService
     def providerGroupService
-
-    def auth() {
-        if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_EDITOR) && grailsApplication.config.security.oidc.enabled.toBoolean()) {
-            render "You are not authorised to access this page."
-            return false
-        }
-        return true
-    }
-
     /**
      End access control
      */
@@ -137,9 +130,9 @@ class ContactController {
      * MEW - modified to cascade delete all ContactFor links for the contact
      */
     def delete() {
-        def contactInstance = Contact.get(params.id)
-        if (contactInstance) {
-            if (collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN)) {
+        if (collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN)) {
+            def contactInstance = Contact.get(params.id)
+            if (contactInstance) {
                 try {
                     activityLogService.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), Action.DELETE, "contact ${contactInstance.buildName()}"
                     // need to delete any ContactFor links first
@@ -158,12 +151,12 @@ class ContactController {
                     redirect(action: "show", id: params.id)
                 }
             } else {
-                render "You are not authorised to access this page."
+                flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'contact.label', default: 'Contact'), params.id])}"
+                redirect(action: "list")
             }
-        }
-        else {
-            flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'contact.label', default: 'Contact'), params.id])}"
-            redirect(action: "list")
+        } else{
+            response.setHeader("Content-type", "text/plain; charset=UTF-8")
+            render(message(code: "provider.group.controller.04", default: "You are not authorised to access this page."))
         }
     }
 

@@ -33,13 +33,25 @@ class CollectoryWebServicesInterceptor {
 
     }
     boolean before() {
-        if (!collectoryAuthService.isAuthorisedWsRequest(params, request, response)) {
-            log.warn("Denying access to $actionName from remote addr: ${request.remoteAddr}, remote host: ${request.remoteHost}")
-            response.sendError(HttpStatus.SC_UNAUTHORIZED)
+        // set default role requirement for protected ROLE_EDITOR as the same info is only available to ROLE_EDITOR via the UI.
+        String[] requiredRoles = [grailsApplication.config.ROLE_EDITOR]
 
-            return false
+        // set gbifRegistrationRole role requirement for GBIF  operations
+        if(controllerName == 'gbif' || actionName == 'syncGBIF'){
+            requiredRoles = [grailsApplication.config.gbifRegistrationRole]
         }
-        return true
+
+        // set ROLE_ADMIN role requirement for certain controllers and actions as per admin UI
+        if( controllerName == 'ipt'){
+            requiredRoles = [grailsApplication.config.ROLE_ADMIN]
+        }
+
+        if (collectoryAuthService.isAuthorisedWsRequest(params, request, response, requiredRoles, null)) {
+            return true
+        }
+        log.warn("Denying access to $actionName from remote addr: ${request.remoteAddr}, remote host: ${request.remoteHost}")
+        response.sendError(HttpStatus.SC_UNAUTHORIZED)
+        return false
     }
 
     boolean after() { true }

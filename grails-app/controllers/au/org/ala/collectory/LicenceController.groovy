@@ -1,6 +1,7 @@
 package au.org.ala.collectory
 
 import au.org.ala.plugins.openapi.Path
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import grails.converters.JSON
 import io.swagger.v3.oas.annotations.Operation
@@ -19,6 +20,7 @@ import javax.ws.rs.Produces
  */
 class LicenceController {
 
+    def collectoryAuthService
     @Operation(
             method = "GET",
             tags = "licence",
@@ -143,23 +145,28 @@ class LicenceController {
     }
 
     def delete(Long id) {
-        def licenceInstance = Licence.get(id)
-        if (!licenceInstance) {
-            flash.message = message(code: 'default.not.found.message', args: [message(code: 'licence.label', default: 'Licence'), id])
-            redirect(action: "list")
-            return
-        }
-
-        try {
-            Licence.withTransaction {
-                licenceInstance.delete(flush: true)
+        if (collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN)) {
+            def licenceInstance = Licence.get(id)
+            if (!licenceInstance) {
+                flash.message = message(code: 'default.not.found.message', args: [message(code: 'licence.label', default: 'Licence'), id])
+                redirect(action: "list")
+                return
             }
-            flash.message = message(code: 'default.deleted.message', args: [message(code: 'licence.label', default: 'Licence'), id])
-            redirect(action: "list")
-        }
-        catch (DataIntegrityViolationException e) {
-            flash.message = message(code: 'default.not.deleted.message', args: [message(code: 'licence.label', default: 'Licence'), id])
-            redirect(action: "show", id: id)
+
+            try {
+                Licence.withTransaction {
+                    licenceInstance.delete(flush: true)
+                }
+                flash.message = message(code: 'default.deleted.message', args: [message(code: 'licence.label', default: 'Licence'), id])
+                redirect(action: "list")
+            }
+            catch (DataIntegrityViolationException e) {
+                flash.message = message(code: 'default.not.deleted.message', args: [message(code: 'licence.label', default: 'Licence'), id])
+                redirect(action: "show", id: id)
+            }
+        } else{
+            response.setHeader("Content-type", "text/plain; charset=UTF-8")
+            render(message(code: "provider.group.controller.04", default: "You are not authorised to access this page."))
         }
     }
 }

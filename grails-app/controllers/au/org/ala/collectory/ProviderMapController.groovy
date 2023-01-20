@@ -1,5 +1,6 @@
 package au.org.ala.collectory
 
+
 import grails.gorm.transactions.Transactional
 
 class ProviderMapController {
@@ -7,20 +8,13 @@ class ProviderMapController {
     static allowedMethods = [save: "POST", update: "POST", delete: "POST"]
 
     def collectoryAuthService
-/*
- * Access control
- *
- * All methods require EDITOR role.
- * Edit methods require ADMIN or the user to be an administrator for the entity.
- */
-    def beforeInterceptor = [action:this.&auth]
 
-    def auth() {
-        if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_EDITOR) && grailsApplication.config.security.oidc.enabled.toBoolean()) {
-            render "You are not authorised to access this page."
-            return false
-        }
-    }
+    /*
+     * Access control
+     *
+     * All methods require EDITOR role.
+     * Edit methods require ADMIN or the user to be an administrator for the entity.
+     */
 
     def index = {
         redirect(action: "list", params: params)
@@ -119,31 +113,35 @@ class ProviderMapController {
 
     @Transactional
     def delete () {
-        def providerMapInstance = ProviderMap.get(params.id)
-        if (providerMapInstance) {
-            if (providerMapInstance.collection.uid) {
-                try {
-                    // remove collection link
-                    providerMapInstance.collection?.providerMap = null
-                    // remove code links
-                    providerMapInstance.collectionCodes.removeAll(providerMapInstance.collectionCodes)
-                    providerMapInstance.institutionCodes.removeAll(providerMapInstance.institutionCodes)
-                    // remove map
-                    providerMapInstance.delete(flush: true)
-                    flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'providerMap.label', default: 'ProviderMap'), params.id])}"
-                    redirect(action: "list", params:[returnTo: params.returnTo])
-                }
-                catch (org.springframework.dao.DataIntegrityViolationException e) {
-                    flash.message = "${message(code: 'default.not.deleted.message', args: [message(code: 'providerMap.label', default: 'ProviderMap'), params.id])}"
-                    redirect(action: "show", id: params.id, params:[returnTo: params.returnTo])
+        if (collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN)) {
+            def providerMapInstance = ProviderMap.get(params.id)
+            if (providerMapInstance) {
+                if (providerMapInstance.collection.uid) {
+                    try {
+                        // remove collection link
+                        providerMapInstance.collection?.providerMap = null
+                        // remove code links
+                        providerMapInstance.collectionCodes.removeAll(providerMapInstance.collectionCodes)
+                        providerMapInstance.institutionCodes.removeAll(providerMapInstance.institutionCodes)
+                        // remove map
+                        providerMapInstance.delete(flush: true)
+                        flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'providerMap.label', default: 'ProviderMap'), params.id])}"
+                        redirect(action: "list", params: [returnTo: params.returnTo])
+                    }
+                    catch (org.springframework.dao.DataIntegrityViolationException e) {
+                        flash.message = "${message(code: 'default.not.deleted.message', args: [message(code: 'providerMap.label', default: 'ProviderMap'), params.id])}"
+                        redirect(action: "show", id: params.id, params: [returnTo: params.returnTo])
+                    }
+                } else {
+                    render "You are not authorised to access this page."
                 }
             } else {
-                render "You are not authorised to access this page."
+                flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'providerMap.label', default: 'ProviderMap'), params.id])}"
+                redirect(action: "list", params: [returnTo: params.returnTo])
             }
-        }
-        else {
-            flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'providerMap.label', default: 'ProviderMap'), params.id])}"
-            redirect(action: "list", params:[returnTo: params.returnTo])
+        } else{
+            response.setHeader("Content-type", "text/plain; charset=UTF-8")
+            render(message(code: "provider.group.controller.04", default: "You are not authorised to access this page."))
         }
     }
 }

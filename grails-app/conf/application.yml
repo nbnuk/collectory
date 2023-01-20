@@ -209,6 +209,7 @@ biocacheUiURL: https://biocache.ala.org.au
 isPipelinesCompatible: true
 
 ROLE_ADMIN: 'ROLE_ADMIN'
+ROLE_EDITOR: 'ROLE_EDITOR'
 
 rifcs:
     excludeBounds: true

@@ -150,7 +150,7 @@ class CollectoryAuthService{
 
 
 
-    def checkJWT(HttpServletRequest request, HttpServletResponse response, String role, String scope) {
+    def checkJWT(HttpServletRequest request, HttpServletResponse response, String[] requiredRoles, String[] requiredScopes) {
         def result = false
             def context = context(request, response)
             ProfileManager profileManager = new ProfileManager(context, config.sessionStore)
@@ -168,30 +168,25 @@ class CollectoryAuthService{
                     )
 
                     result = true
-                    if (role) {
-                        result = userProfile.roles.contains(role)
+                    if (result && requiredRoles) {
+                        def roles = userProfile.roles
+                        // check if the user profile has ROLE_ADMIN otherwise check their roles against required roles
+                        def hasAdminRole = roles.contains(grailsApplication.config.ROLE_ADMIN)
+                        result = hasAdminRole ?: requiredRoles.every() {
+                            // set true if the user has the required role or the configured ROLE_ADMIN
+                            roles.contains(it)
+                        }
                     }
 
-                    if (result && scope) {
-                        result = userProfile.permissions.contains(scope) || profileHasScope(userProfile, scope)
+                    if (result && requiredScopes) {
+                        def scope = userProfile.permissions //attributes['scope'] as List<String>
+                        result = requiredScopes.every {
+                            scope.contains(it)
+                        }
                     }
+
                 }
             }
-        return result
-    }
-
-    private static boolean profileHasScope(UserProfile userProfile, String scope) {
-        def scopes = userProfile.attributes['scope']
-        def result = false
-        if (scopes != null) {
-            if (scopes instanceof String) {
-                result = scopes.tokenize(',').contains(scope)
-            } else if (scopes.class.isArray()) {
-                result =scopes.any { it?.toString() == scope }
-            } else if (scopes instanceof Collection) {
-                result =scopes.any { it?.toString() == scope }
-            }
-        }
         return result
     }
 
@@ -200,10 +195,10 @@ class CollectoryAuthService{
         return context
     }
 
-    def isAuthorisedWsRequest(GrailsParameterMap params, HttpServletRequest request, HttpServletResponse response){
+    def isAuthorisedWsRequest(GrailsParameterMap params, HttpServletRequest request, HttpServletResponse response, String[] requiredRoles, String[] requiredScopes){
         Boolean authorised
         // check for JWT first
-        authorised = checkJWT(request, response, null, 'users/read')
+        authorised = checkJWT(request, response, requiredRoles, requiredScopes)
         // if still unauthorised, check for and attempt  to validate API key
         if(!authorised && grailsApplication.config.security.apikey.checkEnabled.toBoolean()){
             def apiKey = getApiKey(params, request)
