@@ -2,7 +2,7 @@
 grails:
     appName: collectory
     serverURL: http://dev.ala.org.au:8080
-    profile: web
+    profile: web-plugin
     codegen:
         defaultPackage: au.org.ala.collectory
     config:
