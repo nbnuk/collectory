@@ -6,6 +6,7 @@ import org.springframework.dao.DataIntegrityViolationException
 class ProviderCodeController {
 
     static allowedMethods = [save: "POST", update: "POST", delete: "POST"]
+    def collectoryAuthService
 
     def index() {
         redirect(action: "list", params: params)
@@ -87,6 +88,7 @@ class ProviderCodeController {
 
     @Transactional
     def delete(Long id) {
+        if (collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN)) {
         def providerCodeInstance = ProviderCode.get(id)
         if (!providerCodeInstance) {
             flash.message = message(code: 'default.not.found.message', args: [message(code: 'providerCode.label', default: 'ProviderCode'), id])
@@ -102,6 +104,10 @@ class ProviderCodeController {
         catch (DataIntegrityViolationException e) {
             flash.message = message(code: 'default.not.deleted.message', args: [message(code: 'providerCode.label', default: 'ProviderCode'), id])
             redirect(action: "show", id: id)
+        }
+        } else{
+            response.setHeader("Content-type", "text/plain; charset=UTF-8")
+            render(message(code: "provider.group.controller.04", default: "You are not authorised to access this page."))
         }
     }
 }

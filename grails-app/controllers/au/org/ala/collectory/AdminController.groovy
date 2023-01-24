@@ -1,20 +1,14 @@
 package au.org.ala.collectory
 
+
 import com.opencsv.CSVReader
 import grails.converters.JSON
 import grails.web.JSONBuilder
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
+
 class AdminController {
 
-    def dataLoaderService, idGeneratorService, collectoryAuthService, metadataService, activityLogService, providerGroupService
-
-    def auth() {
-        if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN) && grailsApplication.config.security.oidc.enabled.toBoolean()) {
-            render "You are not authorised to access this page."
-            return false
-        }
-        return true
-    }
+    def dataLoaderService, idGeneratorService, metadataService
 
     def index = {
         redirect(controller: 'manage')

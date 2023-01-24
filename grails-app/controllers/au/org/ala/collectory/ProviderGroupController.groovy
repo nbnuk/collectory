@@ -1,5 +1,6 @@
 package au.org.ala.collectory
 
+
 import grails.converters.JSON
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.web.context.request.RequestContextHolder
@@ -18,20 +19,19 @@ abstract class ProviderGroupController {
 
     def idGeneratorService, collectoryAuthService, metadataService, gbifService, dataImportService, providerGroupService, activityLogService
 
-    def auth() {
-        if (!collectoryAuthService?.userInRole(grailsApplication.config.ROLE_EDITOR) && grailsApplication.config.security.oidc.enabled.toBoolean()) {
-            response.setHeader("Content-type", "text/plain; charset=UTF-8")
-            render message(code: "provider.group.controller.01", default: "You are not authorised to access this page. You do not have 'Collection editor' rights.")
-            return false
-        }
-    }
+    /*
+     * Access control
+     *
+     * All methods require EDITOR role.
+     * Edit methods require ADMIN or the user to be an administrator for the entity.
+     */
 
     // helpers for subclasses
     protected username = {
         collectoryAuthService?.username() ?: 'unavailable'
     }
 
-    protected isAdmin = {
+    protected isAdmin () {
         collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN) ?: false
     }
     /*
@@ -853,12 +853,15 @@ abstract class ProviderGroupController {
     }
 
     protected boolean isAuthorisedToEdit(uid) {
-        if (!grailsApplication.config.security.oidc.enabled.toBoolean() || isAdmin()) {
+        if (isAdmin()) {
             return true
         } else {
             def email = RequestContextHolder.currentRequestAttributes()?.getUserPrincipal()?.name
-            if (email) {
-                return providerGroupService._get(uid)?.isAuthorised(email)
+            ProviderGroup pg = providerGroupService?._get(uid)
+            if (email && pg) {
+                if(pg){
+                    return pg.isAuthorised(email)
+                }
             }
         }
         return false

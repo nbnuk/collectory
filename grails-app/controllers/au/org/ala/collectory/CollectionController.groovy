@@ -9,8 +9,6 @@ import java.text.ParseException
 
 class CollectionController extends ProviderGroupController {
 
-    def activityLogService, providerGroupService
-
     CollectionController() {
         entityName = "Collection"
         entityNameLower = "collection"

@@ -80,7 +80,7 @@ class CollectoryTagLib {
     }
 
     /**
-     * <g:ifAllGranted role="ROLE_COLLECTION_EDITOR,ROLE_COLLECTION_ADMIN">
+     * <g:ifAllGranted role="ROLE_EDITOR,ROLE_ADMIN">
      *  All the listed roles must be granted for the tag to output its body.
      * </g:ifAllGranted>
      */
@@ -102,7 +102,7 @@ class CollectoryTagLib {
     }
 
     /**
-     * <cl:ifGranted role="ROLE_COLLECTION_ADMIN">
+     * <cl:ifGranted role="ROLE_ADMIN">
      *  The specified role must be granted for the tag to output its body.
      * </g:ifGranted>
      * @attr role the role to check
@@ -114,7 +114,7 @@ class CollectoryTagLib {
     }
 
     /**
-     * <cl:ifNotGranted role="ROLE_COLLECTION_ADMIN">
+     * <cl:ifNotGranted role="ROLE_ADMIN">
      *  The specified role must be missing for the tag to output its body.
      * </g:ifNotGranted>
      * @attr role the role to check
@@ -130,7 +130,7 @@ class CollectoryTagLib {
      */
     def roles = {
         def roles = []
-        ['ROLE_ADMIN','ROLE_COLLECTION_EDITOR','ROLE_COLLECTION_ADMIN'].each {
+        ['ROLE_ADMIN','ROLE_EDITOR'].each {
             if (collectoryAuthService.userInRole(it)) {
                 roles << it
             }
