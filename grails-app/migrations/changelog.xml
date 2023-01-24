@@ -27,7 +27,7 @@ liquibase.command.referencePassword: XXXXX
             </not>
         </preConditions>
         <comment>Initialize schema</comment>
-        <sqlFile path="initial.sql" relativeToChangelogFile="true" encoding="ISO-8859-1" stripComments="1" />
+        <sqlFile path="initial.sql" relativeToChangelogFile="false" encoding="ISO-8859-1" stripComments="1" />
     </changeSet>
     <changeSet author="ALA Dev Team" id="1647535601585-87">
         <preConditions onFail="MARK_RAN">

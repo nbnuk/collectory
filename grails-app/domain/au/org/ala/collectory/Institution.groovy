@@ -48,6 +48,7 @@ class Institution implements ProviderGroup, Serializable {
         collections(nullable:true)
         childInstitutions(nullable:true)
         gbifCountryToAttribute(nullable:true, maxSize: 3)
+        groupClassification(nullable:true, maxSize:256)
     }
 
     static transients = ['summary','mappable']
@@ -62,6 +63,7 @@ class Institution implements ProviderGroup, Serializable {
         notes type: "text"
         networkMembership type: "text"
         sort: 'name'
+        groupClassification type: "text"
     }
 
     /**

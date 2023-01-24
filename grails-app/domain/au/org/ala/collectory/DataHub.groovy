@@ -45,6 +45,7 @@ class DataHub implements ProviderGroup, Serializable {
         memberInstitutions(nullable:true, maxSize:4096)
         memberDataResources(nullable:true, maxSize:4096)
         members(nullable:true, maxSize:4096)
+        groupClassification(nullable:true, maxSize:256)
     }
 
     static mapping = {
@@ -60,6 +61,7 @@ class DataHub implements ProviderGroup, Serializable {
         memberInstitutions  type: "text"
         memberDataResources  type: "text"
         members  type: "text"
+        groupClassification type: "text"
     }
 
     static transients =  ['collectionMember', 'institutionMember', 'dataResourceMember']

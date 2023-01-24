@@ -21,9 +21,12 @@ class Contact implements Serializable {
     Date lastUpdated
     String userLastModified
 
+    static hasMany = [approvedAccess: ApprovedAccess]
+
     static auditable = [ignore: ['version','dateCreated','lastUpdated','userLastModified']]
 
     static constraints = {
+        userId(nullable: true, maxSize:45)
         title(nullable:true, maxSize: 20)
         firstName(nullable: true, maxSize: 255)
         lastName(nullable: true, maxSize: 255)
@@ -90,7 +93,7 @@ class Contact implements Serializable {
     }
 
     String buildName() {
-        if (lastName)
+        if (lastName || firstName)
             return [(title ?: ''), (firstName ?: ''), lastName].join(" ").trim()
         else if (email)
             return email
