@@ -49,6 +49,8 @@ class DataResource implements ProviderGroup, Serializable {
         dataCollectionProtocolDoc type: "text"
         suitableFor type: "text"
         suitableForOtherDetail type: "text"
+        keywords type: "text"
+        groupClassification type: "text"
     }
 
     String rights
@@ -168,6 +170,7 @@ class DataResource implements ProviderGroup, Serializable {
         dataCollectionProtocolDoc(nullable:true)
         suitableFor(nullable:true)
         suitableForOtherDetail(nullable:true)
+        groupClassification(nullable:true, maxSize:256)
     }
 
     static transients =  ['creativeCommons']
@@ -193,6 +196,8 @@ class DataResource implements ProviderGroup, Serializable {
         drs.dataProviderId = dataProvider?.id
         drs.dataProviderUid = dataProvider?.uid
         drs.downloadLimit = downloadLimit
+        drs.dateCreated = dateCreated
+        drs.lastUpdated = lastUpdated
 
         drs.hubMembership = listHubMembership().collect { [uid: it.uid, name: it.name] }
         def consumers = listConsumers()
@@ -356,5 +361,14 @@ class DataResource implements ProviderGroup, Serializable {
 
     String shortProviderName() {
         return shortProviderName(30)
+    }
+
+    //NBN additions
+    List listNetworkMembership() {
+        def list = []
+        if (dataProvider?.networkMembership) {
+            list = new JsonSlurper().parseText(dataProvider.networkMembership)
+        }
+        list
     }
 }

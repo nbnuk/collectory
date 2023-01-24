@@ -88,6 +88,7 @@ class Collection implements ProviderGroup, Serializable {
         taxonomyHints type: "text"
         notes type: "text"
         networkMembership type: "text"
+        groupClassification type: "text"
     }
 
     // based on TDWG Ontology - http://code.google.com/p/tdwg-ontology/source/browse/trunk/ontology/voc/CollectionType.rdf
@@ -164,6 +165,7 @@ class Collection implements ProviderGroup, Serializable {
         subCollections(nullable:true, maxSize:4096)
         providerMap(nullable:true)
         institution(nullable:true)
+        groupClassification(nullable:true, maxSize:256)
     }
 
     /**

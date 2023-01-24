@@ -7,7 +7,7 @@ class DataProvider implements ProviderGroup, Serializable {
 
     static auditable = [ignore: ['version','dateCreated','lastUpdated','userLastModified']]
 
-    static hasMany = [resources: DataResource]
+    static hasMany = [resources: DataResource, approvals: ApprovedAccess]
 
     String hiddenJSON // web service only (non-UI) JSON; used by fieldcapture to store project data
 
@@ -31,6 +31,7 @@ class DataProvider implements ProviderGroup, Serializable {
         taxonomyHints type: "text"
         notes type: "text"
         networkMembership type: "text"
+        groupClassification type: "text"
     }
 
     static constraints = {
@@ -87,6 +88,7 @@ class DataProvider implements ProviderGroup, Serializable {
         hiddenJSON(nullable:true, blank: false)
         keywords(nullable:true)
         gbifCountryToAttribute(nullable:true, maxSize: 3)
+        groupClassification(nullable:true, maxSize:256)
     }
 
     /**

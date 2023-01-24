@@ -70,6 +70,7 @@ trait ProviderGroup implements Serializable {
     String userLastModified
     String keywords             // json list of terms
     String gbifRegistryKey      // the entity identifier in the GBIF central registry (used for all GBIF.org API calls)
+    String groupClassification
 
     static embedded = ['address', 'logoRef', 'imageRef']
 
