@@ -14,6 +14,7 @@ class DataHub implements ProviderGroup, Serializable {
     String memberDataResources = '[]'      // json list of uids of member data resources
     String members = '[]'                  // non-overlapping json list of uids of member institutions and collections
                                            //  (suitable for identifying a unique list of occurrence records)
+    String groupClassification
 
     static constraints = {
         guid(nullable:true, maxSize:256)

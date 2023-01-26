@@ -59,6 +59,9 @@ class Collection implements ProviderGroup, Serializable {
 
     //TODO: add curatorialUnit - one of specimens, lots, cultures, samples, batches
 
+
+    String groupClassification  // the group classification of the collection - see group_classification vocab
+
     // the owning institution
     Institution institution
     static belongsTo = Institution

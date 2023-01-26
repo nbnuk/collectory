@@ -95,7 +95,7 @@
                       <li>
                         <g:link controller="public" action="show" id="${c.uid}">${fieldValue(bean: c, field: "name")}</g:link>
                         <g:if test="${!c.canBeMapped()}">
-%{-- TODO HMJ                         <img style="vertical-align:middle" src="${resource(dir:'images/map', file: grailsApplication.config.skin.orgNameShort == "ALA" ? 'nomap.gif' : 'noworldmap.png')}"/>--}%
+                         <img style="vertical-align:middle" src="${resource(dir:'images/map', file: grailsApplication.config.skin.orgNameShort == "ALA" ? 'nomap.gif' : 'noworldmap.png')}"/>
                         </g:if>
                       </li>
                     </g:each>

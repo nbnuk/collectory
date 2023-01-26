@@ -13,6 +13,8 @@ class Institution implements ProviderGroup, Serializable {
 
     String gbifCountryToAttribute      // the 3 digit iso code of the country to attribute in GBIF
 
+    String groupClassification
+
     // an institution may have many collections
     static hasMany = [collections: Collection]
 
