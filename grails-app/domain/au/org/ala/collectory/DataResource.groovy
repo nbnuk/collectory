@@ -103,6 +103,9 @@ class DataResource implements ProviderGroup, Serializable {
 
     String gbifDoi
 
+    //NBN
+    String groupClassification
+
     static constraints = {
         guid(nullable:true, maxSize:256)
         uid(blank:false, maxSize:20)

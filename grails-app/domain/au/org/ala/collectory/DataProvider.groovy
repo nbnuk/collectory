@@ -13,6 +13,8 @@ class DataProvider implements ProviderGroup, Serializable {
 
     String gbifCountryToAttribute      // the 3 digit iso code of the country to attribute in GBIF
 
+    String groupClassification
+
     static mapping = {
         uid index:'uid_idx'
         pubShortDescription type: "text"
