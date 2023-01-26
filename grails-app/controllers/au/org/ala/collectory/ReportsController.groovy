@@ -388,9 +388,11 @@ class ReportsController {
         }
 
         def countNotUnknown = { field ->
-            def query = "select count(*) from Collection as pg where pg.${field} <> -1"
+            def query = MessageFormat.format( "select count(*) from Collection as pg where pg.{0} <> -1", field)
+
             def answer = execQueryCollection(query)
             if (!answer) answer = 0
+
             return answer
         }
 
