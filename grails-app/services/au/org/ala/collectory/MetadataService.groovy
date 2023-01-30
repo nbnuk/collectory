@@ -79,7 +79,7 @@ class MetadataService {
 
     private loadConnectionMetadata() {
         def json = null;
-        def path = "/data/" + grailsApplication.config.grails.appName + "/config/connection-profiles.json";
+        def path =  grailsApplication.config.connectionProfilePath ?: "/data/" + grailsApplication.config.grails.appName + "/config/connection-profiles.json";
         //def path = "/data/ala-collectory/config/connection-profiles.json";
         log.info "Loading connection profiles and parameters from disk from path: " + path
         def pFile = new File(path)
