@@ -30,7 +30,7 @@ class ApprovedAccess implements Serializable {
 
     static findAllByContact(Contact contact) {
         def approvedList = []
-        ApprovedAccess.executeQuery("select aa.dataProvider, aa.dataResourceTaxa from ApprovedAccess aa where aa.contact.userId = ?",[contact.userId]).each {
+        ApprovedAccess.executeQuery("select aa.dataProvider, aa.dataResourceTaxa from ApprovedAccess aa where aa.contact.userId = ?0",[contact.userId]).each {
             approvedList << [dataProvider: it[0], dataResourceTaxa: it[1]]
         }
         approvedList
