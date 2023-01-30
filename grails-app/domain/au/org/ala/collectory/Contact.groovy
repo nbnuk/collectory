@@ -7,6 +7,7 @@ package au.org.ala.collectory
  */
 class Contact implements Serializable {
 
+    String userId // CAS user ID - this will be null for a lot contacts....
     String title            // the person's honorific eg Dr
     String firstName
     String lastName
