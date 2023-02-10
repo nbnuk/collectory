@@ -408,4 +408,20 @@ liquibase.command.referencePassword: XXXXX
         <dropNotNullConstraint columnDataType="decimal(13,10)" columnName="longitude" tableName="data_hub"/>
     </changeSet>
 
+    <changeSet author="vjrj" id="20230210-01">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(1) FROM sequence;</sqlCheck>
+        </preConditions>
+        <sql>
+            INSERT INTO `sequence` (id, version, name, next_id, prefix)
+            VALUES (1,0,'collection',0,'co'),
+                   (2,0,'institution',0,'in'),
+                   (3,0,'dataProvider',0,'dp'),
+                   (4,0,'dataResource',0,'dr'),
+                   (5,0,'dataHub',0,'dh'),
+                   (6,0,'attribution',0,'at'),
+                   (7,0,'tempDataResource',0,'drt');
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
