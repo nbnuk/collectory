@@ -6,15 +6,15 @@ buildscript {
     }
     dependencies {
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
-        classpath "org.grails.plugins:hibernate5:7.0.5"
-        classpath "gradle.plugin.com.github.erdi.webdriver-binaries:webdriver-binaries-gradle-plugin:2.0"
-        classpath "com.bertramlabs.plugins:asset-pipeline-gradle:3.3.2"
-        classpath 'org.grails.plugins:database-migration:3.1.0'
+        classpath "org.grails.plugins:hibernate5:${gormVersion}"
+        classpath "gradle.plugin.com.github.erdi.webdriver-binaries:webdriver-binaries-gradle-plugin:$webdriverBinariesVersion"
+        classpath "com.bertramlabs.plugins:asset-pipeline-gradle:3.4.6"
+        classpath 'org.grails.plugins:database-migration:4.0.0'
     }
 }
 
 plugins {
-    id "com.gorylenko.gradle-git-properties" version "2.4.0-rc2"
+    id "com.gorylenko.gradle-git-properties" version "2.4.1"
 }
 
 
@@ -31,12 +31,9 @@ apply plugin:"com.bertramlabs.asset-pipeline"
 apply plugin:"org.grails.grails-gsp"
 apply plugin:"maven-publish"
 
-bootJar {
-    enabled = true
-    classifier = 'exec'
-}
 
 publishing {
+    targetCompatibility = 1.11
     repositories {
         maven {
             name 'Nexus'
@@ -49,32 +46,13 @@ publishing {
     }
     publications {
         mavenJar(MavenPublication) {
-            pom.withXml {
-                def pomNode = asNode()
-                pomNode.dependencyManagement.replaceNode {}
-
-                // simply remove dependencies without a version
-                // version-less dependencies are handled with dependencyManagement
-                // see https://github.com/spring-gradle-plugins/dependency-management-plugin/issues/8 for more complete solutions
-                pomNode.dependencies.dependency.findAll {
-                    it.version.text().isEmpty()
-                }.each {
-                    it.replaceNode {}
-                }
-            }
-            from components.web
-//            if (bootJar && bootJar.enabled && bootJar.classifier) {
-//                def repackagedFile = file("$libsDir/$project.name-$project.version-${bootJar.classifier}.jar")
-//                if (repackagedFile.exists()) {
-//                    artifact(repackagedFile) {
-//                        classifier bootRepackage.classifier
-//                    }
-//                } else {
-//                    logger.quiet("Spring Boot repackage with classifier specified but file is not present!")
-//                }
-//            }
+            artifact bootWar
         }
     }
+}
+
+bootWar {
+    launchScript()
 }
 
 repositories {
@@ -100,90 +78,85 @@ sourceSets {
 
 dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools")
-    compile "org.springframework.boot:spring-boot-starter-logging"
-    compile "org.springframework.boot:spring-boot-autoconfigure"
-    compile "org.grails:grails-core"
-    compile "org.springframework.boot:spring-boot-starter-actuator"
-    compile "org.springframework.boot:spring-boot-starter-tomcat"
-    compile "org.grails:grails-web-boot"
-    compile "org.grails:grails-logging"
-    compile "org.grails:grails-plugin-rest"
-    compile "org.grails:grails-plugin-databinding"
-    compile "org.grails:grails-plugin-i18n"
-    compile "org.grails:grails-plugin-services"
-    compile "org.grails:grails-plugin-url-mappings"
-    compile "org.grails:grails-plugin-interceptors"
-    compile "org.grails.plugins:cache"
-    compile "org.grails.plugins:async"
-    compile "org.grails.plugins:scaffolding"
-    compile "org.grails.plugins:events"
-    compile "org.grails.plugins:hibernate5"
-    compile "org.hibernate:hibernate-core:5.4.18.Final"
-    compile "org.grails.plugins:gsp"
+    implementation "org.springframework.boot:spring-boot-starter-logging"
+    implementation "org.springframework.boot:spring-boot-autoconfigure"
+    implementation "org.grails:grails-core"
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
+    implementation "org.springframework.boot:spring-boot-starter-tomcat"
+    implementation "org.grails:grails-web-boot"
+    implementation "org.grails:grails-logging"
+    implementation "org.grails:grails-plugin-rest"
+    implementation "org.grails:grails-plugin-databinding"
+    implementation "org.grails:grails-plugin-i18n"
+    implementation "org.grails:grails-plugin-services"
+    implementation "org.grails:grails-plugin-url-mappings"
+    implementation "org.grails:grails-plugin-interceptors"
+    implementation "org.grails.plugins:cache"
+    implementation "org.grails.plugins:async"
+    implementation "org.grails.plugins:scaffolding"
+    implementation "org.grails.plugins:events"
+    implementation "org.grails.plugins:hibernate5"
+    implementation "org.hibernate:hibernate-core:5.4.18.Final"
+    implementation "org.grails.plugins:gsp"
 
-    compile "com.opencsv:opencsv:3.7"
-    compile "io.micronaut:micronaut-http-client"
+    implementation "com.opencsv:opencsv:3.7"
+    implementation "io.micronaut:micronaut-http-client"
     compileOnly "io.micronaut:micronaut-inject-groovy"
-    compile "org.apache.httpcomponents:httpclient:4.5.13"
-    compile "commons-io:commons-io:2.11.0"
+    implementation "org.apache.httpcomponents:httpclient:4.5.13"
+    implementation "commons-io:commons-io:2.11.0"
 
     // See: https://github.com/AtlasOfLivingAustralia/collectory/issues/84#issuecomment-1070670979
     // before updating mysql-connector-java
-    compile "mysql:mysql-connector-java:8.0.22"
-    compile "org.grails.plugins:ala-bootstrap3:4.1.0"
-    compile "au.org.ala.plugins.grails:ala-charts-plugin:2.1.2"
-    compile "org.grails.plugins:ala-auth:5.1.1"
-    compile "org.grails.plugins:ala-ws-security-plugin:4.1.2"
-    compile "org.grails.plugins:ala-ws-plugin:3.1.1"
-    compile "org.grails.plugins:audit-logging:4.0.3"
-    compile "org.grails.plugins:external-config:2.0.0"
-    compile "org.grails.plugins:ala-admin-plugin:2.3.0"
-    compile 'au.org.ala.plugins:openapi:1.1.0'
+    implementation "mysql:mysql-connector-java:8.0.22"
+    implementation "org.grails.plugins:ala-bootstrap3:4.1.0"
+    implementation "au.org.ala.plugins.grails:ala-charts-plugin:2.1.2"
+    implementation "org.grails.plugins:ala-auth:5.2.0-SNAPSHOT"
+    implementation "org.grails.plugins:ala-ws-security-plugin:4.4.0-SNAPSHOT"
+    implementation "org.grails.plugins:ala-ws-plugin:3.1.2"
+    implementation "org.grails.plugins:audit-logging:4.0.3"
+    implementation 'dk.glasius:external-config:3.1.1'
+    implementation "org.grails.plugins:ala-admin-plugin:2.3.0"
+    implementation 'au.org.ala.plugins:openapi:1.1.0'
 
     console "org.grails:grails-console"
     profile "org.grails.profiles:web"
-    runtime "org.glassfish.web:el-impl:2.1.2-b03"
-    runtime "com.h2database:h2"
-    runtime "org.apache.tomcat:tomcat-jdbc"
-    runtime "javax.xml.bind:jaxb-api:2.3.1"
-    runtime "com.bertramlabs.plugins:asset-pipeline-grails:3.2.4"
-    testCompile "io.micronaut:micronaut-inject-groovy"
-    testCompile "org.grails:grails-gorm-testing-support"
-    testCompile "org.mockito:mockito-core"
-    testCompile "org.grails:grails-web-testing-support"
-    testCompile "org.grails.plugins:geb"
-    testCompile "org.seleniumhq.selenium:selenium-remote-driver:3.141.59"
-    testCompile "org.seleniumhq.selenium:selenium-api:3.141.59"
-    testCompile "org.seleniumhq.selenium:selenium-support:3.141.59"
-    testRuntime "org.seleniumhq.selenium:selenium-chrome-driver:3.141.59"
-    testRuntime "org.seleniumhq.selenium:selenium-firefox-driver:3.141.59"
-    compile 'org.grails.plugins:sentry:11.7.25'
-    // In newer versions use 'implementation'
-    compile 'org.liquibase:liquibase-core:3.10.3'
-    compile "org.grails.plugins:database-migration:3.1.0"
+    runtimeOnly "org.glassfish.web:el-impl:2.1.2-b03"
+    runtimeOnly "com.h2database:h2"
+    runtimeOnly "org.apache.tomcat:tomcat-jdbc"
+    runtimeOnly "javax.xml.bind:jaxb-api:2.3.1"
+    runtimeOnly "com.bertramlabs.plugins:asset-pipeline-grails:3.4.6"
+    testImplementation "io.micronaut:micronaut-inject-groovy"
+    testImplementation "org.grails:grails-gorm-testing-support"
+    testImplementation "org.mockito:mockito-core"
+    testImplementation "org.grails:grails-web-testing-support"
+    testImplementation "org.grails.plugins:geb"
+    testImplementation "org.seleniumhq.selenium:selenium-remote-driver:$seleniumVersion"
+    testImplementation "org.seleniumhq.selenium:selenium-api:$seleniumVersion"
+    testImplementation "org.seleniumhq.selenium:selenium-support:$seleniumVersion"
+    runtimeOnly "net.sourceforge.htmlunit:htmlunit:2.18"
+    testImplementation "org.seleniumhq.selenium:selenium-htmlunit-driver:2.47.1"
+    testImplementation "org.seleniumhq.selenium:selenium-chrome-driver:$seleniumVersion"
+    testImplementation "org.seleniumhq.selenium:selenium-firefox-driver:$seleniumVersion"
+    testImplementation "org.seleniumhq.selenium:selenium-safari-driver:$seleniumSafariDriverVersion"
+    implementation 'org.grails.plugins:sentry:11.7.25'
+    // db-migration
+    implementation 'org.liquibase:liquibase-core:4.19.0'
+    implementation('org.grails.plugins:database-migration:4.2.0') {
+        // spring-boot-cli exclusion required since Grails5 upgrade to prevent NullPointerException Error:  https://github.com/grails/grails-database-migration/issues/268
+        exclude module: 'spring-boot-cli'
+    }
 }
 
 bootRun {
     ignoreExitValue true
     jvmArgs(
-        '-Dspring.output.ansi.enabled=always',
-        '-noverify',
-        '-XX:TieredStopAtLevel=1',
-        '-Xmx1024m')
+            '-Dspring.output.ansi.enabled=always',
+            '-noverify',
+            '-XX:TieredStopAtLevel=1',
+            '-Xmx2048m')
     sourceResources sourceSets.main
     String springProfilesActive = 'spring.profiles.active'
     systemProperty springProfilesActive, System.getProperty(springProfilesActive)
-}
-
-tasks.withType(GroovyCompile) {
-    configure(groovyOptions) {
-        forkOptions.jvmArgs = ['-Xmx1024m']
-    }
-}
-
-webdriverBinaries {
-    chromedriver '2.45.0'
-    geckodriver '0.24.0'
 }
 
 tasks.withType(Test) {
@@ -193,14 +166,17 @@ tasks.withType(Test) {
     systemProperty "webdriver.gecko.driver", System.getProperty('webdriver.gecko.driver')
 }
 
+webdriverBinaries {
+    chromedriver "$chromeDriverVersion"
+    geckodriver "$geckodriverVersion"
+}
 
 assets {
     minifyJs = true
     minifyCss = true
 }
 
-springBoot {
-    buildInfo()
+test {
+    testLogging.showStandardStreams = true
 }
-
 
