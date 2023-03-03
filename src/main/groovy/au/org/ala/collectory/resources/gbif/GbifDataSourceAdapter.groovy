@@ -8,18 +8,14 @@ import au.org.ala.collectory.exception.ExternalResourceException
 import au.org.ala.collectory.resources.DataSourceAdapter
 import au.org.ala.collectory.resources.TaskPhase
 import au.org.ala.collectory.GbifService
-import grails.converters.JSON
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
-import io.micronaut.core.convert.ConversionService
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.client.HttpClient
-import io.reactivex.Flowable
+import io.reactivex.rxjava3.core.Flowable
 import org.apache.commons.io.FileUtils
-import org.apache.commons.io.IOUtils
 import org.grails.web.json.JSONObject
-import org.reactivestreams.Publisher
 import org.slf4j.LoggerFactory
 
 import java.text.DateFormat
@@ -250,7 +246,7 @@ class GbifDataSourceAdapter extends DataSourceAdapter {
         }
 
         HttpClient http = HttpClient.create(url)
-        Flowable<HttpResponse<String>> call = http.exchange(httpRequest, String.class)
+        Flowable<HttpResponse<String>> call = http.exchange(httpRequest, String.class) as Flowable<HttpResponse<String>>
         HttpResponse<String> response =  call.blockingFirst();
         Optional<String> message = response.getBody(String.class);
 

@@ -1,5 +1,7 @@
 package au.org.ala.collectory
 import groovy.sql.Sql
+import org.springframework.transaction.annotation.Propagation
+
 import javax.sql.DataSource
 import groovy.sql.GroovyRowResult
 import org.springframework.transaction.annotation.Transactional
@@ -7,9 +9,9 @@ import org.springframework.transaction.annotation.Transactional
 class IdGeneratorService implements Serializable {
 
     static transactional = true
-    javax.sql.DataSource dataSource
+    DataSource dataSource
 
-    public enum IdType {
+    enum IdType {
         collection('co'),
         institution('in'),
         dataProvider('dp'),
@@ -19,20 +21,21 @@ class IdGeneratorService implements Serializable {
         tempDataResource('drt')
 
         public String prefix
-        public IdType(prefix) {
+
+        IdType(prefix) {
             this.prefix = prefix
         }
 
-        public static IdType lookup(pf) {
-            return IdType.values().find {it.prefix == pf} as IdType
+        static IdType lookup(pf) {
+            return values().find {it.prefix == pf} as IdType
         }
 
-        public getIndex() {
+        def getIndex() {
             return ordinal() + 1
         }
     };
 
-    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     def getNextId(IdType type) {
         def sql = new Sql(dataSource)
         def id = type.getIndex()
