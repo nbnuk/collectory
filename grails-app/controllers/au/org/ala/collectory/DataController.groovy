@@ -449,7 +449,7 @@ class DataController {
                 def entityInJson
                 if (clazz == 'DataResource') {
                     // this auth check (JWT or API key) is a special case handling to support backwards compatibility(which used to check for API key).
-                    String [] requiredRoles = [grailsApplication.config.ROLE_ADMIN]
+                    String requiredRoles = grailsApplication.config.ROLE_ADMIN
                     def authCheck = collectoryAuthService.isAuthorisedWsRequest(getParams(), request, response, requiredRoles,null)
                     entityInJson = crudService."read${clazz}"(params.pg, authCheck)
                 } else {

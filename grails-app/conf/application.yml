@@ -151,7 +151,7 @@ security:
         checkEnabled: true
         enabled: true
         auth:
-            serviceUrl: https://auth-test.ala.org.au/apikey/ws/check/
+            serviceUrl: https://auth-test.ala.org.au/apikey/
         check:
             serviceUrl: https://auth-test.ala.org.au/apikey/ws/check?apikey=
         userdetails:
