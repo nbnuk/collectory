@@ -500,7 +500,7 @@ class DataController {
 
         // suppress 'declined' data resources
         if (urlForm == 'dataResource' && params.public == "true") {
-            list = list.findAll { it.status != 'declined' }
+            list = list.findAll { it.status != 'declined' && it.isPrivate == false }
         }
 
         // init results with total
