@@ -464,6 +464,9 @@ class PublicController {
         else if (instance.status == "declined") {
             render "This resource has decided to not contribute to the Atlas."
         }
+        else if (instance.isPrivate) {
+            render "This resource is private."
+        }
         else {
             def suitableFor = providerGroupService.getSuitableFor()
             activityLogService.log collectoryAuthService?.username(), collectoryAuthService?.userInRole(grailsApplication.config.ROLE_ADMIN), instance.uid, Action.VIEW
@@ -527,7 +530,7 @@ class PublicController {
     def dataSets = {}
 
     def dataSetSearch = {
-        def drs = DataResource.findAllByNameLikeAndStatusNotEqual('%' + params.q + '%', 'declined').collect {
+        def drs = DataResource.findAllByNameLikeAndStatusNotEqualAndIsPrivate('%' + params.q + '%', 'declined', false).collect {
            it.uid
         }
         render drs as JSON
@@ -535,7 +538,7 @@ class PublicController {
 
     def resources = {
         cache shared:true, validFor: 3600*24
-        def drs = DataResource.findAllByStatusNotEqual('declined', [sort:'name']).collect {
+        def drs = DataResource.findAllByStatusNotEqualAndIsPrivate('declined', false, [sort:'name']).collect {
         //def drs = DataResource.list([sort:'name']).collect {
             def pdesc = it.pubDescription ? cl.formattedText(dummy:'1',limit(it.pubDescription,1000)) : ""
             def tdesc = it.techDescription ? cl.formattedText(dummy:'1',limit(it.techDescription,1000)) : ""
@@ -551,13 +554,13 @@ class PublicController {
     }
 
     def condensed = {
-        def drs = DataResource.findAllByStatusNotEqual('declined',  [sort:'name'] ).collect {
+        def drs = DataResource.findAllByStatusNotEqualAndIsPrivate('declined', false, [sort:'name'] ).collect {
             //def drs = DataResource.list([sort:'name']).collect {
             def inst = it.institution
             def instName = (inst && inst.name.size() > 36 && inst.acronym) ? inst.acronym : inst?.name
             [name: it.name, resourceType: it.resourceType, licenseType: it.licenseType,
              uid: it.uid, status: it.status, websiteUrl: it.websiteUrl, contentTypes: it.contentTypes,
-             institution: instName]
+             institution: instName, lastUpdated: it.lastUpdated]
         }
         render drs as JSON
     }

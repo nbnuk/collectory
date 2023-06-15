@@ -7,6 +7,9 @@
     <meta name="breadcrumbParent"
           content="${createLink(action: 'datasets', controller: 'public')},${message(code: 'breadcrumb.datasets')}"
     />
+    <meta name="breadcrumbs"
+          content="${createLink(action: 'datasets', controller: 'public')}#filters=resourceType:${instance.resourceType},${message(code: 'resourceType.' + instance.resourceType + '.list')}"
+    />
     <title>${fieldValue(bean: instance, field: "name")}</title>
     <script type="text/javascript">
         var COLLECTORY_CONF = {
@@ -42,7 +45,7 @@
             <div class="tabbable">
                 <ul class="nav nav-tabs" id="home-tabs">
                     <li class="active"><a href="#basicMetadata" data-toggle="tab"><g:message code="show.tab.metadata" /></a></li>
-                    <g:if test="${instance.resourceType=='records'}">
+                    <g:if test="${instance.resourceType=='records' || instance.resourceType=='events'}">
                         <li><a href="#usage-stats" data-toggle="tab"><g:message code="show.tab.usage.stats" /></a></li>
                         <li><a href="#metrics" data-toggle="tab"><g:message code="show.tab.metrics" /></a></li>
                     </g:if>
@@ -51,6 +54,12 @@
 
             <div class="tab-content">
                 <div id="basicMetadata" class="tab-pane active">
+
+                    <h3 class="dataResourceProviderLink">Dataset type</h3>
+                    <p>
+                        <g:message code="resourceType.${instance.resourceType}.description" default="${instance.resourceType}" />
+                    </p>
+
                     <g:if test="${instance.pubDescription || instance.techDescription || instance.focus}">
                         <h3><g:message code="public.des" /></h3>
                     </g:if>
@@ -138,7 +147,7 @@
                             <cl:dataCurrency date="${instance.dataCurrency}"/></p>
                     </g:if>
 
-                    <g:if test="${instance.resourceType == 'records'}">
+                    <g:if test="${instance.resourceType == 'records' || instance.resourceType=='events'}">
                         <h2><g:message code="public.sdr.content.label09" /></h2>
                         <div>
                             <p><span
@@ -155,7 +164,7 @@
                     <cl:lastUpdated date="${instance.lastUpdated}"/>
                 </div>
 
-                <g:if test="${!grailsApplication.config.disableLoggerLinks.toBoolean() && (instance.resourceType == 'website' || instance.resourceType == 'records')}">
+                <g:if test="${!grailsApplication.config.disableLoggerLinks.toBoolean() && (instance.resourceType == 'website' || instance.resourceType == 'records'  || instance.resourceType=='events')}">
                     <div id="usage-stats" class="tab-pane">
                         <div id='usage'>
                             <p><g:message code="public.usage.des" />...</p>
@@ -166,7 +175,7 @@
                     </div>
                 </g:if>
 
-                <g:if test="${instance.resourceType == 'records'}">
+                <g:if test="${instance.resourceType == 'records' || instance.resourceType=='events' || instance.resourceType=='publications'}">
                     <div id="metrics" class="section vertical-charts tab-pane">
                         <div id="charts"></div>
                     </div>
@@ -186,6 +195,10 @@
                 <img class="institutionImage" src='${resource(absolute:"true", dir:"data/dataResource/",file:instance.logoRef.file)}' />
             </g:elseif>
 
+            <section class="public-metadata">
+                <h3><g:message code="resourceType.${instance.resourceType}" default="${instance.resourceType}"/></h3>
+            </section>
+
             <g:if test="${fieldValue(bean: instance, field: 'imageRef') && fieldValue(bean: instance, field: 'imageRef.file')}">
                 <section>
                     <img alt="${fieldValue(bean: instance, field: "imageRef.file")}"
@@ -197,6 +210,10 @@
                     <cl:valueOrOtherwise value="${instance.imageRef?.copyright}"><p
                             class="caption">${fieldValue(bean: instance, field: "imageRef.copyright")}</p></cl:valueOrOtherwise>
                 </section>
+            </g:if>
+
+            <g:if test="${instance.resourceType == "publications"}">
+                <g:render template="dataLinks" model="[instance:instance]"/>
             </g:if>
 
             <div id="dataAccessWrapper" style="display:none;">
@@ -229,7 +246,7 @@
             <g:if test="${instance.licenseType}">
                 <section class="public-metadata">
                 <h4><g:message code="public.license" default="Licence" /></h4>
-                <p><cl:displayLicenseType type="${instance.licenseType}" version="${instance.licenseVersion}"/></p>
+                <p style="margin-top: 10px; margin-bottom:10px;"><cl:displayLicenseType type="${instance.licenseType}" version="${instance.licenseVersion}"/></p>
                 </section>
             </g:if>
 
@@ -294,6 +311,15 @@
                     </div>
                 </section>
             </g:if>
+            <g:elseif test="${instance.resourceType == 'publications'}">
+                <section class="public-metadata">
+                    <h4><g:message code="public.website" /></h4>
+                    <div class="webSite">
+                        <a class='external_icon' target="_blank"
+                           href="${instance.websiteUrl}"><g:message code="public.sdr.content.link05" /></a>
+                    </div>
+                </section>
+            </g:elseif>
             <g:elseif test="${instance.websiteUrl}">
                 <section class="public-metadata">
                     <h4><g:message code="public.website" /></h4>
@@ -355,7 +381,13 @@
                   }
                 }
             </asset:script>
-            <g:render template="charts" model="[facet:'data_resource_uid', instance: instance]" />
+
+            <g:if test="${instance.resourceType == 'records' || instance.resourceType == 'events'}">
+                 <g:render template="charts" model="[facet:'dataResourceUid', instance: instance]" />
+            </g:if>
+            <g:if test="${instance.resourceType == 'publications'}">
+                <g:render template="charts" model="[facet:'annotationsUid', instance: instance]" />
+            </g:if>
     </div>
 </div>
 

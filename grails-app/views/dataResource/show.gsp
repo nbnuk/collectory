@@ -34,7 +34,9 @@
                 <li class="btn btn-default"><span class="glyphicon glyphicon-plus"></span><g:link class="create" action="create"> <g:message code="default.new.label" args="[entityName]"/></g:link></li>
             </ul>
             <ul class="btn-group pull-right">
-                <li class="btn btn-default"><cl:viewPublicLink uid="${instance?.uid}"/></li>
+                <g:if test="${!instance?.isPrivate}">
+                    <li class="btn btn-default"><cl:viewPublicLink uid="${instance?.uid}"/></li>
+                </g:if>
                 <li class="btn btn-default"><cl:jsonSummaryLink uid="${instance.uid}"/></li>
                 <li class="btn btn-default"><cl:jsonDataLink uid="${instance.uid}"/></li>
                 <li class="btn btn-default"><cl:emlDataLink uid="${instance.uid}"/></li>
@@ -75,6 +77,10 @@
 
                 <!-- type -->
                 <p><span class="category"><g:message code="dataresource.show.resourcetype" />: </span> ${fieldValue(bean: instance, field: "resourceType")}</p>
+
+                <!-- is private -->
+                <p><span class="category"><g:message code="dataresource.show.isprivate" />: </span> ${fieldValue(bean: instance, field: "isPrivate")}</p>
+
 
                 <!-- Web site -->
                 <p><span class="category"><g:message code="dataresource.show.website" />: </span> <cl:externalLink href="${fieldValue(bean:instance, field:'websiteUrl')}"/></p>
