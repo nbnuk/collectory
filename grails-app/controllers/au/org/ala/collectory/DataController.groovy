@@ -1103,7 +1103,7 @@ class DataController {
             if (it.contact.publish) {
                 buildContactForModel(it, params.pg.urlForm())
             }
-        }
+        }.findAll { it != null }
         addContentLocation "/ws/${params.entity}/${params.pg.uid}/contacts"
         addVaryAcceptHeader()
         withFormat {
