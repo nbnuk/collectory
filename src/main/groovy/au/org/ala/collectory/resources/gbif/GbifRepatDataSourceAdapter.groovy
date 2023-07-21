@@ -30,7 +30,7 @@ class GbifRepatDataSourceAdapter extends GbifDataSourceAdapter {
 
         LOGGER.info("Requesting dataset lists configuration.country: ${configuration.country}")
         String url = MessageFormat.format(OCCURRENCE_REPAT_SEARCH, configuration.country, configuration.recordType)
-        JSONObject json = getJSONWS(url)
+        JSONObject json = getJSONWS(url, false)
         if (json?.facets) {
             json.facets[0].counts.each {
                 keys << it.name
