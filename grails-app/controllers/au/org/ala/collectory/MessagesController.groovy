@@ -1,5 +1,7 @@
 package au.org.ala.collectory
 
+import org.springframework.web.servlet.support.RequestContextUtils
+
 class MessagesController {
 
     def messageSource
@@ -13,7 +15,7 @@ class MessagesController {
      * @return
      */
     def i18n(String id) {
-        def locale = org.springframework.web.servlet.support.RequestContextUtils.getLocale(request) ?: request.locale
+        def locale = RequestContextUtils.getLocale(request) ?: request.locale
         def keys = messageSource.withTraits(MessagePropertiesTrait).getMessageKeys(locale)
         response.setHeader("Content-type", "text/plain; charset=UTF-8")
         def messages = keys.collect { "${it.key}=${it.value}" }

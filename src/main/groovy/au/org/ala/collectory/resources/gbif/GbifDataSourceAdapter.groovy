@@ -8,18 +8,10 @@ import au.org.ala.collectory.exception.ExternalResourceException
 import au.org.ala.collectory.resources.DataSourceAdapter
 import au.org.ala.collectory.resources.TaskPhase
 import au.org.ala.collectory.GbifService
-import grails.converters.JSON
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
-import io.micronaut.core.convert.ConversionService
-import io.micronaut.http.HttpRequest
-import io.micronaut.http.HttpResponse
-import io.micronaut.http.client.HttpClient
-import io.reactivex.Flowable
 import org.apache.commons.io.FileUtils
-import org.apache.commons.io.IOUtils
 import org.grails.web.json.JSONObject
-import org.reactivestreams.Publisher
 import org.slf4j.LoggerFactory
 
 import java.text.DateFormat
@@ -182,7 +174,7 @@ class GbifDataSourceAdapter extends DataSourceAdapter {
 
     @Override
     Map getDataset(String id) throws ExternalResourceException {
-        JSONObject json = getJSONWS(DATASET_GET.format([id ].toArray()))
+        JSONObject json = getJSONWS(DATASET_GET.format([id ].toArray()), false)
         return json ? translate(json) : null
     }
 
@@ -241,23 +233,30 @@ class GbifDataSourceAdapter extends DataSourceAdapter {
      *
      * @return A JSON response
      */
-    def getJSONWS(String path) throws ExternalResourceException {
+    def getJSONWS(String path, boolean authRequired = true) throws ExternalResourceException {
 
         def url = new URL(configuration.endpoint, path)
-        def httpRequest = HttpRequest.GET(url.toURI())
-        if (configuration.username) {
-            httpRequest.basicAuth(configuration.username, configuration.password)
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection()
+        connection.setRequestMethod("GET")
+
+        // Add HTTP Basic Authentication header
+        if (authRequired) {
+            String authString = "${configuration.username}:${configuration.password}"
+            String encodedAuthString = "Basic " + authString.bytes.encodeBase64().toString()
+            connection.setRequestProperty("Authorization", encodedAuthString)
         }
 
-        HttpClient http = HttpClient.create(url)
-        Flowable<HttpResponse<String>> call = http.exchange(httpRequest, String.class)
-        HttpResponse<String> response =  call.blockingFirst();
-        Optional<String> message = response.getBody(String.class);
-
-        if (message.isPresent()){
-            new JsonSlurper().parseText(message.get())
+        // Check for a successful response code (200 OK)
+        if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+            def response = new StringBuffer()
+            connection.inputStream.withReader { reader ->
+                response << reader.getText()
+            }
+            // Parse JSON response
+            return new JsonSlurper().parseText(response.toString())
         } else {
-            throw new ExternalResourceException("Unable to get ${http.uri} response ${resp.statusLine}", "manage.note.note10", http.uri, resp.statusLine)
+            // Handle error response (if needed)
+            throw new ExternalResourceException("Unable to get ${url.toString()} response ${connection.responseCode }", "manage.note.note10", url.toString(), connection.responseCode )
         }
     }
 
@@ -270,22 +269,24 @@ class GbifDataSourceAdapter extends DataSourceAdapter {
     @Override
     boolean isDataAvailableForResource(String guid) throws ExternalResourceException {
         def url = new URL(configuration.endpoint, DATASET_RECORD_COUNT.format([guid].toArray()))
-        def httpRequest = HttpRequest.GET(url.toURI())
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection()
+        connection.setRequestMethod("GET")
 
-        if (configuration.username) {
-            httpRequest.basicAuth(configuration.username, configuration.password)
-        }
+        String authString = "${configuration.username}:${configuration.password}"
+        String encodedAuthString = "Basic " + authString.bytes.encodeBase64().toString()
+        connection.setRequestProperty("Authorization", encodedAuthString)
 
-        HttpClient http = HttpClient.create(url)
-        Flowable<HttpResponse<String>> call = http.exchange(httpRequest, String.class)
-        HttpResponse<String> response =  call.blockingFirst();
-        Optional<String> message = response.getBody(String.class);
-
-        if (message.isPresent()){
-            def count = message.get()
-            return count && count.toInteger() > 0
+        // Check for a successful response code (200 OK)
+        if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+            def response = new StringBuffer()
+            connection.inputStream.withReader { reader ->
+                response << reader.getText()
+            }
+            // Parse response
+            return response && response.length() > 0 && response.toInteger() > 0
         } else {
-            throw new ExternalResourceException("Unable check for data", "manage.note.note11", guid, response.getStatus().toString())
+            // Handle error response (if needed)
+            throw new ExternalResourceException("Unable check for data", "manage.note.note11", guid, connection.responseCode)
         }
     }
 

@@ -44,6 +44,10 @@
                 </div>
                 <g:if test="${command.ENTITY_TYPE == 'DataResource'}">
                     <div class="form-group">
+                        <label for="isPrivate"><g:message code="collection.isPrivate.label" default="isPrivate"/></label>
+                        <g:checkBox name="isPrivate" value="${command?.isPrivate}"/>
+                    </div>
+                    <div class="form-group">
                         <label for="gbifDoi"><g:message code="collection.gbifDoi.label" default="DOI"/></label>
                         <g:textField name="gbifDoi" class="form-control" maxlength="45" value="${command?.gbifDoi}" />
                     </div>

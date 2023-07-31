@@ -109,7 +109,7 @@ projectName: Atlas of Living Australia
 regionName: Australia
 uploadFilePath: /data/collectory/upload
 uploadExternalUrlPath: http://localhost/upload
-gbifApiUrl: 'http://api.gbif.org/v1/'
+gbifApiUrl: 'https://api.gbif.org/v1/'
 gbifUniqueKeyTerm: "http://rs.gbif.org/terms/1.0/gbifID"
 
 gbif:
@@ -149,8 +149,13 @@ headerAndFooter:
 security:
     apikey:
         checkEnabled: true
+        enabled: true
+        auth:
+            serviceUrl: https://auth-test.ala.org.au/apikey/
         check:
             serviceUrl: https://auth-test.ala.org.au/apikey/ws/check?apikey=
+        userdetails:
+            serviceUrl: https://auth-test.ala.org.au/userdetails/userDetails/
     cas:
         casServerName: https://auth-test.ala.org.au
         uriFilterPattern:
@@ -207,6 +212,8 @@ disableLoggerLinks: false
 biocacheServicesUrl: https://biocache.ala.org.au/ws
 biocacheUiURL: https://biocache.ala.org.au
 isPipelinesCompatible: true
+showExtraInfoInDataSetsView.enabled: false
+showExtraInfoInDataSetsView.relativeTime: false
 
 ROLE_ADMIN: 'ROLE_ADMIN'
 ROLE_EDITOR: 'ROLE_EDITOR'
@@ -243,6 +250,8 @@ dataResource:
         - "document"
         - "uploads"
         - "species-list"
+        - "publications"
+        - "events"
     permissionsDocumentTypes:
         - ""
         - "Email"

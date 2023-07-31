@@ -449,7 +449,7 @@ class DataController {
                 def entityInJson
                 if (clazz == 'DataResource') {
                     // this auth check (JWT or API key) is a special case handling to support backwards compatibility(which used to check for API key).
-                    String [] requiredRoles = [grailsApplication.config.ROLE_ADMIN]
+                    String requiredRoles = grailsApplication.config.ROLE_ADMIN
                     def authCheck = collectoryAuthService.isAuthorisedWsRequest(getParams(), request, response, requiredRoles,null)
                     entityInJson = crudService."read${clazz}"(params.pg, authCheck)
                 } else {
@@ -463,7 +463,12 @@ class DataController {
                 // return list of entities
                 addContentLocation "/ws/${urlForm}"
                 def domain = grailsApplication.getClassForName("au.org.ala.collectory.${clazz}")
-                def list = domain.list([sort:'name'])
+                def list = []
+                if (clazz == 'DataResource') {
+                    list = domain.findAllByIsPrivate(false, [sort: 'name'])
+                } else {
+                    list = domain.list([sort: 'name'])
+                }
                 list = filter(list)
                 def last = latestModified(list)
                 def detail = params.summary ? summary : brief
@@ -500,7 +505,7 @@ class DataController {
 
         // suppress 'declined' data resources
         if (urlForm == 'dataResource' && params.public == "true") {
-            list = list.findAll { it.status != 'declined' }
+            list = list.findAll { it.status != 'declined' && it.isPrivate == false }
         }
 
         // init results with total
@@ -553,9 +558,9 @@ class DataController {
     @Path("/ws/syncGBIF")
     @Produces("application/json")
     def syncGBIF () {
-        asyncGbifRegistryService.updateAllRegistrations()
-                .onComplete { List results ->
-                    log.error "Provider synced = ${results.size()}"
+        asyncGbifRegistryService.updateAllResources()
+                .onComplete {
+                    log.info "Sync complete"
                 }
                 .onError { Throwable err ->
                     log.error("An error occured ${err.message}", err)
@@ -1098,7 +1103,12 @@ class DataController {
      */
     def contactsForEntity = {
         check(params)
-        def contactList = params.pg.getContacts().collect { buildContactForModel(it, params.pg.urlForm()) }
+        def contactList = params.pg.getContacts().collect {
+            // public contacts only
+            if (it.contact.publish) {
+                buildContactForModel(it, params.pg.urlForm())
+            }
+        }.findAll { it != null }
         addContentLocation "/ws/${params.entity}/${params.pg.uid}/contacts"
         addVaryAcceptHeader()
         withFormat {
@@ -1130,7 +1140,8 @@ class DataController {
             Contact contact = Contact.get(params.id)
             ContactFor contactFor = ContactFor.findByContact(contact)
 
-            if (contact && contactFor) {
+            // public contacts only
+            if (contact?.publish && contactFor) {
                 def cm = buildContactForModel(contactFor, params.pg.urlForm())
                 addContentLocation "/ws/${params.entity}/${params.pg.uid}/contacts/${params.id}"
                 addVaryAcceptHeader()

@@ -1,5 +1,5 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
-<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-4.6.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-4.6.xsd http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
 
 <!-- This was generated with:
 
@@ -406,6 +406,30 @@ liquibase.command.referencePassword: XXXXX
     <changeSet author="ALA Dev Team" id="1647535601585-106">
         <dropNotNullConstraint columnDataType="decimal(13,10)" columnName="latitude" tableName="data_hub"/>
         <dropNotNullConstraint columnDataType="decimal(13,10)" columnName="longitude" tableName="data_hub"/>
+    </changeSet>
+
+    <changeSet author="vjrj" id="20230210-00">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="sequence" />
+            <columnExists tableName="sequence" columnName="version" />
+        </preConditions>
+        <dropColumn tableName="sequence" columnName="version" />
+    </changeSet>
+
+    <changeSet author="vjrj" id="20230210-01">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(1) FROM sequence;</sqlCheck>
+        </preConditions>
+        <sql>
+            INSERT INTO `sequence` (id, name, next_id, prefix)
+            VALUES (1,'collection',0,'co'),
+                   (2,'institution',0,'in'),
+                   (3,'dataProvider',0,'dp'),
+                   (4,'dataResource',0,'dr'),
+                   (5,'dataHub',0,'dh'),
+                   (6,'attribution',0,'at'),
+                   (7,'tempDataResource',0,'drt');
+        </sql>
     </changeSet>
 
 </databaseChangeLog>
