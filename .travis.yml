@@ -1,6 +1,6 @@
 language: groovy
 jdk:
-  - openjdk11
+- openjdk11
 sudo: false
 branches:
   only:
@@ -9,21 +9,18 @@ branches:
   - feature/oidc
   - master-nbn
 before_cache:
-  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
-  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
-
+- rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+- rm -fr $HOME/.gradle/caches/*/plugin-resolution/
 cache:
   directories:
-    - $HOME/.m2
-    - $HOME/.gradle/caches/
-    - $HOME/.gradle/wrapper/
-
+  - "$HOME/.m2"
+  - "$HOME/.gradle/caches/"
+  - "$HOME/.gradle/wrapper/"
 after_success:
-  - './gradlew bootJar'
-  - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && travis_retry ./gradlew publish'
-
+- "./gradlew bootJar"
+- '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && travis_retry ./gradlew publish'
 env:
   global:
-    - JAVA_TOOL_OPTIONS=-Dhttps.protocols=TLSv1.2
-    - secure: G31IscTcNtjjFA0R2pDRaZ2Std1d5F3pIfr3NUe0PsKcj8F2ubFd6xZ3LCccKu/HdDdlJ/6K6Khn1EfwHie5NRP+Uu7oAUOVkTXSeI4KfQFywpf3TvKLILh8/2NUe0451ESivKQ28UW4jPOehmLtCyd7MbxnO9GIrYyaWjNEJJw=
-    - secure: g7txXzs6g/DzF9bwI5UZ4wG2QxB4aqQeAK1TxL3P0DfMHB8hXs/BydKrFaA9TnJiB/g0fwabNCuJWr+IgOL3EPA1txwVu9VVttHqKiJXthoen1eN0QJtsCWhlE2/ldC1mENaJVXBQs7++sNutytUIOr9m2Yk78mXnu2RIfk7U/k=
+  - JAVA_TOOL_OPTIONS=-Dhttps.protocols=TLSv1.2
+  - secure: PzMsnINTSJkqAZONJd1vFXpHRgqThAuUynYaPuG1Qz3o+y7qzrY6fqCampK+MRcGsBLIS64WAVX0FFNoP6rkooGi3B6JR0Yrsls4D9XcCFsYFttdW7ZuQ3uAW4j50kw1tXlCIST9uAWR2UO+2iy3TJXWkApmrbeGKrNPuvMu2f7iKdHlVuisQp7Bzz+qsTVNrlnrxc5RyrYRRiHEmLSdGJrwN9UscyurMh7M2Fa2BdJA7tpFer8Pn9hH91SkjHxOK7JGiwFVwedKVgxwuLdWRw0nSohDog1rM8+6RE1cGCsgN81dXqiuOVttiFKnewxswjEnLNwDkeC98NIeodEw4Nr0vI3MsX9vXXGsUoMf4aOp9c7O7jbYiPTBXe5Yp/ytXSVory8vnMuo4I2oO6e0ShvQN8nF0HCRTk3DbG97S9L2S56jN1ShMLZwtrRug/+0pkY080eFILMhU5dd/bEeQWei8+0f+8e1pk1gZvxwQ1oXBYW7wo/oTd6h0Kfj2HlQbiY0lvtOIvPQqN4deaO+YcXR+yOEDd4I6CPEKyxewXbZ5pz75P+eBdh0N4/94vp1nDzOvqIPMVOEjLsj3N57mfNxvuu6/B3vJJV1/62dczH6dpJyv7bEHkIXUWXGg38obi/Z7ir++ozqbzGwt53gz2d75onaDO/HzvKzGyeZrUo=
+  - secure: 5N1c/CUdKEOEApO486SpIcFKRDwu63uIYsLel/RdnUjYmlQKpm7t09GMBgS5+LkqTmd0mgv3NvQ8WYDgUJIVIc4VhLFCpadBmZsbpVyFryAmLeCwbtuHJhscnVyPLVd8RNUmXhaX89f/igaArWrojfibCTIt8FDetqJERo/5qNoLVGg4L5AsAnOF/cz7wmaSEbolcTlgDhnbERqQLXP5icNm2K8Qbin7l9MeTmqOr4N57oPvWR68LryLzWpc8xrOImMyfDgXNrv/K8/axRjm3UOrwzC1uXWhU2uMPgVmkEI6Wa9nrLmKCgBW6GMDRhHJpAHlFvhPEMhIIRpoZ0Q8//X3A6Ke1VWzTQ57K39M+4Q0BNo4qE3a7pqtmKj6t71gcMk2NIpOqtO7QDu8XHl3bpnlpFYNqSW9s0pYYpz14sP48iaTT0DE3Z7PUs+VZO7miJVMUPJwrWrH3sLIhy4BxaJjGmBwvPn36u4uQ42SMX7nln7jwbJLETIchSg1xMn3gAOtNw/c5TpkLkPKxy1cai7zZVbj7kfKW1cHX9m3h9GG0lzVuGmhDKuetRV0DbnzU737ae0k71d6qRDj8xas4G0pwrSUr9sdYMhiHm79VBykvI7RU1pwJMNPmHog2p247wznzm/ylllt8dgpk7Js+S2kmImBi6ZriT2s967s7Wc=
