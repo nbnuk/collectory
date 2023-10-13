@@ -41,12 +41,12 @@ class CollectoryAuthService{
     }
 
     def isAdmin() {
-        return !grailsApplication.config.security.oidc.enabled.toBoolean() || authService.userInRole(grailsApplication.config.ROLE_ADMIN as String)
+        return !grailsApplication.config.security.dummy.oidc.enabled.toBoolean() || authService.userInRole(grailsApplication.config.ROLE_ADMIN as String)
     }
 
     protected boolean userInRole(role) {
         def roleFlag = false
-        if(!grailsApplication.config.security.oidc.enabled.toBoolean())
+        if(!grailsApplication.config.security.dummy.oidc.enabled.toBoolean())
             roleFlag = true
         else {
             if (authService) {
