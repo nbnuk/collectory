@@ -39,7 +39,7 @@ class DataController {
 
     def index = { }
 
-    private def check(params) {
+    protected def check(params) {
         def uid = params.uid
         if (uid) {
             // it must exist
