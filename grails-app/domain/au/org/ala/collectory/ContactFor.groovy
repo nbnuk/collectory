@@ -8,6 +8,7 @@ package au.org.ala.collectory
 class ContactFor implements Serializable {
 
     def grailsApplication
+    def providerGroupService
 
     Contact contact
     String entityUid
@@ -63,7 +64,7 @@ class ContactFor implements Serializable {
     Boolean hasAnnotationAlert() {
         try {
             //get dataresource name from entityUid - could be dataprovider too
-            ProviderGroup pg = ProviderGroup._get(entityUid)
+            ProviderGroup pg = providerGroupService._get(entityUid)
             def drName = pg.getName()
             def userId = contact.getUserId()
 
