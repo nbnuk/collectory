@@ -90,7 +90,7 @@
             <div id="list" class="tab-pane">
               <div  class="list-column">
                 <div class="nameList section" id="names">
-                  <p><span id="numFilteredCollections"><g:message code="public.map3.maplistcol.des03" /></span>. <g:message code="public.map3.maplistcol.des04" /> <img style="vertical-align:middle" src="${resource(dir:'images/map', file: grailsApplication.config.skin.orgNameShort == "ALA" ? 'nomap.gif' : 'noworldmap.png')}"/>.</p>
+                  <p><span id="numFilteredCollections"><g:message code="public.map3.maplistcol.des03" /></span>. <g:message code="public.map3.maplistcol.des04" /> <img class="not-mapped-icon" style="vertical-align:middle" src="${resource(dir:'images/map', file: grailsApplication.config.skin.orgNameShort == "ALA" ? 'nomap.gif' : 'noworldmap.png')}"/>.</p>
                   <ul id="filtered-list" style="padding-left:15px;">
                     <g:each var="c" in="${collections}" status="i">
                       <li>

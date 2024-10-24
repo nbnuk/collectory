@@ -235,11 +235,16 @@ function updateList(features) {
 
     var innerHtml = "";
     var orphansHtml = "";
+    var notMappedIcon = $('.not-mapped-icon').length > 0 ? $('.not-mapped-icon')[0].outerHTML : '';
+
     for (var i = 0; i < sortedParents.length; i++) {
         var institution = sortedParents[i];
+
+        var itemFlagsHtml =  institution.properties.isMappable ? '' : notMappedIcon;
+
         // show institution - use name of institution from first collection
         var content = "<li><a class='highlight' href='" + baseUrl + "/public/show/" + institution.properties.uid + "'>" +
-            institution.properties.name + "</a><ul>";
+            institution.properties.name + itemFlagsHtml + "</a><ul>";
 
         if (institution.properties.collections !== undefined){
             // add collections
