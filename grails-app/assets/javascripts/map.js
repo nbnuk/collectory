@@ -64,6 +64,10 @@ function onEachFeature(feature, layer) {
     }
 }
 
+function filterFeature(feature, layer) {
+    return feature.properties && feature.properties.isMappable;
+}
+
 /************************************************************\
 * initialise the map
 * note this must be called from body.onload() not jQuery document.ready() as the latter is too early
@@ -97,7 +101,8 @@ function initMap(mapOptions) {
         geoJsonLayer = L.geoJson(data,
             {
                 style: myStyle,
-                onEachFeature: onEachFeature
+                onEachFeature: onEachFeature,
+                filter: filterFeature
             }
         );
         clusterMarkers.addLayer(geoJsonLayer);
