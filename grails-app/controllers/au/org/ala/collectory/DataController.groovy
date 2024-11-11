@@ -661,7 +661,8 @@ class DataController {
     /********* delete **************************
      *
      */
-    def delete = {
+    @Transactional
+    def delete() {
         if (grailsApplication.config.deletesForbidden) {
             render(status:405, text:'delete is currently unavailable')
             return
@@ -673,7 +674,7 @@ class DataController {
                 providerGroupService._get(params.uid)
             if (pg) {
                 def name = pg.name
-                pg.delete()
+                pg.delete(flush: true)
                 def message = ['message':"deleted ${name}"]
                 render message as JSON
             } else {
