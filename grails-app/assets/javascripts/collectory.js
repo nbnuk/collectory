@@ -224,8 +224,8 @@ function loadDownloadStats(loggerServicesUrl, uid, name, eventType) {
             $.each(displayNameMap, function( nameKey, displayString ) {
                 var value = data[nameKey];
                 var $usageDiv = $('<div class="usageDiv well"/>');
-                var nonTestingRecords  = (value.reasonBreakdown["testing"] == undefined) ? value.records : value.records -  value.reasonBreakdown["testing"].records;
-                var nonTestingEvents   = (value.reasonBreakdown["testing"] == undefined) ? value.events  : value.events  -  value.reasonBreakdown["testing"].events;
+                var nonTestingRecords  = (value.reasonBreakdown["testing|Testing"] == undefined) ? value.records : value.records -  value.reasonBreakdown["testing"].records;
+                var nonTestingEvents   = (value.reasonBreakdown["testing|Testing"] == undefined) ? value.events  : value.events  -  value.reasonBreakdown["testing"].events;
                 $usageDiv.html('<h4><span>' + displayString + "</span><span class='pull-right'>" + addCommas(nonTestingRecords) + " " + jQuery.i18n.prop('collectory.js.recordsdownloaded') + " " +  addCommas(nonTestingEvents) + " downloads. </span></h4>");
                 var $usageTable = $('<table class="table"/>');
                 reasons = sortKV(value['reasonBreakdown']);
