@@ -10,9 +10,9 @@
         <meta name="breadcrumbParent"
               content="${createLink(action: 'list', controller: 'manage')},${message(code: 'manage.list.title01')}"
         />
-        <meta name="breadcrumbs"
+<cl:isAdmin><meta name="breadcrumbs"
               content="${createLink(action: 'list', controller: 'contact')},Contacts"
-        />
+        /></cl:isAdmin>
         <g:set var="entityName" value="${message(code: 'contact.label', default: 'Contact')}" />
         <title><g:message code="default.show.label" args="[entityName]" /></title>
         <asset:stylesheet src="application.css"/>
@@ -21,8 +21,10 @@
         <div class="btn-toolbar">
             <ul class="btn-group">
                 <li class="btn btn-default"><cl:homeLink/></li>
-                <li class="btn btn-default"><span class="glyphicon glyphicon-list"></span><g:link class="list" action="list"> <g:message code="default.list.label" args="[entityName]"/></g:link></li>
+<cl:isAdmin>
+    <li class="btn btn-default"><span class="glyphicon glyphicon-list"></span><g:link class="list" action="list"> <g:message code="default.list.label" args="[entityName]"/></g:link></li>
                 <li class="btn btn-default"><span class="glyphicon glyphicon-plus"></span><g:link class="create" action="create"> <g:message code="default.new.label" args="[entityName]"/></g:link></li>
+</cl:isAdmin>
             </ul>
         </div>
         <div class="body">

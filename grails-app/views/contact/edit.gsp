@@ -18,8 +18,8 @@
         <div class="btn-toolbar">
             <ul class="btn-group">
                 <li class="btn btn-default"><cl:homeLink/> </li>
-                <li class="btn btn-default"><g:link class="list" action="list"><g:message code="default.list.label" args="[entityName]" /></g:link> </li>
-                <li class="btn btn-default"><g:link class="create" action="create"><g:message code="default.new.label" args="[entityName]" /></g:link> </li>
+<cl:isAdmin><li class="btn btn-default"><g:link class="list" action="list"><g:message code="default.list.label" args="[entityName]" /></g:link> </li>
+    <li class="btn btn-default"><g:link class="create" action="create"><g:message code="default.new.label" args="[entityName]" /></g:link> </li></cl:isAdmin>
             </ul>
         </div>
         <div class="body">
