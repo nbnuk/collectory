@@ -777,6 +777,7 @@ abstract class ProviderGroupController {
                     flash.message = "${message(code: 'default.deleted.message', args: [message(code: "${entityNameLower}.label", default: entityNameLower), name])}"
                     redirect(action: "list")
                 } catch (DataIntegrityViolationException e) {
+                    log.error(e)
                     flash.message = "${message(code: 'default.not.deleted.message', args: [message(code: "${entityNameLower}.label", default: entityNameLower), name])}"
                     redirect(action: "show", id: params.id)
                 }
