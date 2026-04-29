@@ -182,6 +182,10 @@ class CollectoryTagLib {
             return true
         }
         else if (email) {
+            //NBN added this check, because ALA only checks if user is contactFor (but they also need to be ROLE_EDITOR)
+            if (!request?.isUserInRole(grailsApplication.config.ROLE_EDITOR as String)){
+                return false
+            }
             ProviderGroup pg = providerGroupService._get(uid)
             if (pg) {
                 return pg.isAuthorised(email)
